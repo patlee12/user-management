@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
 
-import { AppController } from './app.controller';
+import { AppController } from './controllers/app.controller';
 import { AppService } from './app.service';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthController } from './controllers/auth.controller';
 
 const DEFAULT_ADMIN = {
   email: 'localbasedman@forever.net',
@@ -38,8 +40,9 @@ const authenticate = async (email: string, password: string) => {
         }),
       }),
     ),
+    TypeOrmModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, AuthController],
   providers: [AppService],
 })
 export class AppModule {}
