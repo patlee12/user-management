@@ -11,5 +11,14 @@ services:
     ports:
       - '5432:5432'
 
+  pgadmin:
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@pgadmin.com
+      - PGADMIN_DEFAULT_PASSWORD=adminpassword
+    ports:
+      - '5050:82'
+
 volumes:
   postgres:
