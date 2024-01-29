@@ -11,6 +11,7 @@ async function main() {
     create: {
       username: 'Pat',
       password: 'password',
+      email: 'patrick@admin.net',
       roles: ['admin', 'default_user'],
     },
   });
