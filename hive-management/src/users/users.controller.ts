@@ -17,6 +17,10 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
+  @ApiOperation({
+    summary: 'Create User',
+    description: 'Create a new user.',
+  })
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
   }
@@ -24,13 +28,17 @@ export class UsersController {
   @Get()
   @ApiOperation({
     summary: 'Get all Users',
-    description: 'Retrieve all users from the database',
+    description: 'Retrieve all users from the database.',
   })
   findAll() {
     return this.usersService.findAll();
   }
 
   @Get(':id')
+  @ApiOperation({
+    summary: 'Get a user by id.',
+    description: 'Retrieve a user by id from the database.',
+  })
   findOne(@Param('id') id: string) {
     return this.usersService.findOne(+id);
   }
