@@ -18,7 +18,7 @@ services:
       - PGADMIN_DEFAULT_EMAIL=admin@pgadmin.com
       - PGADMIN_DEFAULT_PASSWORD=adminpassword
     ports:
-      - '5050:82'
+      - '5050:5050'
 
 volumes:
   postgres:
