@@ -9,11 +9,7 @@ export class UsersService {
 
   create(createUserDto: CreateUserDto) {
     return this.prisma.user.create({
-      data: {
-        username: createUserDto.username,
-        password: createUserDto.password,
-        email: createUserDto.email,
-      },
+      data: createUserDto,
     });
   }
 
@@ -22,14 +18,14 @@ export class UsersService {
   }
 
   findOne(id: number) {
-    return this.prisma.user.findUnique({ where: { id } });
+    return this.prisma.user.findUnique({ where: { id: id } });
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+    return this.prisma.user.update({ where: { id: id }, data: updateUserDto });
   }
 
   remove(id: number) {
-    return `This action removes a #${id} user`;
+    return this.prisma.user.delete({ where: { id: id } });
   }
 }
