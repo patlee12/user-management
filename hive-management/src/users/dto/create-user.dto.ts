@@ -18,9 +18,9 @@ export class CreateUserDto {
   username: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   @MinLength(3)
-  @ApiProperty()
+  @ApiProperty({ required: false })
   name?: string;
 
   @IsString()
@@ -38,6 +38,6 @@ export class CreateUserDto {
 
   @IsArray()
   @IsOptional()
-  @ApiProperty()
+  @ApiProperty({ required: false })
   roles?: string[];
 }

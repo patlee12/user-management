@@ -15,7 +15,6 @@ async function main() {
     },
   });
 
-  // create two dummy articles
   const user2 = await prisma.user.upsert({
     where: { username: 'Eddy' },
     update: {},
@@ -28,7 +27,21 @@ async function main() {
     },
   });
 
-  console.log({ user }, { user2 });
+  const post = await prisma.post.upsert({
+    where: { title: 'Prisma Adds Support for MongoDB' },
+    update: {
+      authorId: user2.id,
+    },
+    create: {
+      title: 'Welcome to Hive Management',
+      body: 'Hello and Welcome to Hive Management. Enjoy using our usermanagemement interface and other interesting services.',
+      description: 'A generic post to get started.',
+      published: true,
+      authorId: user2.id,
+    },
+  });
+
+  console.log({ user }, { user2 }, { post });
 }
 
 // execute the main function
