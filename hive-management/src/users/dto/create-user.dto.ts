@@ -18,6 +18,12 @@ export class CreateUserDto {
   username: string;
 
   @IsString()
+  @IsNotEmpty()
+  @MinLength(3)
+  @ApiProperty()
+  name?: string;
+
+  @IsString()
   @MinLength(12)
   @MaxLength(20)
   @Matches(/((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
