@@ -7,6 +7,7 @@ import {
   MaxLength,
   MinLength,
   Matches,
+  IsEmail,
 } from 'class-validator';
 
 export class CreateUserDto {
@@ -25,6 +26,7 @@ export class CreateUserDto {
   @ApiProperty()
   password: string;
 
+  @IsEmail()
   @ApiProperty()
   email: string;
 
