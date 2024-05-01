@@ -23,6 +23,6 @@ export class PostEntity implements Post {
   @ApiProperty()
   updatedAt: Date;
 
-  @ApiProperty({ required: false, nullable: true })
-  authorId: number | null;
+  @ApiProperty({ required: true })
+  authorId: number;
 }

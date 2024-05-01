@@ -1,11 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  MinLength,
+} from 'class-validator';
 
 export class CreatePostDto {
   @IsString()
   @IsNotEmpty()
   @MinLength(3)
-  @ApiProperty()
+  @ApiProperty({ required: true })
   title: string;
 
   @IsString()
@@ -14,12 +20,17 @@ export class CreatePostDto {
   @ApiProperty({ required: false })
   description?: string;
 
-  @ApiProperty()
+  @ApiProperty({ required: true })
   @IsString()
   @IsNotEmpty()
   @MinLength(3)
   body: string;
 
   @ApiProperty({ required: false, default: false })
-  published?: boolean = false;
+  published?: boolean;
+
+  @IsNumber()
+  @IsNotEmpty()
+  @ApiProperty({ required: true })
+  authorId: number;
 }
