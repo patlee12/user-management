@@ -23,16 +23,17 @@ export class PostsController {
   @Post()
   @ApiCreatedResponse({ type: PostEntity })
   async create(@Body() createPostDto: CreatePostDto) {
-    return await this.postsService.create(createPostDto);
+    return new PostEntity(await this.postsService.create(createPostDto));
   }
 
   @Get()
   @ApiOkResponse({ type: PostEntity, isArray: true })
   async findAll() {
-    return await this.postsService.findAll();
+    const posts = await this.postsService.findAll();
+    return posts.map((post) => new PostEntity(post));
   }
 
-  @Get(':authorId')
+  @Get('byAuthor/:authorId')
   @ApiOkResponse({ type: PostEntity, isArray: true })
   async getAuthorPosts(@Param('authorId', ParseIntPipe) authorId: number) {
     const posts = await this.postsService.getPostsByUser(authorId);
@@ -41,7 +42,7 @@ export class PostsController {
         `Posts with author id ${authorId} do not exist.`,
       );
     }
-    return posts;
+    return posts.map((post) => new PostEntity(post));
   }
 
   @Get(':id')
@@ -51,7 +52,7 @@ export class PostsController {
     if (!post) {
       throw new NotFoundException(`Post id ${id} does not exist.`);
     }
-    return post;
+    return new PostEntity(post);
   }
   @Patch(':id')
   @ApiOkResponse({ type: PostEntity })
@@ -65,7 +66,7 @@ export class PostsController {
         `Post id ${id} was not updated. Verify correct id is being used.`,
       );
     }
-    return updatePost;
+    return new PostEntity(updatePost);
   }
 
   @Delete(':id')
@@ -77,6 +78,6 @@ export class PostsController {
         `Post id ${id} was not deleted. Verify correct id is being used.`,
       );
     }
-    return deletePost;
+    return new PostEntity(deletePost);
   }
 }

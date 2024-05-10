@@ -1,5 +1,6 @@
 import { Post } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
+import { UserEntity } from 'src/users/entities/user.entity';
 
 export class PostEntity implements Post {
   @ApiProperty()
@@ -25,4 +26,15 @@ export class PostEntity implements Post {
 
   @ApiProperty({ required: true })
   authorId: number;
+
+  @ApiProperty({ required: false, type: UserEntity })
+  author?: UserEntity;
+
+  constructor({ author, ...data }: Partial<PostEntity>) {
+    Object.assign(this, data);
+
+    if (author) {
+      this.author = new UserEntity(author);
+    }
+  }
 }

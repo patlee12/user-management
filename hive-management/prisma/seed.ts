@@ -16,28 +16,26 @@ async function main() {
   });
 
   const user2 = await prisma.user.upsert({
-    where: { username: 'Eddy' },
+    where: { username: 'Cosmo' },
     update: {},
     create: {
-      username: 'Eddy12',
-      name: 'Eddy Admin',
+      username: 'Cosmo12',
+      name: 'Cosmo Boy',
       password: 'password',
-      email: 'eddy@admin.net',
-      roles: ['admin', 'default_user'],
+      email: 'cosmo@user.net',
+      roles: ['default_user'],
     },
   });
 
   const post = await prisma.post.upsert({
     where: { title: 'Prisma Adds Support for MongoDB' },
-    update: {
-      authorId: user2.id,
-    },
+    update: {},
     create: {
       title: 'Welcome to Hive Management',
       body: 'Hello and Welcome to Hive Management. Enjoy using our usermanagemement interface and other interesting services.',
       description: 'A generic post to get started.',
       published: true,
-      authorId: user2.id,
+      authorId: user.id,
     },
   });
 

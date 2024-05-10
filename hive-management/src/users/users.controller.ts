@@ -23,13 +23,14 @@ export class UsersController {
   @Post()
   @ApiCreatedResponse({ type: UserEntity })
   async create(@Body() createUserDto: CreateUserDto) {
-    return await this.usersService.create(createUserDto);
+    return new UserEntity(await this.usersService.create(createUserDto));
   }
 
   @Get()
   @ApiOkResponse({ type: UserEntity, isArray: true })
   async findAll() {
-    return await this.usersService.findAll();
+    const users = await this.usersService.findAll();
+    return users.map((user) => new UserEntity(user));
   }
 
   @Get(':id')
@@ -39,7 +40,7 @@ export class UsersController {
     if (!user) {
       throw new NotFoundException(`User with ${id} does not exist.`);
     }
-    return user;
+    return new UserEntity(user);
   }
 
   @Patch(':id')
@@ -54,7 +55,7 @@ export class UsersController {
         `User with ${id} was not updated. Verify correct id is being used.`,
       );
     }
-    return updateUser;
+    return new UserEntity(updateUser);
   }
 
   @Delete(':id')
@@ -66,6 +67,6 @@ export class UsersController {
         `User with ${id} was not deleted. Verify correct id is being used.`,
       );
     }
-    return deleteUser;
+    return new UserEntity(deleteUser);
   }
 }
