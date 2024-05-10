@@ -33,6 +33,7 @@ export class CreateUserDto {
   password: string;
 
   @IsEmail()
+  @IsNotEmpty()
   @ApiProperty()
   email: string;
 
