@@ -5,7 +5,7 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { PrismaModule } from 'src/modules/prisma.module';
 
-//Generates a random secret
+//Generate a random secret
 export const jwtSecret = process.env.JWT_SECRET;
 
 @Module({
