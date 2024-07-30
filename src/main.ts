@@ -16,6 +16,7 @@ async function bootstrap() {
       'A backend microservice architecture serving user managment and data services.',
     )
     .setVersion('0.1')
+    .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
