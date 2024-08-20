@@ -1,14 +1,18 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { AuthModule } from './auth.module';
+import { PrismaService } from 'src/services/prisma.service';
+import { JwtService } from '@nestjs/jwt';
 
 describe('AuthController', () => {
   let controller: AuthController;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [AuthModule],
       controllers: [AuthController],
-      providers: [AuthService],
+      providers: [AuthService, PrismaService, JwtService],
     }).compile();
 
     controller = module.get<AuthController>(AuthController);
