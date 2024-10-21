@@ -3,7 +3,7 @@ import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import { UsersModule } from './users.module';
 import { UserEntity } from './entities/user.entity';
-import { PrismaService } from 'src/services/prisma.service';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 describe('UsersController', () => {
   let controller: UsersController;

@@ -1,17 +1,19 @@
 import { HttpAdapterHost, NestFactory, Reflector } from '@nestjs/core';
-import { AppModule } from './modules/app.module';
+import { UserManagementModule } from './app modules/user-management.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe, ClassSerializerInterceptor } from '@nestjs/common';
 import { PrismaClientExceptionFilter } from './prisma-client-exception/prisma-client-exception.filter';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const userManagementApp = await NestFactory.create(UserManagementModule);
 
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
-  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
+  userManagementApp.useGlobalPipes(new ValidationPipe({ whitelist: true }));
+  userManagementApp.useGlobalInterceptors(
+    new ClassSerializerInterceptor(userManagementApp.get(Reflector)),
+  );
 
   const config = new DocumentBuilder()
-    .setTitle('Hive-Managment')
+    .setTitle('User-Managment')
     .setDescription(
       'A backend microservice architecture serving user managment and data services.',
     )
@@ -19,12 +21,18 @@ async function bootstrap() {
     .addBearerAuth()
     .build();
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  const document = SwaggerModule.createDocument(userManagementApp, config);
 
-  const { httpAdapter } = app.get(HttpAdapterHost);
-  app.useGlobalFilters(new PrismaClientExceptionFilter(httpAdapter));
+  if (process.env.NODE_ENV === 'Development') {
+    //Only use swagger in development
+    SwaggerModule.setup('api', userManagementApp, document);
+  }
 
-  await app.listen(3000);
+  const { httpAdapter } = userManagementApp.get(HttpAdapterHost);
+  userManagementApp.useGlobalFilters(
+    new PrismaClientExceptionFilter(httpAdapter),
+  );
+
+  await userManagementApp.listen(3000);
 }
 bootstrap();
