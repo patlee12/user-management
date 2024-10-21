@@ -8,6 +8,7 @@ import {
   MinLength,
   Matches,
   IsEmail,
+  IsBoolean,
 } from 'class-validator';
 
 export class CreateUserDto {
@@ -31,6 +32,11 @@ export class CreateUserDto {
   })
   @ApiProperty()
   password: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @ApiProperty({ required: false })
+  mfaEnabled?: boolean;
 
   @IsEmail()
   @IsNotEmpty()

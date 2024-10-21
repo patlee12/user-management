@@ -45,9 +45,8 @@ export class AuthService {
     }
     let mfaVerified: boolean = false;
     if (token) {
-      const userMfa = await this.userService.findOneMfa(user.id);
-
-      if (userMfa.enabled) {
+      if (user.mfaEnabled) {
+        const userMfa = await this.userService.findOneMfa(user.id);
         const isMfaValid = this.verifyTotp(userMfa.secret, token);
         if (isMfaValid) {
           mfaVerified = true;

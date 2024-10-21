@@ -17,10 +17,12 @@ describe('UsersController', () => {
         {
           provide: UsersService,
           useValue: {
-            findAll: jest.fn().mockResolvedValue([
-              { id: 6, username: 'Pat' },
-              { id: 7, username: 'Cosmo12' },
-            ]),
+            findAll: jest
+              .fn()
+              .mockResolvedValue([
+                { username: 'Pat' },
+                { username: 'Cosmo12' },
+              ]),
           },
         },
         PrismaService,
@@ -41,13 +43,12 @@ describe('UsersController', () => {
       const result: UserEntity[] = await controller.findAll();
 
       const simplifiedResult = result.map((user) => ({
-        id: user.id,
         username: user.username,
       }));
 
       expect(simplifiedResult).toEqual([
-        { id: 6, username: 'Pat' },
-        { id: 7, username: 'Cosmo12' },
+        { username: 'Pat' },
+        { username: 'Cosmo12' },
       ]);
     });
   });

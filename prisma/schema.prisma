@@ -16,6 +16,7 @@ model User {
   name        String?
   email       String   @unique
   password    String
+  mfaEnabled  Boolean  @default(false)
   roles       String[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -41,7 +42,6 @@ model Post {
 model mfa_auth {
   id          Int      @id @default(autoincrement())
   secret      String
-  enabled     Boolean  @default(false)
   user        User     @relation(fields: [userId,email],references: [id,email])
   userId      Int      @unique
   email       String   @unique   

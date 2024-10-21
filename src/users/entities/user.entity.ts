@@ -23,6 +23,9 @@ export class UserEntity implements User {
   password: string;
 
   @ApiProperty()
+  mfaEnabled: boolean;
+
+  @ApiProperty()
   roles: string[];
 
   @ApiProperty()

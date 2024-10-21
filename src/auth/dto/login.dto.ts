@@ -12,4 +12,8 @@ export class LoginDto {
   @MinLength(12)
   @ApiProperty()
   password: string;
+
+  @IsString()
+  @ApiProperty({ required: false })
+  token?: string;
 }

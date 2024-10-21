@@ -4,6 +4,7 @@ import {
   Post,
   Request,
   UnauthorizedException,
+  Logger,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
@@ -16,6 +17,7 @@ import { UserEntity } from 'src/users/entities/user.entity';
 @Controller('auth')
 @ApiTags('auth')
 export class AuthController {
+  private readonly logger = new Logger(AuthController.name);
   constructor(
     private readonly authService: AuthService,
     private readonly userService: UsersService,
@@ -23,14 +25,15 @@ export class AuthController {
 
   @Post('login')
   @ApiOkResponse({ type: AuthEntity })
-  login(@Body() { email, password }: LoginDto) {
-    return this.authService.login(email, password);
+  login(@Body() { email, password, token }: LoginDto) {
+    return this.authService.login(email, password, token);
   }
 
   @Post('setup-mfa')
   @UseGuards(JwtAuthGuard)
   async setupMfa(@Request() req) {
     const user: UserEntity = req.user;
+    this.logger.log(`setup MFA with ${req}`);
     const secret = await this.authService.generateMfaSecret(user);
     this.userService.createMfaAuth({
       secret: secret,
@@ -46,6 +49,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   async verifyMfa(@Request() req, @Body() body: { token: string }) {
     const user: UserEntity = req.user;
+    this.logger.log(`Pulling user from request: ${req}`);
     const userMfa = await this.userService.findOneMfaByEmail(user.email);
     const isValid = await this.authService.verifyTotp(
       userMfa.secret,

@@ -1,12 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsNotEmpty,
-  IsOptional,
   IsString,
   IsInt,
   IsEmail,
   IsBase32,
-  IsBoolean,
 } from 'class-validator';
 
 export class CreateMfaDto {
@@ -15,11 +13,6 @@ export class CreateMfaDto {
   @IsNotEmpty()
   @ApiProperty()
   secret: string;
-
-  @IsOptional()
-  @IsBoolean()
-  @ApiProperty({ required: false })
-  enabled?: boolean;
 
   @IsInt()
   @IsNotEmpty()
