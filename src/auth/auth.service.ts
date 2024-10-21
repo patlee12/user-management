@@ -31,7 +31,7 @@ export class AuthService {
 
     // If no user is found.
     if (!user) {
-      throw new NotFoundException(`No user found for the email ${email}`);
+      throw new NotFoundException(`No user found for that email/password`);
     }
 
     // Check if the password is correct.
@@ -40,7 +40,7 @@ export class AuthService {
     // If password does not match.
     if (!isPasswordValid) {
       throw new UnauthorizedException(
-        'Invalid password was provided, please try again.',
+        '`No user found for that email/password`',
       );
     }
     let mfaVerified: boolean = false;
