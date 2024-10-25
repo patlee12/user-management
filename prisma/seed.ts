@@ -17,7 +17,25 @@ async function main() {
       username: 'Pat',
       password: passwordPat,
       email: 'patrick@admin.net',
-      roles: ['admin', 'default_user'],
+      roles: {
+        create: {
+          name: 'admin',
+          description: 'Access to everything within application',
+          permissions: {
+            create: [
+              {
+                name: 'user-management',
+                description:
+                  'Can add, remove, assign roles, and update permissions',
+              },
+              {
+                name: 'content-moderator',
+                description: 'Can create,edit, and delete their all posts.',
+              },
+            ],
+          },
+        },
+      },
     },
   });
 
@@ -31,7 +49,18 @@ async function main() {
       name: 'Cosmo Boy',
       password: passwordCosmo,
       email: 'cosmo@user.net',
-      roles: ['default_user'],
+      roles: {
+        create: {
+          name: 'user',
+          description: 'Regular access to application',
+          permissions: {
+            create: {
+              name: 'post',
+              description: 'Can create,edit, and delete their own posts.',
+            },
+          },
+        },
+      },
     },
   });
 

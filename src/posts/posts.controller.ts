@@ -69,6 +69,7 @@ export class PostsController {
     }
     return new PostEntity(post);
   }
+
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
