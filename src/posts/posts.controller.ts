@@ -28,6 +28,8 @@ export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiCreatedResponse({ type: PostEntity })
   async create(@Body() createPostDto: CreatePostDto) {
     return new PostEntity(await this.postsService.create(createPostDto));
@@ -43,6 +45,8 @@ export class PostsController {
   }
 
   @Get('byAuthor/:authorId')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOkResponse({ type: PostEntity, isArray: true })
   async getAuthorPosts(@Param('authorId', ParseIntPipe) authorId: number) {
     const posts = await this.postsService.getPostsByUser(authorId);
@@ -55,6 +59,8 @@ export class PostsController {
   }
 
   @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOkResponse({ type: PostEntity })
   async findOne(@Param('id', ParseIntPipe) id: number) {
     const post = await this.postsService.findOne(id);
@@ -64,6 +70,8 @@ export class PostsController {
     return new PostEntity(post);
   }
   @Patch(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOkResponse({ type: PostEntity })
   async update(
     @Param('id', ParseIntPipe) id: number,
@@ -79,6 +87,8 @@ export class PostsController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOkResponse({ type: PostEntity })
   async remove(@Param('id', ParseIntPipe) id: number) {
     const deletePost = await this.postsService.remove(id);
