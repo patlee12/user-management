@@ -46,5 +46,5 @@ export class CreateUserDto {
   @IsArray()
   @IsOptional()
   @ApiProperty({ required: false })
-  roles?: string[];
+  userRoles?: string[];
 }

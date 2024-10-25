@@ -17,7 +17,7 @@ model User {
   email       String   @unique
   password    String
   mfaEnabled  Boolean  @default(false)
-  roles       Role[]   @relation("UserRoles")
+  userRoles   UserRoles[]
   posts       Post[]
   mfa_auth    mfa_auth[]
   createdAt   DateTime @default(now())
@@ -25,16 +25,18 @@ model User {
 
   @@unique([id, email])
   
+ 
 }
 
 model Role {
   id          Int          @id @default(autoincrement())
   name        String       @unique
   description String?
-  users       User[]       @relation("UserRoles")
   permissions Permission[] @relation("RolePermissions")
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
+
+  UserRoles   UserRoles[]
 }
 
 model Permission {
@@ -46,6 +48,18 @@ model Permission {
   updatedAt   DateTime  @updatedAt
 }
 
+model UserRoles {
+  user        User      @relation(fields: [userId],references: [id])
+  userId      Int
+  role        Role      @relation(fields: [roleId],references: [id])
+  roleId      Int
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@id([userId, roleId])  // Composite primary key
+  @@unique([userId, roleId]) // Unique constraint to prevent duplicate user-role pairs
+}
+
 model Post {
   id          Int      @id @default(autoincrement())
   title       String   @unique
@@ -54,7 +68,7 @@ model Post {
   published   Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  author      User    @relation(fields: [authorId], references: [id])
+  author      User     @relation(fields: [authorId], references: [id])
   authorId    Int
 }
 
