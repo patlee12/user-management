@@ -45,6 +45,10 @@ export class CreateUserDto {
 
   @IsArray()
   @IsOptional()
-  @ApiProperty({ required: false })
-  userRoles?: string[];
+  @ApiProperty({
+    type: [Number],
+    description: 'Array of UserRole IDs associated with the user',
+    required: false,
+  })
+  userRoles?: number[];
 }
