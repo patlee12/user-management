@@ -10,6 +10,7 @@ import {
   IsEmail,
   IsBoolean,
 } from 'class-validator';
+import { UserRolesDto } from 'src/roles-and-permissions/dto/user-roles.dto';
 
 export class CreateUserDto {
   @IsString()
@@ -46,9 +47,9 @@ export class CreateUserDto {
   @IsArray()
   @IsOptional()
   @ApiProperty({
-    type: [Number],
-    description: 'Array of UserRole IDs associated with the user',
+    type: [UserRolesDto],
+    description: 'Array of UserRoles associated with the user',
     required: false,
   })
-  userRoles?: number[];
+  userRoles?: UserRolesDto[];
 }

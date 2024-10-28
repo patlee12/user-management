@@ -20,8 +20,17 @@ export class UsersService {
 
     createUserDto.password = hashedPassword;
 
+    const createUserData = {
+      ...createUserDto,
+      userRoles: {
+        create: createUserDto.userRoles?.map((role) => ({
+          roleId: role.roleId,
+        })),
+      },
+    };
+
     return this.prisma.user.create({
-      data: createUserDto,
+      data: createUserData,
     });
   }
 
@@ -44,8 +53,16 @@ export class UsersService {
         roundsOfHashing,
       );
     }
+    const updateUserData = {
+      ...updateUserDto,
+      userRoles: {
+        create: updateUserDto.userRoles?.map((role) => ({
+          roleId: role.roleId,
+        })),
+      },
+    };
 
-    return this.prisma.user.update({ where: { id: id }, data: updateUserDto });
+    return this.prisma.user.update({ where: { id: id }, data: updateUserData });
   }
 
   remove(id: number) {
