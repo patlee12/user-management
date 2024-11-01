@@ -39,14 +39,40 @@ model Role {
   UserRoles   UserRoles[]
 }
 
+//List all action types and resources
+enum ActionType {
+  CREATE
+  READ
+  UPDATE
+  DELETE
+  MANAGE
+  APPROVE
+  REJECT
+}
+
+enum Resource {
+  POSTS
+  ROLES
+  PERMISSIONS
+  USERS
+}
 model Permission {
   id          Int       @id @default(autoincrement())
   name        String    @unique
-  description String?   
-  roles       Role[]    @relation("RolePermissions")
+  actionType  ActionType
+  description String   
+  resource    Resource   //Indicates the resource or module the permission applies to
+  isActive    Boolean   @default(true) //Enables or disables the permission without deletion
+  createdBy   Int      //Tracks which user created the permission
+  updatedBy   Int      //Tracks which user last updated the permission
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+
+  roles       Role[]    @relation("RolePermissions")
+
+  @@unique([actionType,resource])
 }
+
 
 model UserRoles {
   user        User      @relation(fields: [userId],references: [id])
