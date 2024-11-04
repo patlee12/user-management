@@ -1,4 +1,14 @@
-import { PartialType } from '@nestjs/swagger';
-import { CreateRoleDto } from './create-role.dto';
+import { IsArray, IsOptional, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
 
-export class UpdateRoleDto extends PartialType(CreateRoleDto) {}
+export class UpdateRoleDto {
+  @IsArray()
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => PermissionIdDto)
+  permissions?: PermissionIdDto[];
+}
+
+export class PermissionIdDto {
+  id: number;
+}

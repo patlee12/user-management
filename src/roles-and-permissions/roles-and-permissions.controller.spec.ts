@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { RolesAndPermissionsController } from './roles-and-permissions.controller';
 import { RolesAndPermissionsService } from './roles-and-permissions.service';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 describe('RolesAndPermissionsController', () => {
   let controller: RolesAndPermissionsController;
@@ -8,10 +9,12 @@ describe('RolesAndPermissionsController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [RolesAndPermissionsController],
-      providers: [RolesAndPermissionsService],
+      providers: [RolesAndPermissionsService, PrismaService],
     }).compile();
 
-    controller = module.get<RolesAndPermissionsController>(RolesAndPermissionsController);
+    controller = module.get<RolesAndPermissionsController>(
+      RolesAndPermissionsController,
+    );
   });
 
   it('should be defined', () => {
