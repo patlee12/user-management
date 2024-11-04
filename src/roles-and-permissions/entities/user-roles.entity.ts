@@ -9,6 +9,9 @@ export class UserRolesEntity implements UserRoles {
   roleId: number;
 
   @ApiProperty()
+  assignedBy: number;
+
+  @ApiProperty()
   createdAt: Date;
 
   @ApiProperty()

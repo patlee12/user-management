@@ -31,15 +31,17 @@ model User {
 model Role {
   id          Int          @id @default(autoincrement())
   name        String       @unique
-  description String?
+  description String
   permissions Permission[] @relation("RolePermissions")
+  createdBy   Int          //Tracks which user created the Resource
+  updatedBy   Int          //Tracks which user last updated the Resource
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
   UserRoles   UserRoles[]
 }
 
-//List all action types and resources
+//List all action types
 enum ActionType {
   CREATE
   READ
@@ -50,27 +52,33 @@ enum ActionType {
   REJECT
 }
 
-enum Resource {
-  POSTS
-  ROLES
-  PERMISSIONS
-  USERS
+model Resource {
+  id          Int          @id @default(autoincrement())
+  name        String       @unique
+  description String
+  createdBy   Int          //Tracks which user created the Resource
+  updatedBy   Int          //Tracks which user last updated the Resource
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  Permission Permission[]
 }
 model Permission {
-  id          Int       @id @default(autoincrement())
-  name        String    @unique
+  id          Int        @id @default(autoincrement())
+  name        String     @unique
   actionType  ActionType
   description String   
-  resource    Resource   //Indicates the resource or module the permission applies to
-  isActive    Boolean   @default(true) //Enables or disables the permission without deletion
-  createdBy   Int      //Tracks which user created the permission
-  updatedBy   Int      //Tracks which user last updated the permission
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  resource    Resource   @relation(fields: [resourceId],references: [id])
+  resourceId  Int        //Indicates the resource or module the permission applies to
+  isActive    Boolean    @default(true) //Enables or disables the permission without deletion
+  createdBy   Int        //Tracks which user created the permission
+  updatedBy   Int        //Tracks which user last updated the permission
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 
-  roles       Role[]    @relation("RolePermissions")
+  roles       Role[]     @relation("RolePermissions")
 
-  @@unique([actionType,resource])
+  @@unique([actionType,resourceId])
 }
 
 
@@ -79,6 +87,7 @@ model UserRoles {
   userId      Int
   role        Role      @relation(fields: [roleId],references: [id])
   roleId      Int
+  assignedBy  Int      //Tracks which user assigned the role to user
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 

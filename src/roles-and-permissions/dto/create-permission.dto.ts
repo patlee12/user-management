@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { ActionType, Resource } from '@prisma/client';
+import { ActionType } from '@prisma/client';
 import {
   IsOptional,
   IsString,
@@ -25,11 +25,9 @@ export class CreatePermissionDto {
   @ApiProperty()
   description: string;
 
-  @IsEnum(Resource, {
-    message: `Must be one of the following values: ${Object.values(Resource).join(', ')}`,
-  })
   @ApiProperty()
-  resource: Resource;
+  @IsNumber()
+  resourceId: number;
 
   @IsBoolean()
   @ApiProperty()

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString, IsArray } from 'class-validator';
+import { IsOptional, IsString, IsArray, IsNumber } from 'class-validator';
 import { CreatePermissionDto } from './create-permission.dto';
 
 export class CreateRoleDto {
@@ -8,9 +8,8 @@ export class CreateRoleDto {
   name: string;
 
   @IsString()
-  @IsOptional()
   @ApiProperty()
-  description?: string;
+  description: string;
 
   @IsArray()
   @IsOptional()
@@ -20,4 +19,12 @@ export class CreateRoleDto {
     required: false,
   })
   permissions?: CreatePermissionDto[];
+
+  @IsNumber()
+  @ApiProperty()
+  createdBy: number;
+
+  @IsNumber()
+  @ApiProperty()
+  updatedBy: number;
 }

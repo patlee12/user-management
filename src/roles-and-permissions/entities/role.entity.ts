@@ -1,5 +1,6 @@
 import { Role } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
+import { PermissionEntity } from './permission.entity';
 
 export class RoleEntity implements Role {
   @ApiProperty()
@@ -8,11 +9,20 @@ export class RoleEntity implements Role {
   @ApiProperty()
   name: string;
 
-  @ApiProperty({ required: false, nullable: true })
-  description: string | null;
+  @ApiProperty()
+  description: string;
 
   @ApiProperty({ required: false, nullable: true })
-  permissions?: number[];
+  permissionIds?: number[];
+
+  @ApiProperty({ required: false, nullable: true })
+  permissionObject?: PermissionEntity[];
+
+  @ApiProperty()
+  createdBy: number;
+
+  @ApiProperty()
+  updatedBy: number;
 
   @ApiProperty()
   createdAt: Date;

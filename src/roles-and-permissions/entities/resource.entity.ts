@@ -1,7 +1,7 @@
-import { Permission, ActionType } from '@prisma/client';
+import { Resource } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class PermissionEntity implements Permission {
+export class ResourceEntity implements Resource {
   @ApiProperty()
   id: number;
 
@@ -9,19 +9,7 @@ export class PermissionEntity implements Permission {
   name: string;
 
   @ApiProperty()
-  actionType: ActionType;
-
-  @ApiProperty()
   description: string;
-
-  @ApiProperty()
-  resourceId: number;
-
-  @ApiProperty()
-  isActive: boolean;
-
-  @ApiProperty({ required: false, nullable: true })
-  roles?: number[];
 
   @ApiProperty()
   createdBy: number;
