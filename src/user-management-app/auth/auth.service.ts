@@ -3,14 +3,14 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { AuthEntity } from './entity/auth.entity';
-import { UserEntity } from 'src/users/entities/user.entity';
+import { UserEntity } from 'src/user-management-app/users/entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import * as speakeasy from 'speakeasy';
 import * as QRCode from 'qrcode';
-import { UsersService } from 'src/users/users.service';
+import { UsersService } from 'src/user-management-app/users/users.service';
 import { JwtPayload } from './jwt.strategy';
 
 @Injectable()
@@ -77,8 +77,8 @@ export class AuthService {
     return QRCode.toDataURL(secret);
   }
 
-  verifyTotp(secret: string, token: string): boolean {
-    return speakeasy.totp.verify({
+  async verifyTotp(secret: string, token: string): Promise<boolean> {
+    return await speakeasy.totp.verify({
       secret,
       encoding: 'base32',
       token,

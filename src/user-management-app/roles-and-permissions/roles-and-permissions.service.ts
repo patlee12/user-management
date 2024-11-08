@@ -21,7 +21,6 @@ export class RolesAndPermissionsService {
       permissions: {
         create: createRoleDto.permissions?.map(
           (permission: CreatePermissionDto) => ({
-            name: permission.name,
             actionType: permission.actionType,
             description: permission.description,
             resourceId: permission.resourceId,

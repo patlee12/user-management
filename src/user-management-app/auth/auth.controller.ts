@@ -12,8 +12,8 @@ import { AuthEntity } from './entity/auth.entity';
 import { LoginDto } from './dto/login.dto';
 import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from './jwt-auth.guard';
-import { UsersService } from 'src/users/users.service';
-import { UserEntity } from 'src/users/entities/user.entity';
+import { UsersService } from 'src/user-management-app/users/users.service';
+import { UserEntity } from 'src/user-management-app/users/entities/user.entity';
 @Controller('auth')
 @ApiTags('auth')
 export class AuthController {

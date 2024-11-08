@@ -1,6 +1,6 @@
 import { Post } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
-import { UserEntity } from 'src/users/entities/user.entity';
+import { UserEntity } from 'src/user-management-app/users/entities/user.entity';
 
 export class PostEntity implements Post {
   @ApiProperty()

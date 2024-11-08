@@ -10,7 +10,7 @@ import {
   IsEmail,
   IsBoolean,
 } from 'class-validator';
-import { UserRolesDto } from 'src/roles-and-permissions/dto/user-roles.dto';
+import { UserRolesDto } from 'src/user-management-app/roles-and-permissions/dto/user-roles.dto';
 
 export class CreateUserDto {
   @IsString()

@@ -25,6 +25,8 @@ export class UsersService {
       userRoles: {
         create: createUserDto.userRoles?.map((role) => ({
           roleId: role.roleId,
+          userId: role.userId,
+          assignedBy: role.assignedBy,
         })),
       },
     };
@@ -58,6 +60,8 @@ export class UsersService {
       userRoles: {
         create: updateUserDto.userRoles?.map((role) => ({
           roleId: role.roleId,
+          userId: role.userId,
+          assignedBy: role.assignedBy,
         })),
       },
     };

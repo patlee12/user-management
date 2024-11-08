@@ -1,5 +1,5 @@
 import { HttpAdapterHost, NestFactory, Reflector } from '@nestjs/core';
-import { UserManagementModule } from './app modules/user-management.module';
+import { UserManagementModule } from './user-management-app/user-management.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe, ClassSerializerInterceptor } from '@nestjs/common';
 import { PrismaClientExceptionFilter } from './prisma-client-exception/prisma-client-exception.filter';

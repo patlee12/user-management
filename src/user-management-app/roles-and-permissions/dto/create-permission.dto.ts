@@ -11,10 +11,6 @@ import {
 import { CreateRoleDto } from './create-role.dto';
 
 export class CreatePermissionDto {
-  @IsString()
-  @ApiProperty()
-  name: string;
-
   @IsEnum(ActionType, {
     message: `Must be one of the following values: ${Object.values(ActionType).join(', ')}`,
   })

@@ -6,9 +6,6 @@ export class PermissionEntity implements Permission {
   id: number;
 
   @ApiProperty()
-  name: string;
-
-  @ApiProperty()
   actionType: ActionType;
 
   @ApiProperty()
