@@ -15,31 +15,9 @@ async function main() {
     update: { password: passwordPat },
     create: {
       username: 'Pat',
+      name: 'Pat',
       password: passwordPat,
       email: 'patrick@admin.net',
-      userRoles: {
-        create: {
-          role: {
-            create: {
-              name: 'admin',
-              description: 'Access to everything within application',
-              permissions: {
-                create: [
-                  {
-                    name: 'user-management',
-                    description:
-                      'Can add, remove, assign roles, and update permissions',
-                  },
-                  {
-                    name: 'content-moderator',
-                    description: 'Can create,edit, and delete their all posts.',
-                  },
-                ],
-              },
-            },
-          },
-        },
-      },
     },
   });
 
@@ -53,22 +31,58 @@ async function main() {
       name: 'Cosmo Boy',
       password: passwordCosmo,
       email: 'cosmo@user.net',
-      userRoles: {
-        create: {
-          role: {
-            create: {
-              name: 'user',
-              description: 'Regular access to application',
-              permissions: {
-                create: {
-                  name: 'post',
-                  description: 'Can create,edit, and delete their own posts.',
-                },
-              },
-            },
+    },
+  });
+
+  const createResource = await prisma.resource.upsert({
+    where: { name: 'Dashboard' },
+    update: {},
+    create: {
+      name: 'Dashboard',
+      description: 'A place where all posts and news can be found.',
+      createdBy: user.id,
+      updatedBy: user.id,
+    },
+  });
+
+  const createRole = await prisma.role.upsert({
+    where: { name: 'Admin' },
+    update: {},
+    create: {
+      name: 'Admin',
+      description: 'Admin across the entire application.',
+      permissions: {
+        create: [
+          {
+            actionType: 'MANAGE',
+            description: 'Manage users.',
+            resourceId: createResource.id,
+            isActive: true,
+            createdBy: user.id,
+            updatedBy: user.id,
           },
-        },
+          {
+            actionType: 'READ',
+            description: 'Read Dashboard',
+            resourceId: createResource.id,
+            isActive: true,
+            createdBy: user.id,
+            updatedBy: user.id,
+          },
+        ],
       },
+      createdBy: user.id,
+      updatedBy: user.id,
+    },
+  });
+
+  const updateUserRoles = await prisma.userRoles.upsert({
+    where: { userId_roleId: { userId: user.id, roleId: createRole.id } },
+    update: {},
+    create: {
+      userId: user.id,
+      roleId: createRole.id,
+      assignedBy: user.id,
     },
   });
 
@@ -84,7 +98,14 @@ async function main() {
     },
   });
 
-  console.log({ user }, { user2 }, { post });
+  console.log(
+    { user },
+    { user2 },
+    { createResource },
+    { createRole },
+    { updateUserRoles },
+    { post },
+  );
 }
 
 // execute the main function

@@ -41,17 +41,6 @@ model Role {
   UserRoles   UserRoles[]
 }
 
-//List all action types
-enum ActionType {
-  CREATE
-  READ
-  UPDATE
-  DELETE
-  MANAGE
-  APPROVE
-  REJECT
-}
-
 model Resource {
   id          Int          @id @default(autoincrement())
   name        String       @unique
@@ -63,9 +52,20 @@ model Resource {
 
   Permission Permission[]
 }
+
+//List all action types
+enum ActionType {
+  CREATE
+  READ
+  UPDATE
+  DELETE
+  MANAGE
+  APPROVE
+  REJECT
+  POST
+}
 model Permission {
   id          Int        @id @default(autoincrement())
-  name        String     @unique
   actionType  ActionType
   description String   
   resource    Resource   @relation(fields: [resourceId],references: [id])
