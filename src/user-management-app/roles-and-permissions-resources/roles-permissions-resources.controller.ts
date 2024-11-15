@@ -8,7 +8,7 @@ import {
   Delete,
 } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { RolesAndPermissionsService } from './roles-and-permissions.service';
+import { RolesPermissionsResourcesService } from './roles-permissions-resources.service';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { RoleEntity } from './entities/role.entity';
@@ -20,15 +20,17 @@ import { UserRolesEntity } from './entities/user-roles.entity';
 
 @Controller('roles-and-permissions')
 @ApiTags('roles-and-permissions')
-export class RolesAndPermissionsController {
+export class RolesPermissionsResourcesController {
   constructor(
-    private readonly rolesAndPermissionsService: RolesAndPermissionsService,
+    private readonly rolesPermissionsResourcesService: RolesPermissionsResourcesService,
   ) {}
   //########################### Create and Assign #################################
   @Post('create-role')
   @ApiCreatedResponse({ type: RoleEntity })
   async createRole(@Body() createRoleDto: CreateRoleDto): Promise<RoleEntity> {
-    return await this.rolesAndPermissionsService.createRole(createRoleDto);
+    return await this.rolesPermissionsResourcesService.createRole(
+      createRoleDto,
+    );
   }
 
   @Post('create-permission')
@@ -36,7 +38,7 @@ export class RolesAndPermissionsController {
   async createPermission(
     @Body() createPermissionDto: CreatePermissionDto,
   ): Promise<PermissionEntity> {
-    return await this.rolesAndPermissionsService.createPermission(
+    return await this.rolesPermissionsResourcesService.createPermission(
       createPermissionDto,
     );
   }
@@ -46,26 +48,28 @@ export class RolesAndPermissionsController {
   async createUserRole(
     @Body() userRolesDto: UserRolesDto,
   ): Promise<UserRolesEntity> {
-    return await this.rolesAndPermissionsService.createUserRole(userRolesDto);
+    return await this.rolesPermissionsResourcesService.createUserRole(
+      userRolesDto,
+    );
   }
 
   //########################### Get many Roles and many Permissions #################################
   @Get('roles')
   @ApiOkResponse({ type: RoleEntity, isArray: true })
   async getAllRoles(): Promise<RoleEntity[]> {
-    return await this.rolesAndPermissionsService.findAllRoles();
+    return await this.rolesPermissionsResourcesService.findAllRoles();
   }
 
   @Get('roles-and-permissions')
   @ApiOkResponse({ type: RoleEntity, isArray: true })
   async getAllRolesWithPermissions(): Promise<RoleEntity[]> {
-    return await this.rolesAndPermissionsService.findAllRolesWithPermissions();
+    return await this.rolesPermissionsResourcesService.findAllRolesWithPermissions();
   }
 
   @Get('permissions')
   @ApiOkResponse({ type: PermissionEntity, isArray: true })
   async getAllPermissions(): Promise<PermissionEntity[]> {
-    return await this.rolesAndPermissionsService.findAllPermissions();
+    return await this.rolesPermissionsResourcesService.findAllPermissions();
   }
 
   //########################### Get unique Roles and unique Permissions #################################
@@ -73,13 +77,13 @@ export class RolesAndPermissionsController {
   @Get('role/:id')
   @ApiOkResponse({ type: RoleEntity })
   async findOneRole(@Param('id') id: string): Promise<RoleEntity> {
-    return await this.rolesAndPermissionsService.findOneRole(+id);
+    return await this.rolesPermissionsResourcesService.findOneRole(+id);
   }
 
   @Get('permission/:id')
   @ApiOkResponse({ type: PermissionEntity })
   async findOnePermission(@Param('id') id: string): Promise<PermissionEntity> {
-    return await this.rolesAndPermissionsService.findOnePermission(+id);
+    return await this.rolesPermissionsResourcesService.findOnePermission(+id);
   }
 
   @Get('user-roles/:userId')
@@ -87,7 +91,9 @@ export class RolesAndPermissionsController {
   async getAllUserRolesByUserId(
     @Param('userId') userId: string,
   ): Promise<UserRolesEntity[]> {
-    return await this.rolesAndPermissionsService.findUserRolesByUserId(+userId);
+    return await this.rolesPermissionsResourcesService.findUserRolesByUserId(
+      +userId,
+    );
   }
 
   //########################### Update unique Roles and unique Permissions #################################
@@ -98,7 +104,10 @@ export class RolesAndPermissionsController {
     @Param('roleId') id: string,
     @Body() updateRoleDto: UpdateRoleDto,
   ): Promise<RoleEntity> {
-    return await this.rolesAndPermissionsService.updateRole(+id, updateRoleDto);
+    return await this.rolesPermissionsResourcesService.updateRole(
+      +id,
+      updateRoleDto,
+    );
   }
 
   @Patch('permission/:permissionId')
@@ -107,7 +116,7 @@ export class RolesAndPermissionsController {
     @Param('permissionId') id: string,
     @Body() updatePermissionDto: UpdatePermissionDto,
   ): Promise<PermissionEntity> {
-    return await this.rolesAndPermissionsService.updatePermission(
+    return await this.rolesPermissionsResourcesService.updatePermission(
       +id,
       updatePermissionDto,
     );
@@ -118,13 +127,13 @@ export class RolesAndPermissionsController {
   @Delete('role/:id')
   @ApiOkResponse({ type: RoleEntity })
   async removeRole(@Param('id') id: string): Promise<RoleEntity> {
-    return await this.rolesAndPermissionsService.removeRole(+id);
+    return await this.rolesPermissionsResourcesService.removeRole(+id);
   }
 
   @Delete('permission/:id')
   @ApiOkResponse({ type: PermissionEntity })
   async removePermission(@Param('id') id: string): Promise<PermissionEntity> {
-    return await this.rolesAndPermissionsService.removePermission(+id);
+    return await this.rolesPermissionsResourcesService.removePermission(+id);
   }
 
   @Delete('userRole')
@@ -132,7 +141,7 @@ export class RolesAndPermissionsController {
   async removeUserRole(
     @Body() userRolesDto: UserRolesDto,
   ): Promise<UserRolesEntity> {
-    return await this.rolesAndPermissionsService.removeUserRole(
+    return await this.rolesPermissionsResourcesService.removeUserRole(
       userRolesDto.userId,
       userRolesDto.roleId,
     );

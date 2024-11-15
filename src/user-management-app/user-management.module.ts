@@ -3,15 +3,14 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { UsersModule } from 'src/user-management-app/users/users.module';
 import { PostsModule } from './posts/posts.module';
 import { AuthModule } from 'src/user-management-app/auth/auth.module';
-import { RolesAndPermissionsModule } from 'src/user-management-app/roles-and-permissions/roles-and-permissions.module';
-
+import { RolesPermissionsResourcesModule } from './roles-and-permissions-resources/roles-permissions-resources.module';
 @Module({
   imports: [
     PrismaModule,
     UsersModule,
     PostsModule,
     AuthModule,
-    RolesAndPermissionsModule,
+    RolesPermissionsResourcesModule,
   ],
   controllers: [],
   providers: [],

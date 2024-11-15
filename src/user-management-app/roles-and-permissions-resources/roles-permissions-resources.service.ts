@@ -11,7 +11,7 @@ import { UserRolesEntity } from './entities/user-roles.entity';
 import { Prisma } from '@prisma/client';
 
 @Injectable()
-export class RolesAndPermissionsService {
+export class RolesPermissionsResourcesService {
   constructor(private prisma: PrismaService) {}
 
   //########################### Create and Assign #################################

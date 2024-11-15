@@ -1,17 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { RolesAndPermissionsService } from './roles-and-permissions.service';
+import { RolesPermissionsResourcesService } from './roles-permissions-resources.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 describe('RolesAndPermissionsService', () => {
-  let service: RolesAndPermissionsService;
+  let service: RolesPermissionsResourcesService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [RolesAndPermissionsService, PrismaService],
+      providers: [RolesPermissionsResourcesService, PrismaService],
     }).compile();
 
-    service = module.get<RolesAndPermissionsService>(
-      RolesAndPermissionsService,
+    service = module.get<RolesPermissionsResourcesService>(
+      RolesPermissionsResourcesService,
     );
   });
 
