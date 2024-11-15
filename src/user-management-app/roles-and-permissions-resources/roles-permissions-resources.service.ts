@@ -120,7 +120,10 @@ export class RolesPermissionsResourcesService {
   }
 
   async findUserRolesByUserId(userId: number): Promise<UserRolesEntity[]> {
-    return await this.prisma.userRoles.findMany({ where: { userId: userId } });
+    return await this.prisma.userRoles.findMany({
+      where: { userId: userId },
+      include: { role: true },
+    });
   }
 
   //########################### Update unique Roles and unique Permissions #################################
