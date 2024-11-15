@@ -26,18 +26,18 @@ export class AuthService {
     password: string,
     token?: string,
   ): Promise<AuthEntity> {
-    // Fetch a user
+    //Fetch a user
     const user = await this.prisma.user.findUnique({ where: { email: email } });
 
-    // If no user is found.
+    //If no user is found.
     if (!user) {
       throw new NotFoundException(`No user found for that email/password`);
     }
 
-    // Check if the password is correct.
+    //Check if the password is correct.
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
-    // If password does not match.
+    //If password does not match.
     if (!isPasswordValid) {
       throw new UnauthorizedException(
         '`No user found for that email/password`',
@@ -57,7 +57,7 @@ export class AuthService {
     }
 
     const jwtPayload: JwtPayload = {
-      email: user.email,
+      userId: user.id,
       mfaVerified: mfaVerified,
     };
     // Generate a JWT.

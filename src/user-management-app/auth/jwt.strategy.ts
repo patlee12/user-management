@@ -5,8 +5,10 @@ import { jwtSecret } from './auth.module';
 import { UsersService } from 'src/user-management-app/users/users.service';
 
 export interface JwtPayload {
-  email: string;
+  userId: number;
   mfaVerified: boolean;
+  iat?: number;
+  exp?: number;
 }
 
 @Injectable()
@@ -19,7 +21,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   }
 
   async validate(payload: JwtPayload) {
-    const user = await this.usersService.findOneByEmail(payload.email);
+    const user = await this.usersService.findOne(payload.userId);
 
     if (!user) {
       throw new UnauthorizedException();
