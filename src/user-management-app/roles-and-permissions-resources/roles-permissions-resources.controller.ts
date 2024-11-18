@@ -6,8 +6,14 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { RolesPermissionsResourcesService } from './roles-permissions-resources.service';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
@@ -17,9 +23,15 @@ import { UpdatePermissionDto } from './dto/update-permission.dto';
 import { PermissionEntity } from './entities/permission.entity';
 import { UserRolesDto } from './dto/user-roles.dto';
 import { UserRolesEntity } from './entities/user-roles.entity';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Permissions } from './permissions.decorator';
+import { PermissionsGuard } from './permissions.guard';
+import { RolesGuard } from './roles.guard';
 
 @Controller('roles-and-permissions')
 @ApiTags('roles-and-permissions')
+@UseGuards(JwtAuthGuard, PermissionsGuard, RolesGuard)
+@ApiBearerAuth()
 export class RolesPermissionsResourcesController {
   constructor(
     private readonly rolesPermissionsResourcesService: RolesPermissionsResourcesService,
@@ -27,6 +39,7 @@ export class RolesPermissionsResourcesController {
   //########################### Create and Assign #################################
   @Post('create-role')
   @ApiCreatedResponse({ type: RoleEntity })
+  @Permissions(2, 'MANAGE')
   async createRole(@Body() createRoleDto: CreateRoleDto): Promise<RoleEntity> {
     return await this.rolesPermissionsResourcesService.createRole(
       createRoleDto,

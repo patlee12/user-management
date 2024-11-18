@@ -3,7 +3,8 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { jwtSecret } from './auth.module';
 import { UsersService } from 'src/user-management-app/users/users.service';
-
+import { plainToInstance } from 'class-transformer';
+import { UserEntity } from '../users/entities/user.entity';
 export interface JwtPayload {
   userId: number;
   mfaVerified: boolean;
@@ -31,6 +32,6 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       throw new UnauthorizedException('MFA verification required');
     }
 
-    return user;
+    return plainToInstance(UserEntity, user);
   }
 }

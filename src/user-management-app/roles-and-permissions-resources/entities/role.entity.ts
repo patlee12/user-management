@@ -16,7 +16,7 @@ export class RoleEntity implements Role {
   permissionIds?: number[];
 
   @ApiProperty({ required: false, nullable: true })
-  permissionObject?: PermissionEntity[];
+  permissions?: PermissionEntity[];
 
   @ApiProperty()
   createdBy: number;

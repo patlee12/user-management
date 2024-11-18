@@ -5,9 +5,9 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { JwtPayload } from '../auth/jwt.strategy';
 import { RolesPermissionsResourcesService } from './roles-permissions-resources.service';
 import { UserRolesEntity } from './entities/user-roles.entity';
+import { UserEntity } from '../users/entities/user.entity';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -27,10 +27,10 @@ export class RolesGuard implements CanActivate {
     }
 
     const request = await context.switchToHttp().getRequest();
-    const user: JwtPayload = request.user;
+    const user: UserEntity = request.user;
     const lookupUserRoles: UserRolesEntity[] =
       await this.rolesPermissionsResourcesService.findUserRolesByUserId(
-        user.userId,
+        user.id,
       );
 
     if (!user || !lookupUserRoles) {

@@ -35,11 +35,11 @@ async function main() {
   });
 
   const createResource = await prisma.resource.upsert({
-    where: { name: 'Dashboard' },
+    where: { name: 'AllResources' },
     update: {},
     create: {
-      name: 'Dashboard',
-      description: 'A place where all posts and news can be found.',
+      name: 'AllResources',
+      description: 'A master resource for admins to assign admin permissions.',
       createdBy: user.id,
       updatedBy: user.id,
     },
