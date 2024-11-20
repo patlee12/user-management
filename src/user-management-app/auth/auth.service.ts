@@ -60,7 +60,7 @@ export class AuthService {
       userId: user.id,
       mfaVerified: mfaVerified,
     };
-    // Generate a JWT.
+    //Generate a JWT.
     return {
       accessToken: this.jwtService.sign(jwtPayload),
     };
@@ -82,7 +82,7 @@ export class AuthService {
       secret,
       encoding: 'base32',
       token,
-      window: 1, // Increase window if needed to handle timing issues
+      window: 1, //Increase window if needed to handle timing issues
     });
   }
 }

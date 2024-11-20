@@ -25,13 +25,15 @@ export class AuthController {
 
   @Post('login')
   @ApiOkResponse({ type: AuthEntity })
-  login(@Body() { email, password, token }: LoginDto) {
-    return this.authService.login(email, password, token);
+  async login(
+    @Body() { email, password, token }: LoginDto,
+  ): Promise<AuthEntity> {
+    return await this.authService.login(email, password, token);
   }
 
   @Post('setup-mfa')
   @UseGuards(JwtAuthGuard)
-  async setupMfa(@Request() req) {
+  async setupMfa(@Request() req): Promise<{ qrCode: string }> {
     const user: UserEntity = req.user;
     this.logger.log(`setup MFA with ${req}`);
     const secret = await this.authService.generateMfaSecret(user);
