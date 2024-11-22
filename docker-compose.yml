@@ -28,9 +28,47 @@ services:
     networks:
       - pg-network # Connect pgAdmin to the same network as PostgreSQL
 
+  postfix:
+    image: alpine:latest
+    container_name: postfix
+    environment:
+      - MAILDOMAIN=localhost # Replace with a real domain for production
+      - MAILHOST=localhost
+      - SMTP_USER=user:password
+      - SMTP_TLS_CERT=./certs/postfix/postfix.crt # Path to SSL certificate
+      - SMTP_TLS_KEY=./certs/postfix/postfix.key # Path to SSL key
+    volumes:
+      - /etc/postfix
+      - ./certs/postfix:/etc/postfix/ssl:ro # Mount certificate and key
+    ports:
+      - '25:25' # SMTP (non-encrypted)
+      - '465:465' # SMTP (SSL-encrypted)
+      - '587:587' # SMTP (STARTTLS)
+    networks:
+      - mailing-network
+    command: >
+      sh -c "apk update && apk add --no-cache postfix && postfix start-fg"
+
+  dovecot:
+    image: dovecot/dovecot
+    container_name: dovecot
+    environment:
+      - MAILDOMAIN=localhost # Replace with a real domain for production
+    volumes:
+      - /etc/dovecot
+      - ./certs/dovecot:/etc/dovecot/ssl:ro # Mount certificate and key
+    ports:
+      - '143:143' # IMAP (non-SSL)
+      - '993:993' # IMAP (SSL-encrypted)
+    networks:
+      - mailing-network
+    command: >
+      sh -c "dovecot -F"
+
 volumes:
   postgres:
 
 networks:
-  pg-network: # Define an explicit network for service communication
-
+  pg-network: # Define an explicit network for db service communication
+  mailing-network: # Define an explicit network for mailing service communication
+    driver: bridge

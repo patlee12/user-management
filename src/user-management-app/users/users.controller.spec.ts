@@ -22,6 +22,7 @@ describe('UsersController', () => {
               .mockResolvedValue([
                 { username: 'Pat' },
                 { username: 'Cosmo12' },
+                { username: 'Admin' },
               ]),
           },
         },
@@ -49,6 +50,7 @@ describe('UsersController', () => {
       expect(simplifiedResult).toEqual([
         { username: 'Pat' },
         { username: 'Cosmo12' },
+        { username: 'Admin' },
       ]);
     });
   });

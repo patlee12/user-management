@@ -1,6 +1,6 @@
 ## Create .env file in root directory
 
-Sample file (For Development):
+Sample env file (For Development):
 
 ```bash
 # Environment variables declared in this file are automatically made available to Prisma.
@@ -29,6 +29,10 @@ ADMIN_PASSWORD = ""
 
 ```bash
 $ yarn install
+
+#Before running docker yml please navigate to readme in certs folder. Use that folder to create required certs for mailing services. Make sure to set the path in yml.
+
+# Also in PRODUCTION: make sure to update all passwords and not use generic ones mentioned.
 
 #Start the PostgreSQL database with docker:
 $ docker-compose up

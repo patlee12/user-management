@@ -7,17 +7,20 @@ const prisma = new PrismaClient();
 const roundsOfHashing = 10;
 
 async function main() {
-  const passwordPat = await bcrypt.hash('passwordpat!!@@', roundsOfHashing);
+  const passwordAdmin = await bcrypt.hash(
+    process.env.ADMIN_PASSWORD,
+    roundsOfHashing,
+  );
   const passwordCosmo = await bcrypt.hash('passwordcosmo!!@@', roundsOfHashing);
 
   const user = await prisma.user.upsert({
-    where: { username: 'Pat' },
-    update: { password: passwordPat },
+    where: { username: 'Admin' },
+    update: { password: passwordAdmin },
     create: {
-      username: 'Pat',
-      name: 'Pat',
-      password: passwordPat,
-      email: 'patrick@admin.net',
+      username: 'Admin',
+      name: 'Admin',
+      password: passwordAdmin,
+      email: 'admin@user-management.net',
     },
   });
 
