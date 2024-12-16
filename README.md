@@ -74,6 +74,26 @@ $ yarn run test:e2e
 $ yarn run test:cov
 ```
 
+# Docker tips
+
+If pgadmin gets stuck (sometimes needs a reboot)
+
+```bash
+sudo docker stop user-management-pgadmin-1
+sudo docker rm user-management-pgadmin-1
+sudo docker stop $(sudo docker ps -q)
+
+sudo docker rm -f user-management-pgadmin-1
+
+
+sudo docker inspect --format '{{.State.Pid}}' user-management-pgadmin-1
+sudo kill -9 <PID>
+sudo docker rm user-management-pgadmin-1
+
+
+
+```
+
 ## License
 
 This project is [MIT licensed](LICENSE).

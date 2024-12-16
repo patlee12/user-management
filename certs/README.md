@@ -1,8 +1,11 @@
-# Create certs for postfix and dovecot
+# Create certs for Nginx
+
+make sure to update paths on nginx config. Note all connections are routed through nginx (reverse proxy) so make sure to have this cert be valid and track when it expires.
 
 ```bash
-openssl req -new -x509 -days 365 -nodes -out postfix.crt -keyout postfix.key
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+  -keyout ./certs/nginx-selfsigned.key \
+  -out ./certs/nginx-selfsigned.crt
 
-openssl req -new -x509 -days 365 -nodes -out dovecot.crt -keyout dovecot.key
 
 ```

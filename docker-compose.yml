@@ -1,74 +1,79 @@
 version: '3.8'
 
 services:
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    restart: always
+    ports:
+      - '80:80' # Expose HTTP to the host
+      - '443:443' # Expose HTTPS to the host (optional, if using SSL)
+    volumes:
+      - ./certs:/etc/nginx/certs # Mount the 'certs' folder from the repo to /etc/nginx/certs inside the container
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - postgres
+      - pgadmin
+      - mailserver
+    networks:
+      - full-stack-network
+
+  # PostgreSQL service
   postgres:
     image: postgres:13.5
     restart: always
     environment:
       - POSTGRES_USER=admin
       - POSTGRES_PASSWORD=mypassword
-      - POSTGRES_DB=hive-db # Optional: specify a default database
+      - POSTGRES_DB=hive-db
     volumes:
       - postgres:/var/lib/postgresql/data
-    ports:
-      - '5432:5432'
     networks:
-      - pg-network # Use an explicit network for better isolation
+      - full-stack-network
 
+  # pgAdmin service
   pgadmin:
     image: dpage/pgadmin4
     restart: always
     depends_on:
-      - postgres # Ensure pgAdmin starts after PostgreSQL
+      - postgres
     environment:
       - PGADMIN_DEFAULT_EMAIL=admin@pgadmin.com
       - PGADMIN_DEFAULT_PASSWORD=adminpassword
+      - PGADMIN_LISTEN_PORT=80 # Ensure it's listening on port 80 inside the container
     ports:
-      - '5050:80'
+      - '5050:80' # pgAdmin is accessible on port 5050 (no need to change)
     networks:
-      - pg-network # Connect pgAdmin to the same network as PostgreSQL
+      - full-stack-network
 
-  postfix:
-    image: alpine:latest
-    container_name: postfix
+  # Mailserver (Postfix + Dovecot + Rspamd)
+  mailserver:
+    image: mailserver/docker-mailserver:latest
+    container_name: mailserver
+    restart: always
+    env_file:
+      - .env.mailserver
+    hostname: mail
+    domainname: user-management.net
     environment:
-      - MAILDOMAIN=localhost # Replace with a real domain for production
-      - MAILHOST=localhost
-      - SMTP_USER=user:password
-      - SMTP_TLS_CERT=./certs/postfix/postfix.crt # Path to SSL certificate
-      - SMTP_TLS_KEY=./certs/postfix/postfix.key # Path to SSL key
+      - ENABLE_SPAMASSASSIN=1
+      - ENABLE_CLAMAV=1
+      - ENABLE_POSTFIX=1
+      - ENABLE_DOVECOT=1
+      - ENABLE_RSPAMD=1
     volumes:
-      - /etc/postfix
-      - ./certs/postfix:/etc/postfix/ssl:ro # Mount certificate and key
-    ports:
-      - '25:25' # SMTP (non-encrypted)
-      - '465:465' # SMTP (SSL-encrypted)
-      - '587:587' # SMTP (STARTTLS)
+      - ./data/mail:/var/mail
+      - ./data/state:/var/lib/dovecot
+      - ./data/config:/etc/mailserver
+      - ./data/certs:/etc/letsencrypt
     networks:
-      - mailing-network
-    command: >
-      sh -c "apk update && apk add --no-cache postfix && postfix start-fg"
-
-  dovecot:
-    image: dovecot/dovecot
-    container_name: dovecot
-    environment:
-      - MAILDOMAIN=localhost # Replace with a real domain for production
-    volumes:
-      - /etc/dovecot
-      - ./certs/dovecot:/etc/dovecot/ssl:ro # Mount certificate and key
-    ports:
-      - '143:143' # IMAP (non-SSL)
-      - '993:993' # IMAP (SSL-encrypted)
-    networks:
-      - mailing-network
-    command: >
-      sh -c "dovecot -F"
+      - full-stack-network
 
 volumes:
   postgres:
+  redis:
 
 networks:
-  pg-network: # Define an explicit network for db service communication
-  mailing-network: # Define an explicit network for mailing service communication
+  full-stack-network:
     driver: bridge
