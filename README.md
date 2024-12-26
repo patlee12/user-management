@@ -32,6 +32,8 @@ $ yarn install
 
 #Before running docker yml please navigate to readme in certs folder. Use that folder to create required certs for mailing services. Make sure to set the path in yml.
 
+#Also remember to set a host-name in avahi-config.
+
 # Also in PRODUCTION: make sure to update all passwords and not use generic ones mentioned.
 
 #Start the PostgreSQL database with docker:
@@ -91,6 +93,16 @@ sudo kill -9 <PID>
 sudo docker rm user-management-pgadmin-1
 
 
+
+```
+
+## Email Server tips
+
+Once you run the docker yml make sure to add a email account in a separate terminal.
+Use thunderbird to test email server ([text](https://www.thunderbird.net/en-US/)).
+
+```bash
+docker exec -it mailserver setup email add admin@user-management.net password
 
 ```
 
