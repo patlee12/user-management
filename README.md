@@ -106,6 +106,21 @@ docker exec -it mailserver setup email add admin@user-management.net password
 
 ```
 
+## Avahi Tips
+
+If you have mdns conflicts you sometimes have to flush your cache. Also make sure you have not chosen a hostname that is already in use on your network.
+
+```bash
+sudo resolvectl flush-caches
+sudo systemctl restart systemd-resolved
+sudo systemctl restart NetworkManager
+
+#Verify its still working after flush
+systemctl status systemd-resolved
+
+
+```
+
 ## License
 
 This project is [MIT licensed](LICENSE).
