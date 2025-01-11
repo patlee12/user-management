@@ -18,16 +18,42 @@ services:
       - NGINX_HOST=user-management.local
       - NGINX_PROXY=nestjs:3000
 
-  avahi:
-    image: flungo/avahi
-    container_name: avahi
-    network_mode: host # Required for mDNS
+  postfix:
+    image: boky/postfix:latest
+    container_name: postfix
     restart: always
     environment:
-      - AVAHI_START_DAEMON=true # Start Avahi daemon
-      - DISABLE_SYSTEMD=true # Disable systemd (not used in container)
+      - POSTFIX_myhostname=user-management.local
+      - POSTFIX_smtp_sasl_auth_enable=yes
+      - POSTFIX_smtp_sasl_password_maps=static:your_smtp_username:your_smtp_password
+      - POSTFIX_smtp_sasl_security_options=noanonymous
+      - ALLOW_EMPTY_SENDER_DOMAINS=true
+      - POSTFIX_LOG_LEVEL=debug # Enable detailed logging
+    ports:
+      - '25:25' # SMTP
     volumes:
-      - ./avahi-config:/etc/avahi # Optional: Custom configuration
+      - ./config/postfix:/etc/postfix # Mounting the postfix config directory
+      - ./config/supervisord.conf:/etc/supervisor/supervisord.conf # Ensure custom supervisord.conf is used
+    networks:
+      - full-stack-network
+    command: >
+      sh -c "sleep 5 && postalias /etc/postfix/aliases && supervisord -c /etc/supervisor/supervisord.conf"  # Added delay for proper startup
+
+  dovecot:
+    image: instrumentisto/dovecot
+    container_name: dovecot
+    restart: always
+    environment:
+      - DOVECOT_PROTOCOLS=imap pop3
+    ports:
+      - '143:143' # IMAP
+      - '110:110' # POP3
+    volumes:
+      - ./data/mail:/var/mail
+      - ./config/dovecot:/etc/dovecot
+      - ./config/dovecot/dovecot.conf:/etc/dovecot/dovecot.conf # Ensure the config file exists
+    networks:
+      - full-stack-network
 
   postgres:
     image: postgres:13.5
@@ -54,28 +80,8 @@ services:
       - '5050:80'
     networks:
       - full-stack-network
-
-  mailserver:
-    image: mailserver/docker-mailserver:latest
-    container_name: mailserver
-    restart: always
-    env_file:
-      - .env.mailserver
-    hostname: mail
-    domainname: user-management.net
-    environment:
-      - ENABLE_SPAMASSASSIN=1
-      - ENABLE_CLAMAV=1
-      - ENABLE_POSTFIX=1
-      - ENABLE_DOVECOT=1
-      - ENABLE_RSPAMD=1
     volumes:
-      - ./data/mail:/var/mail
-      - ./data/state:/var/lib/dovecot
-      - ./data/config:/etc/mailserver
-      - ./data/certs:/etc/letsencrypt
-    networks:
-      - full-stack-network
+      - pgadmin:/var/lib/pgadmin # Ensure pgAdmin has its own volume
 
   nestjs:
     build:
@@ -98,6 +104,7 @@ services:
 
 volumes:
   postgres:
+  pgadmin: # Define separate volume for pgAdmin to avoid any overlap with other services
 
 networks:
   full-stack-network:
