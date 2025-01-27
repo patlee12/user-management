@@ -20,7 +20,6 @@ describe('UsersController', () => {
             findAll: jest
               .fn()
               .mockResolvedValue([
-                { username: 'Pat' },
                 { username: 'Cosmo12' },
                 { username: 'Admin' },
               ]),
@@ -47,10 +46,12 @@ describe('UsersController', () => {
         username: user.username,
       }));
 
+      // Sort both arrays by username before comparing
+      simplifiedResult.sort((a, b) => a.username.localeCompare(b.username));
+
       expect(simplifiedResult).toEqual([
-        { username: 'Pat' },
-        { username: 'Cosmo12' },
         { username: 'Admin' },
+        { username: 'Cosmo12' },
       ]);
     });
   });

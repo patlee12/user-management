@@ -1,3 +1,9 @@
+## Dependencies:
+
+1. Node v18.19.1
+2. Yarn version v1.22.22
+3. Docker
+
 ## Create .env file in root directory
 
 Sample env file (For Development):
@@ -24,23 +30,30 @@ NODE_ENV ="Development"
 ADMIN_PASSWORD = ""
 
 ```
+# Create certs for Nginx
 
+make sure to update paths on nginx config. Note all connections are routed through nginx (reverse proxy) so make sure to have this cert be valid and track when it expires.
+
+```bash
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+  -keyout ./certs/nginx-selfsigned.key \
+  -out ./certs/nginx-selfsigned.crt
+
+
+```
 ## Installation
 
 ```bash
 $ yarn install
-
-#Before running docker yml please navigate to readme in certs folder. Use that folder to create required certs for mailing services. Make sure to set the path in yml.
-
 #Also remember to set a host-name in avahi-config.
 
 # Also in PRODUCTION: make sure to update all passwords and not use generic ones mentioned.
 
 #Start the PostgreSQL database with docker:
-$ docker-compose up
+$ docker compose up
 
 #Keep it running in background or use this for server deployment
-$ docker-compose up -d
+$ docker compose up -d
 
 #Setup Prisma ORM
 $ yarn prisma generate
