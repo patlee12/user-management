@@ -1,7 +1,11 @@
 FROM node:18-alpine
 
-# Install OpenSSL and libressl (alternative to OpenSSL) for compatibility
-RUN apk add --no-cache openssl libressl
+# Install necessary tools: bash, OpenSSL, and libressl
+RUN apk add --no-cache bash openssl libressl
+
+# Install wait-for-it script
+ADD https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh /wait-for-it.sh
+RUN chmod +x /wait-for-it.sh
 
 # Check if yarn is already installed, and only install if it's not
 RUN if ! command -v yarn > /dev/null 2>&1; then npm install -g yarn; fi
@@ -31,5 +35,5 @@ RUN ls -l /src/app/dist/main.js
 # Expose the application port
 EXPOSE 3000
 
-# Start the app
-CMD ["yarn", "start:prod"]
+# Start the app with wait-for-it
+CMD ["/wait-for-it.sh", "postgres:5432", "--", "yarn", "start:prod"]

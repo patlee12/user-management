@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   nginx:
     image: nginx:alpine
@@ -78,6 +76,12 @@ services:
       - postgres:/var/lib/postgresql/data
     networks:
       - full-stack-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 
   pgadmin:
     image: dpage/pgadmin4
@@ -100,18 +104,14 @@ services:
       dockerfile: Dockerfile # Dockerfile is at the top level
     container_name: nestjs
     restart: always
-    environment:
-      - DATABASE_HOST=postgres
-      - DATABASE_PORT=5432
-      - DATABASE_USER=admin
-      - DATABASE_PASSWORD=mypassword
-      - DATABASE_NAME=hive-db
     env_file:
       - .env
     depends_on:
       - postgres
     networks:
       - full-stack-network
+    command: ["/wait-for-it.sh", "postgres:5432", "--", "node", "dist/main.js"]
+
 
 volumes:
   postgres:
