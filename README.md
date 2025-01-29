@@ -1,6 +1,8 @@
 ## User-Mangement
 This NestJS-based application provides a scalable, secure backend solution for user management and authentication. It includes user login, JWT-based authentication, role-based authorization, user profile management, and integration with Nginx (Reverse Proxy) and Avahi (MDNS) for service discovery. This application is designed to be a boilerplate for projects requiring user account login architecture, and can be easily integrated into other projects for rapid deployment of secure user management features.
 
+I've included a swagger module for endpoint testing. Once the project is served go to https://user-management.local/api 
+
 ## Dependencies:
 
 1. Node v18.19.1

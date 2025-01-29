@@ -22,10 +22,12 @@ services:
     network_mode: host # Required for mDNS
     restart: always
     environment:
-      - AVAHI_START_DAEMON=true # Start Avahi daemon
-      - DISABLE_SYSTEMD=true # Disable systemd (not used in container)
+      - AVAHI_START_DAEMON=true
+      - DISABLE_SYSTEMD=true
     volumes:
       - ./avahi-config:/etc/avahi # Optional: Custom configuration
+    hostname: user-management # This will set the container's hostname
+
 
   postfix:
     image: boky/postfix:latest
