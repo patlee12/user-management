@@ -1,3 +1,6 @@
+## User-Mangement
+This NestJS project provides a scalable, secure backend solution for user management and authentication. It includes features for user login, JWT-based authentication, role-based authorization, and user profile management. The application is designed to be easily integrated into other projects. It should be used as a boiler plate for starting any project that requires user account login architecture.
+
 ## Dependencies:
 
 1. Node v18.19.1
