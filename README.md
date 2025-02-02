@@ -46,7 +46,7 @@ openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
 
 
 ```
-## Installation
+## Installation and running the App for Production
 
 ```bash
 $ yarn install
@@ -54,8 +54,8 @@ $ yarn install
 
 # Also in PRODUCTION: make sure to update all passwords and not use generic ones mentioned.
 
-#Start the PostgreSQL database with docker:
-$ docker compose up
+#Run the project with docker:
+$ docker compose up --build
 
 #Keep it running in background or use this for server deployment
 $ docker compose up -d
@@ -68,7 +68,7 @@ $ yarn prisma migrate dev
 $ yarn prisma db seed
 ```
 
-## Running the app
+## Running the app for development
 
 ```bash
 # development
