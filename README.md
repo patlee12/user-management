@@ -35,9 +35,26 @@ NODE_ENV ="Development"
 ADMIN_PASSWORD = ""
 
 ```
+## Installation 
+```bash
+$ yarn install
+#Setup Prisma ORM
+$ yarn prisma generate
+$ yarn prisma migrate dev
+
+#If you want to seed the db with dummy data
+$ yarn prisma db seed
+
+```
+## Running the App in a Production environment
+You can also develop in this environment if you choose too. It is more closely mapping what the environment will be on something like AWS ect.
+It is also recommended to test everything in this environment before merging any changes.
+
+(Reminder: update all password in docker-compose.yml and .env)
+
 # Create certs for Nginx
 
-make sure to update paths on nginx config. Note all connections are routed through nginx (reverse proxy) so make sure to have this cert be valid and track when it expires.
+Make sure before running docker, to update paths on nginx config. Note all connections are routed through nginx (reverse proxy) so make sure to have this cert be valid and track when it expires.
 
 ```bash
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
@@ -45,13 +62,7 @@ openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
   -out ./certs/nginx-selfsigned.crt
 
 
-```
-## Installation and running the App for Production
-
-```bash
-$ yarn install
 #Also remember to set a host-name in avahi-config.
-
 # Also in PRODUCTION: make sure to update all passwords and not use generic ones mentioned.
 
 #Run the project with docker:
@@ -59,13 +70,6 @@ $ docker compose up --build
 
 #Keep it running in background or use this for server deployment
 $ docker compose up -d
-
-#Setup Prisma ORM
-$ yarn prisma generate
-$ yarn prisma migrate dev
-
-#If you want to seed the db with dummy data
-$ yarn prisma db seed
 ```
 
 ## Running the app for development
