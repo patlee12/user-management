@@ -35,6 +35,9 @@ NODE_ENV ="Development"
 # Admin password recommend making one similar to JWT_SECRET.
 ADMIN_PASSWORD = ""
 
+# Mfa Encryption Key
+MFA_KEY=""
+
 ```
 
 ## Installation

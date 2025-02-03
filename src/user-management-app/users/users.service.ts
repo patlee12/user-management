@@ -5,6 +5,7 @@ import { CreateMfaDto } from './dto/create-mfa.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { UpdateMfaDto } from './dto/update-mfa.dto';
+import { encryptSecret } from 'src/helpers/encryption-tools';
 
 export const roundsOfHashing = 10;
 
@@ -69,15 +70,28 @@ export class UsersService {
     return this.prisma.user.update({ where: { id: id }, data: updateUserData });
   }
 
-  remove(id: number) {
-    return this.prisma.user.delete({ where: { id: id } });
+  async remove(id: number) {
+    return await this.prisma.user.delete({ where: { id: id } });
   }
 
-  createMfaAuth(createMfaDto: CreateMfaDto) {
+  async createMfaAuth(createMfaDto: CreateMfaDto) {
+    const encrytMfaSecret = await encryptSecret(
+      createMfaDto.secret,
+      process.env.MFA_KEY,
+    );
+    createMfaDto.secret = encrytMfaSecret;
+
     this.prisma.mfa_auth.create({ data: createMfaDto });
   }
 
-  updateMfaAuth(userId: number, updateMfaDto: UpdateMfaDto) {
+  async updateMfaAuth(userId: number, updateMfaDto: UpdateMfaDto) {
+    if (updateMfaDto.secret) {
+      const encrytMfaSecret = await encryptSecret(
+        updateMfaDto.secret,
+        process.env.MFA_KEY,
+      );
+      updateMfaDto.secret = encrytMfaSecret;
+    }
     this.prisma.mfa_auth.update({
       where: { userId: userId },
       data: updateMfaDto,

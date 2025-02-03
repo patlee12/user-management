@@ -12,6 +12,7 @@ import * as speakeasy from 'speakeasy';
 import * as QRCode from 'qrcode';
 import { UsersService } from 'src/user-management-app/users/users.service';
 import { JwtPayload } from './jwt.strategy';
+import { decryptSecret } from 'src/helpers/encryption-tools';
 
 @Injectable()
 export class AuthService {
@@ -47,7 +48,11 @@ export class AuthService {
     if (token) {
       if (user.mfaEnabled) {
         const userMfa = await this.userService.findOneMfa(user.id);
-        const isMfaValid = this.verifyTotp(userMfa.secret, token);
+        const decryptedMFASecret = await decryptSecret(
+          userMfa.secret,
+          process.env.MFA_KEY,
+        );
+        const isMfaValid = this.verifyTotp(decryptedMFASecret, token);
         if (isMfaValid) {
           mfaVerified = true;
         } else {
