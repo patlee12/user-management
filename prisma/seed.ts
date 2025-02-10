@@ -26,9 +26,7 @@ async function main() {
 
   const user2 = await prisma.user.upsert({
     where: { username: 'Cosmo' },
-    update: {
-      password: passwordCosmo,
-    },
+    update: { password: passwordCosmo },
     create: {
       username: 'Cosmo12',
       name: 'Cosmo Boy',
@@ -82,15 +80,11 @@ async function main() {
   const updateUserRoles = await prisma.userRoles.upsert({
     where: { userId_roleId: { userId: user.id, roleId: createRole.id } },
     update: {},
-    create: {
-      userId: user.id,
-      roleId: createRole.id,
-      assignedBy: user.id,
-    },
+    create: { userId: user.id, roleId: createRole.id, assignedBy: user.id },
   });
 
   const post = await prisma.post.upsert({
-    where: { title: 'Prisma Adds Support for MongoDB' },
+    where: { title: 'Welcome to Hive Management' },
     update: {},
     create: {
       title: 'Welcome to Hive Management',
