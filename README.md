@@ -6,7 +6,7 @@ I've included a swagger module for endpoint testing. Once the project is served 
 
 ## Dependencies:
 
-1. Node v18.19.1
+1. Node v22.13.1
 2. Yarn version v1.22.22
 3. Docker
 
