@@ -9,7 +9,7 @@
     "target": "ES2021",
     "sourceMap": true,
     "outDir": "./dist",
-    "rootDir": "./src",
+    "rootDir": "./",
     "baseUrl": "./",
     "incremental": true,
     "skipLibCheck": true,
@@ -25,6 +25,6 @@
       "src/*": ["./src/*"]
     }
   },
-  "include": ["src/**/*","prisma/**/*"],
+  "include": ["src/**/*","prisma/**/*", "prisma/seed.ts"],
   "exclude": ["node_modules", "dist"]
 }
