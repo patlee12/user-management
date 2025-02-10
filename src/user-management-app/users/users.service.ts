@@ -32,9 +32,7 @@ export class UsersService {
       },
     };
 
-    return this.prisma.user.create({
-      data: createUserData,
-    });
+    return this.prisma.user.create({ data: createUserData });
   }
 
   findAll() {
@@ -75,11 +73,11 @@ export class UsersService {
   }
 
   async createMfaAuth(createMfaDto: CreateMfaDto) {
-    const encrytMfaSecret = await encryptSecret(
+    const encryptMfaSecret = await encryptSecret(
       createMfaDto.secret,
       process.env.MFA_KEY,
     );
-    createMfaDto.secret = encrytMfaSecret;
+    createMfaDto.secret = encryptMfaSecret;
 
     this.prisma.mfa_auth.create({ data: createMfaDto });
   }

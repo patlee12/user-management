@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
-import { AuthEntity } from './entity/auth.entity';
+import { AuthResponseDto } from './dto/auth-response.dto';
 import { UserEntity } from 'src/user-management-app/users/entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import * as speakeasy from 'speakeasy';
@@ -26,7 +26,7 @@ export class AuthService {
     email: string,
     password: string,
     token?: string,
-  ): Promise<AuthEntity> {
+  ): Promise<AuthResponseDto> {
     //Fetch a user
     const user = await this.prisma.user.findUnique({ where: { email: email } });
 
@@ -66,9 +66,7 @@ export class AuthService {
       mfaVerified: mfaVerified,
     };
     //Generate a JWT.
-    return {
-      accessToken: this.jwtService.sign(jwtPayload),
-    };
+    return { accessToken: this.jwtService.sign(jwtPayload) };
   }
 
   async generateMfaSecret(user: UserEntity): Promise<string> {
