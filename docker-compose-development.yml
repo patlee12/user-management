@@ -1,14 +1,14 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:13.5
     container_name: postgres
     restart: always
+    env_file:
+      - .env
     environment:
-      - POSTGRES_USER=admin
-      - POSTGRES_PASSWORD=mypassword
-      - POSTGRES_DB=hive-db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - postgres:/var/lib/postgresql/data
     ports:
@@ -16,7 +16,7 @@ services:
     networks:
       - full-stack-network
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U admin']
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -25,53 +25,25 @@ services:
     image: dpage/pgadmin4
     container_name: pgadmin
     restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
     environment:
-      - PGADMIN_DEFAULT_EMAIL=admin@pgadmin.com
-      - PGADMIN_DEFAULT_PASSWORD=adminpassword
-      - SCRIPT_NAME=/pgadmin
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
     ports:
       - '5050:80'
     networks:
       - full-stack-network
     volumes:
       - pgadmin:/var/lib/pgadmin
-
-  # postfix:
-  #   image: boky/postfix:latest
-  #   container_name: postfix
-  #   restart: always
-  #   environment:
-  #     - POSTFIX_myhostname=user-management.local
-  #     - POSTFIX_smtp_sasl_auth_enable=yes
-  #     - POSTFIX_smtp_sasl_password_maps=static:your_smtp_username:your_smtp_password
-  #     - POSTFIX_smtp_sasl_security_options=noanonymous
-  #     - ALLOW_EMPTY_SENDER_DOMAINS=true
-  #     - POSTFIX_LOG_LEVEL=debug
-  #   ports:
-  #     - '25:25'
-  #   volumes:
-  #     - ./config/postfix:/etc/postfix
-  #     - ./config/supervisord.conf:/etc/supervisor/supervisord.conf
-  #   networks:
-  #     - full-stack-network
-  #   command: >
-  #     sh -c "sleep 5 && postalias /etc/postfix/aliases && supervisord -c /etc/supervisor/supervisord.conf"
-
-  # dovecot:
-  #   image: instrumentisto/dovecot
-  #   container_name: dovecot
-  #   restart: always
-  #   environment:
-  #     - DOVECOT_PROTOCOLS=imap pop3
-  #   ports:
-  #     - '143:143'
-  #     - '110:110'
-  #   volumes:
-  #     - ./data/mail:/var/mail
-  #     - ./config/dovecot:/etc/dovecot
-  #     - ./config/dovecot/dovecot.conf:/etc/dovecot/dovecot.conf
-  #   networks:
-  #     - full-stack-network
+    healthcheck:
+      test: ['CMD-SHELL', 'curl --fail http://localhost || exit 1']
+      interval: 15s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres:
@@ -79,4 +51,5 @@ volumes:
 
 networks:
   full-stack-network:
+    name: full-stack-network
     driver: bridge
