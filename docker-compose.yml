@@ -28,43 +28,42 @@ services:
       - ./avahi-config:/etc/avahi # Optional: Custom configuration
     hostname: user-management # This will set the container's hostname
 
+  # postfix:
+  #   image: boky/postfix:latest
+  #   container_name: postfix
+  #   restart: always
+  #   environment:
+  #     - POSTFIX_myhostname=user-management.local
+  #     - POSTFIX_smtp_sasl_auth_enable=yes
+  #     - POSTFIX_smtp_sasl_password_maps=static:your_smtp_username:your_smtp_password
+  #     - POSTFIX_smtp_sasl_security_options=noanonymous
+  #     - ALLOW_EMPTY_SENDER_DOMAINS=true
+  #     - POSTFIX_LOG_LEVEL=debug # Enable detailed logging
+  #   ports:
+  #     - '25:25' # SMTP
+  #   volumes:
+  #     - ./config/postfix:/etc/postfix # Mounting the postfix config directory
+  #     - ./config/supervisord.conf:/etc/supervisor/supervisord.conf # Ensure custom supervisord.conf is used
+  #   networks:
+  #     - full-stack-network
+  #   command: >
+  #     sh -c "sleep 5 && postalias /etc/postfix/aliases && supervisord -c /etc/supervisor/supervisord.conf"  # Added delay for proper startup
 
-  postfix:
-    image: boky/postfix:latest
-    container_name: postfix
-    restart: always
-    environment:
-      - POSTFIX_myhostname=user-management.local
-      - POSTFIX_smtp_sasl_auth_enable=yes
-      - POSTFIX_smtp_sasl_password_maps=static:your_smtp_username:your_smtp_password
-      - POSTFIX_smtp_sasl_security_options=noanonymous
-      - ALLOW_EMPTY_SENDER_DOMAINS=true
-      - POSTFIX_LOG_LEVEL=debug # Enable detailed logging
-    ports:
-      - '25:25' # SMTP
-    volumes:
-      - ./config/postfix:/etc/postfix # Mounting the postfix config directory
-      - ./config/supervisord.conf:/etc/supervisor/supervisord.conf # Ensure custom supervisord.conf is used
-    networks:
-      - full-stack-network
-    command: >
-      sh -c "sleep 5 && postalias /etc/postfix/aliases && supervisord -c /etc/supervisor/supervisord.conf"  # Added delay for proper startup
-
-  dovecot:
-    image: instrumentisto/dovecot
-    container_name: dovecot
-    restart: always
-    environment:
-      - DOVECOT_PROTOCOLS=imap pop3
-    ports:
-      - '143:143' # IMAP
-      - '110:110' # POP3
-    volumes:
-      - ./data/mail:/var/mail
-      - ./config/dovecot:/etc/dovecot
-      - ./config/dovecot/dovecot.conf:/etc/dovecot/dovecot.conf # Ensure the config file exists
-    networks:
-      - full-stack-network
+  # dovecot:
+  #   image: instrumentisto/dovecot
+  #   container_name: dovecot
+  #   restart: always
+  #   environment:
+  #     - DOVECOT_PROTOCOLS=imap pop3
+  #   ports:
+  #     - '143:143' # IMAP
+  #     - '110:110' # POP3
+  #   volumes:
+  #     - ./data/mail:/var/mail
+  #     - ./config/dovecot:/etc/dovecot
+  #     - ./config/dovecot/dovecot.conf:/etc/dovecot/dovecot.conf # Ensure the config file exists
+  #   networks:
+  #     - full-stack-network
 
   postgres:
     image: postgres:13.5
@@ -79,11 +78,10 @@ services:
     networks:
       - full-stack-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin"]
+      test: ['CMD-SHELL', 'pg_isready -U admin']
       interval: 10s
       timeout: 5s
       retries: 5
-
 
   pgadmin:
     image: dpage/pgadmin4
@@ -112,8 +110,7 @@ services:
       - postgres
     networks:
       - full-stack-network
-    command: ["/wait-for-it.sh", "postgres:5432", "--", "node", "dist/main.js"]
-
+    command: ['/wait-for-it.sh', 'postgres:5432', '--', 'node', 'dist/main.js']
 
 volumes:
   postgres:
