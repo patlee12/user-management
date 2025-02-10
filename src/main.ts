@@ -33,6 +33,9 @@ async function bootstrap() {
     new PrismaClientExceptionFilter(httpAdapter),
   );
 
+  // Need to enable cors so that front end server requests do not get blocked.
+  userManagementApp.enableCors({ allowedHeaders: 'Authorization' });
+
   await userManagementApp.listen(3000);
 }
 bootstrap();
