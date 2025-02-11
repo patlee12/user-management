@@ -11,7 +11,6 @@
     "outDir": "./dist",
     "rootDir": "./",
     "baseUrl": "./",
-    "incremental": true,
     "skipLibCheck": true,
     "strictNullChecks": false,
     "noImplicitAny": false,
@@ -20,11 +19,13 @@
     "noFallthroughCasesInSwitch": false,
     "resolveJsonModule": true,
     "esModuleInterop": true,
+    "noEmit": false,
+    "incremental": false,
     "strict": true,
     "paths": {
       "src/*": ["./src/*"]
     }
   },
   "include": ["src/**/*","prisma/**/*", "prisma/seed.ts"],
-  "exclude": ["node_modules", "dist"]
+  "exclude": ["node_modules"]
 }

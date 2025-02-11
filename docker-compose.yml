@@ -12,85 +12,47 @@ services:
     networks:
       - full-stack-network
     command: ['nginx', '-g', 'daemon off;']
-    environment:
-      - NGINX_HOST=user-management.local
-      - NGINX_PROXY=nestjs:3000
+    env_file:
+      - .env
 
   avahi:
     image: flungo/avahi
     container_name: avahi
     network_mode: host # Required for mDNS
     restart: always
-    environment:
-      - AVAHI_START_DAEMON=true
-      - DISABLE_SYSTEMD=true
+    env_file:
+      - .env
     volumes:
       - ./avahi-config:/etc/avahi # Optional: Custom configuration
-    hostname: user-management # This will set the container's hostname
-
-  # postfix:
-  #   image: boky/postfix:latest
-  #   container_name: postfix
-  #   restart: always
-  #   environment:
-  #     - POSTFIX_myhostname=user-management.local
-  #     - POSTFIX_smtp_sasl_auth_enable=yes
-  #     - POSTFIX_smtp_sasl_password_maps=static:your_smtp_username:your_smtp_password
-  #     - POSTFIX_smtp_sasl_security_options=noanonymous
-  #     - ALLOW_EMPTY_SENDER_DOMAINS=true
-  #     - POSTFIX_LOG_LEVEL=debug # Enable detailed logging
-  #   ports:
-  #     - '25:25' # SMTP
-  #   volumes:
-  #     - ./config/postfix:/etc/postfix # Mounting the postfix config directory
-  #     - ./config/supervisord.conf:/etc/supervisor/supervisord.conf # Ensure custom supervisord.conf is used
-  #   networks:
-  #     - full-stack-network
-  #   command: >
-  #     sh -c "sleep 5 && postalias /etc/postfix/aliases && supervisord -c /etc/supervisor/supervisord.conf"  # Added delay for proper startup
-
-  # dovecot:
-  #   image: instrumentisto/dovecot
-  #   container_name: dovecot
-  #   restart: always
-  #   environment:
-  #     - DOVECOT_PROTOCOLS=imap pop3
-  #   ports:
-  #     - '143:143' # IMAP
-  #     - '110:110' # POP3
-  #   volumes:
-  #     - ./data/mail:/var/mail
-  #     - ./config/dovecot:/etc/dovecot
-  #     - ./config/dovecot/dovecot.conf:/etc/dovecot/dovecot.conf # Ensure the config file exists
-  #   networks:
-  #     - full-stack-network
+    hostname: ${AVAHI_HOSTNAME}
 
   postgres:
     image: postgres:13.5
     container_name: postgres
     restart: always
+    env_file:
+      - .env
     environment:
-      - POSTGRES_USER=admin
-      - POSTGRES_PASSWORD=mypassword
-      - POSTGRES_DB=hive-db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB} # Ensure the correct database is specified
     volumes:
       - postgres:/var/lib/postgresql/data
     networks:
       - full-stack-network
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U admin']
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER}']
       interval: 10s
       timeout: 5s
       retries: 5
+    command: ['postgres', '-c', 'fsync=off'] # Optional: Disable fsync to speed up container startup
 
   pgadmin:
     image: dpage/pgadmin4
     container_name: pgadmin
     restart: always
-    environment:
-      - PGADMIN_DEFAULT_EMAIL=admin@pgadmin.com
-      - PGADMIN_DEFAULT_PASSWORD=adminpassword
-      - SCRIPT_NAME=/pgadmin
+    env_file:
+      - .env
     ports:
       - '5050:80'
     networks:
@@ -100,17 +62,24 @@ services:
 
   nestjs:
     build:
-      context: . # Use the current directory as the build context
-      dockerfile: Dockerfile # Dockerfile is at the top level
+      context: .
+      dockerfile: Dockerfile
     container_name: nestjs
     restart: always
+    ports:
+      - '3000:3000' # Expose the port your app will run on
     env_file:
       - .env
-    depends_on:
-      - postgres
     networks:
       - full-stack-network
-    command: ['/wait-for-it.sh', 'postgres:5432', '--', 'node', 'dist/main.js']
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: 'postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}'
+    command:
+      # Only run the app, migrations and seeding are handled in the Dockerfile
+      ['yarn', 'start:prod']
 
 volumes:
   postgres:

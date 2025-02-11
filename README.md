@@ -15,22 +15,32 @@ I've included a swagger module for endpoint testing. Once the project is served 
 Sample env file (For Development):
 
 ```bash
-# Environment variables declared in this file are automatically made available to Prisma.
-# See the documentation for more detail: https://pris.ly/d/prisma-schema#accessing-environment-variables-from-the-schema
+### NOTE: Make your own passwords!! Use open SSL to generate your own secret.
+### ie. open terminal and type: openssl rand -base64 32
 
-# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB.
-# See the documentation for all the connection string options: https://pris.ly/d/connection-strings
-
-# Make your own passwords!! Use open SSL to generate your own secret.
-# ie. open terminal and type: openssl rand -base64 32
-
+## Postgres
 POSTGRES_USER="admin"
 POSTGRES_PASSWORD="mypassword"
 POSTGRES_DB="hive-db"
-PGADMIN_DEFAULT_EMAIL="admin@pgadmin.com"
-PGADMIN_DEFAULT_PASSWORD="adminpassword"
 
 DATABASE_URL="postgresql://admin:mypassword@localhost:5432/hive-db"
+
+## PgAdmin
+PGADMIN_DEFAULT_EMAIL="admin@pgadmin.com"
+PGADMIN_DEFAULT_PASSWORD="adminpassword"
+SCRIPT_NAME="/pgadmin"
+
+## Nginx
+NGINX_HOST="user-management.local"
+NGINX_PROXY="nestjs:3000"
+
+## Avahi
+AVAHI_START_DAEMON="true"
+DISABLE_SYSTEMD="true"
+AVAHI_HOSTNAME="user-management"
+
+
+## User-Management (Nest.js)
 
 # Make your own passwords!! Use open SSL to generate your own secret.
 # ie. open terminal and type: openssl rand -base64 32
