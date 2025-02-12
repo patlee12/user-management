@@ -7,7 +7,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { UserEntity } from 'src/user-management-app/users/entities/user.entity';
-import * as bcrypt from 'bcrypt';
+import * as argon2 from 'argon2';
 import * as speakeasy from 'speakeasy';
 import * as QRCode from 'qrcode';
 import { UsersService } from 'src/user-management-app/users/users.service';
@@ -35,8 +35,8 @@ export class AuthService {
       throw new NotFoundException(`No user found for that email/password`);
     }
 
-    //Check if the password is correct.
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    // Check if the password is correct
+    const isPasswordValid = await argon2.verify(user.password, password);
 
     //If password does not match.
     if (!isPasswordValid) {

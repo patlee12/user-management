@@ -1,17 +1,11 @@
 import { PrismaClient } from '@prisma/client';
-import * as bcrypt from 'bcrypt';
+import * as argon2 from 'argon2';
 
 // initialize Prisma Client
 const prisma = new PrismaClient();
 
-const roundsOfHashing = 10;
-
 async function main() {
-  const passwordAdmin = await bcrypt.hash(
-    process.env.ADMIN_PASSWORD,
-    roundsOfHashing,
-  );
-  const passwordCosmo = await bcrypt.hash('passwordcosmo!!@@', roundsOfHashing);
+  const passwordAdmin = await argon2.hash(process.env.ADMIN_PASSWORD);
 
   const user = await prisma.user.upsert({
     where: { username: 'Admin' },
@@ -20,18 +14,7 @@ async function main() {
       username: 'Admin',
       name: 'Admin',
       password: passwordAdmin,
-      email: 'admin@user-management.net',
-    },
-  });
-
-  const user2 = await prisma.user.upsert({
-    where: { username: 'Cosmo' },
-    update: { password: passwordCosmo },
-    create: {
-      username: 'Cosmo12',
-      name: 'Cosmo Boy',
-      password: passwordCosmo,
-      email: 'cosmo@user.net',
+      email: process.env.ADMIN_EMAIL,
     },
   });
 
@@ -97,7 +80,6 @@ async function main() {
 
   console.log(
     { user },
-    { user2 },
     { createResource },
     { createRole },
     { updateUserRoles },

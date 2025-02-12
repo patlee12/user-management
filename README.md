@@ -48,8 +48,14 @@ AVAHI_HOSTNAME="user-management"
 
 JWT_SECRET=""
 
-# Development or Production.
+# Development or Production
 NODE_ENV ="Development"
+
+# Stage Production Environment only set to true for first run in production.
+STAGING_PRODUCTION="true"
+
+# Admin Email
+ADMIN_EMAIL = "admin@user-management.net"
 
 # Admin password openssl rand -base64 32.
 ADMIN_PASSWORD = ""
@@ -60,7 +66,8 @@ MFA_KEY=""
 
 ## Running the App in a Production Environment
 
-It is recommended to test the project locally using docker before running in an official production environment. You also may want to update the prisma/seed.ts file with specifics related to your project. You will have to run a seed.ts file at least once whether in production or development.
+It is recommended to test the project locally using docker before running in an official production environment. You also may want to update the prisma/seed.ts and for production src/run-admin-seed.ts file with specifics related to your project.
+You will have to run a seed.ts file at least once whether you're in production or development.
 
 (Reminder: update all passwords in the .env file)
 

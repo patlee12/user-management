@@ -3,7 +3,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CreateMfaDto } from './dto/create-mfa.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import * as bcrypt from 'bcrypt';
+import * as argon2 from 'argon2';
 import { UpdateMfaDto } from './dto/update-mfa.dto';
 import { encryptSecret } from 'src/helpers/encryption-tools';
 
@@ -14,10 +14,7 @@ export class UsersService {
   constructor(private prisma: PrismaService) {}
 
   async create(createUserDto: CreateUserDto) {
-    const hashedPassword = await bcrypt.hash(
-      createUserDto.password,
-      roundsOfHashing,
-    );
+    const hashedPassword = await argon2.hash(createUserDto.password);
 
     createUserDto.password = hashedPassword;
 
@@ -49,10 +46,7 @@ export class UsersService {
 
   async update(id: number, updateUserDto: UpdateUserDto) {
     if (updateUserDto.password) {
-      updateUserDto.password = await bcrypt.hash(
-        updateUserDto.password,
-        roundsOfHashing,
-      );
+      updateUserDto.password = await argon2.hash(updateUserDto.password);
     }
     const updateUserData = {
       ...updateUserDto,

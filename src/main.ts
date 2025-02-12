@@ -3,6 +3,8 @@ import { UserManagementModule } from './user-management-app/user-management.modu
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe, ClassSerializerInterceptor } from '@nestjs/common';
 import { PrismaClientExceptionFilter } from './prisma-client-exception/prisma-client-exception.filter';
+import { runAdminSeed } from './run-admin-seed';
+import { runMigrations } from './run-migrations';
 
 async function bootstrap() {
   const userManagementApp = await NestFactory.create(UserManagementModule);
@@ -35,6 +37,15 @@ async function bootstrap() {
 
   // Need to enable cors so that front end server requests do not get blocked.
   userManagementApp.enableCors({ allowedHeaders: 'Authorization' });
+
+  // Run migrations and seed file only if your staging a production environment for the first time.
+  // Remember Update .env first.
+  if (process.env.STAGING_PRODUCTION === 'true') {
+    // Run Migrations
+    await runMigrations();
+    // Run seed file if Admin account doesn't exist.
+    await runAdminSeed();
+  }
 
   await userManagementApp.listen(3000);
 }
