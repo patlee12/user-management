@@ -25,6 +25,18 @@ services:
     volumes:
       - ./avahi-config:/etc/avahi # Optional: Custom configuration
     hostname: ${AVAHI_HOSTNAME}
+    command:
+      - /bin/sh
+      - -c
+      - |
+        # Start Avahi daemon in the background
+        /usr/sbin/avahi-daemon &
+
+        # Wait for Avahi to initialize
+        sleep 35
+
+        # Just keep the container running
+        tail -f /dev/null
 
   postgres:
     image: postgres:13.5
@@ -41,11 +53,10 @@ services:
     networks:
       - full-stack-network
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER}']
-      interval: 10s
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
+      interval: 20s
       timeout: 5s
-      retries: 5
-    command: ['postgres', '-c', 'fsync=off'] # Optional: Disable fsync to speed up container startup
+      retries: 10
 
   pgadmin:
     image: dpage/pgadmin4
@@ -76,10 +87,13 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      DATABASE_URL: 'postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}'
+      DATABASE_URL: '${DATABASE_URL_PROD}'
     command:
-      # Only run the app, migrations and seeding are handled in the Dockerfile
-      ['yarn', 'start:prod']
+      [
+        'sh',
+        '-c',
+        '/wait-for-it.sh postgres:5432 --timeout=30 --strict -- yarn start:prod',
+      ]
 
 volumes:
   postgres:

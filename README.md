@@ -2,7 +2,7 @@
 
 This NestJS-based application provides a scalable, secure backend solution for user management and authentication. It includes user login, JWT-based authentication, role-based authorization, user profile management, and integration with Nginx (Reverse Proxy) and Avahi (MDNS) for service discovery. This application is designed to be a boilerplate for projects requiring user account login architecture, and can be easily integrated into other projects for rapid deployment of secure user management features.
 
-I've included a swagger module for endpoint testing. Once the project is served go to https://user-management.local/api
+I've included a swagger module for endpoint testing. Once the project is served go to https://user-management.local/api (see section "Running the App in a Production Environment" for setup)
 
 ## Dependencies:
 
@@ -12,18 +12,19 @@ I've included a swagger module for endpoint testing. Once the project is served 
 
 ## Create .env file in root directory
 
-Sample env file (For Development):
+Template for .env file (required) please generate all your own passwords (replace generic ones like "adminpassword") by following the instructions in the comments:
 
 ```bash
-### NOTE: Make your own passwords!! Use open SSL to generate your own secret.
-### ie. open terminal and type: openssl rand -base64 32
+# Make your own passwords!! Use open SSL to generate your own secret.
+# ie. open terminal and type: openssl rand -base64 32
 
 ## Postgres
 POSTGRES_USER="admin"
 POSTGRES_PASSWORD="mypassword"
 POSTGRES_DB="hive-db"
 
-DATABASE_URL="postgresql://admin:mypassword@localhost:5432/hive-db"
+DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:5432/${POSTGRES_DB}"
+DATABASE_URL_PROD="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}"
 
 ## PgAdmin
 PGADMIN_DEFAULT_EMAIL="admin@pgadmin.com"
@@ -47,7 +48,7 @@ AVAHI_HOSTNAME="user-management"
 
 JWT_SECRET=""
 
-# Development or Production
+# Development or Production.
 NODE_ENV ="Development"
 
 # Admin password openssl rand -base64 32.
@@ -55,57 +56,13 @@ ADMIN_PASSWORD = ""
 
 # Mfa Encryption Key openssl rand -hex 32.
 MFA_KEY=""
-
 ```
 
-## Installation
+## Running the App in a Production Environment
 
-```bash
-$ yarn install
-#Setup Prisma ORM
-$ yarn prisma generate
-# Need to run postgres container for this to work.
-$ yarn prisma migrate dev
+It is recommended to test the project locally using docker before running in an official production environment. You also may want to update the prisma/seed.ts file with specifics related to your project. You will have to run a seed.ts file at least once whether in production or development.
 
-#If you want to seed the db with dummy data
-$ yarn prisma db seed
-
-```
-
-## Running the app for development
-
-```bash
-# Run the docker-compose-development.yml which serves postgres and pgAdmin.
-$ docker compose -f docker-compose-development.yml up --build
-
-# development
-$ yarn run start
-
-# watch mode
-$ yarn run start:dev
-
-# production mode
-$ yarn run start:prod
-```
-
-## Test
-
-```bash
-# unit tests
-$ yarn run test
-
-# e2e tests
-$ yarn run test:e2e
-
-# test coverage
-$ yarn run test:cov
-```
-
-## Running the App in a Production environment
-
-It is recommended to test the project locally using docker-compose.yml before running in an official production environment. You also may want to update the prisma/seed.ts file with specifics related to your project.
-
-(Reminder: update all password in docker-compose.yml and .env)
+(Reminder: update all passwords in the .env file)
 
 # Create certs for Nginx
 
@@ -116,15 +73,57 @@ openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
   -keyout ./certs/nginx-selfsigned.key \
   -out ./certs/nginx-selfsigned.crt
 
+# If you don't want to use "user-management" as hostname you can set a host-name in avahi-config and update the .env variable.
 
-# Also remember to set a host-name in avahi-config.
-# Also in PRODUCTION: make sure to update all passwords and not use generic ones mentioned.
+# Install dependencies.
+$ yarn install
 
 # Run the project with docker:
 $ docker compose up --build
 
-# Keep it running in background or use this for server deployment
+# Keep it running in background by adding the -d flag.
 $ docker compose up -d
+```
+
+## Running the app in Development Environment
+
+```bash
+# Install dependencies.
+$ yarn install
+
+#Setup Prisma ORM.
+$ yarn prisma generate
+
+# Run the docker-compose-development.yml which serves postgres and pgAdmin.
+$ docker compose -f docker-compose-development.yml up --build
+
+# Need to run postgres container for this to work.
+$ yarn prisma migrate dev
+
+#If you want to seed the db with dummy data.
+$ yarn prisma db seed
+
+# development.
+$ yarn start
+
+# watch mode.
+$ yarn start:dev
+
+# production mode.
+$ yarn start:prod
+```
+
+## Test
+
+```bash
+# unit tests.
+$ yarn test
+
+# e2e tests.
+$ yarn test:e2e
+
+# test coverage.
+$ yarn test:cov
 ```
 
 # Docker tips
@@ -143,6 +142,9 @@ sudo docker inspect --format '{{.State.Pid}}' user-management-pgadmin-1
 sudo kill -9 <PID>
 sudo docker rm user-management-pgadmin-1
 
+# Remove and Rebuild.
+docker compose down --volumes --remove-orphans
+
 
 
 ```
@@ -156,7 +158,7 @@ sudo resolvectl flush-caches
 sudo systemctl restart systemd-resolved
 sudo systemctl restart NetworkManager
 
-#Verify its still working after flush
+#Verify its still working after flush.
 systemctl status systemd-resolved
 
 
