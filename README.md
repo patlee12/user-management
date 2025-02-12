@@ -10,9 +10,9 @@ I've included a swagger module for endpoint testing. Once the project is served 
 2. Yarn version v1.22.22
 3. Docker
 
-## Create .env file in root directory
+## Create .env file in root directory (Required!)
 
-Template for .env file (required) please generate all your own passwords (replace generic ones like "adminpassword") by following the instructions in the comments:
+Template for environment file please generate all your own passwords (replace generic passwords like "adminpassword") by following the instructions in the comments. Please copy the following and add it to a .env file:
 
 ```bash
 # Make your own passwords!! Use open SSL to generate your own secret.
@@ -51,7 +51,7 @@ JWT_SECRET=""
 # Development or Production
 NODE_ENV ="Development"
 
-# Stage Production Environment only set to true for first run in production.
+# Stage Production Environment, if true it deploy database migrations and run admin account seed.
 STAGING_PRODUCTION="true"
 
 # Admin Email
@@ -66,21 +66,20 @@ MFA_KEY=""
 
 ## Running the App in a Production Environment
 
-It is recommended to test the project locally using docker before running in an official production environment. You also may want to update the prisma/seed.ts and for production src/run-admin-seed.ts file with specifics related to your project.
-You will have to run a seed.ts file at least once whether you're in production or development.
+It is recommended to test the project locally using docker before running it in an official production environment. You also may want to update the run-admin-seed.ts file with specifics related to your project if you have been developing new database models etc.
 
 (Reminder: update all passwords in the .env file)
 
 # Create certs for Nginx
 
-Make sure before running docker, to update paths on nginx config. Note all connections are routed through nginx (reverse proxy) so make sure to have this cert be valid and track when it expires.
+This project uses Nginx as a reverse proxy to handle all incoming connections. Before running Docker, ensure that the Nginx configuration paths are correctly set for your environment. Since all traffic is routed through Nginx, a valid SSL certificate is required—be sure to monitor its expiration to prevent service disruptions.
 
 ```bash
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
   -keyout ./certs/nginx-selfsigned.key \
   -out ./certs/nginx-selfsigned.crt
 
-# If you don't want to use "user-management" as hostname you can set a host-name in avahi-config and update the .env variable.
+# If you don't want to use "user-management.local" as hostname you can set a host-name in avahi-config and update the .env variable.
 
 # Install dependencies.
 $ yarn install
