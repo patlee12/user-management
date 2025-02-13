@@ -112,8 +112,8 @@ $ yarn prisma db seed
 # development.
 $ yarn start
 
-# watch mode.
-$ yarn start:dev
+# build.
+$ yarn build
 
 # production mode.
 $ yarn start:prod
