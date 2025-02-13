@@ -38,8 +38,7 @@ async function bootstrap() {
   // Need to enable cors so that front end server requests do not get blocked.
   userManagementApp.enableCors({ allowedHeaders: 'Authorization' });
 
-  // Run migrations and seed file only if your staging a production environment for the first time.
-  // Remember Update .env first.
+  // Run migrations and seed file only if your staging a production environment.
   if (process.env.STAGING_PRODUCTION === 'true') {
     // Run Migrations
     await runMigrations();

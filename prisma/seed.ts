@@ -1,6 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import * as argon2 from 'argon2';
 
+//This file is db seed file. It creates the admin account on the database and any other associated resources.
+
 // initialize Prisma Client
 const prisma = new PrismaClient();
 
