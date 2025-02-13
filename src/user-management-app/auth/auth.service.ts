@@ -40,24 +40,23 @@ export class AuthService {
 
     //If password does not match.
     if (!isPasswordValid) {
-      throw new UnauthorizedException(
-        '`No user found for that email/password`',
-      );
+      throw new UnauthorizedException('No user found for that email/password');
     }
     let mfaVerified: boolean = false;
-    if (token) {
-      if (user.mfaEnabled) {
+
+    if (user.mfaEnabled) {
+      if (token) {
         const userMfa = await this.userService.findOneMfa(user.id);
-        const decryptedMFASecret = await decryptSecret(
-          userMfa.secret,
-          process.env.MFA_KEY,
-        );
-        const isMfaValid = this.verifyTotp(decryptedMFASecret, token);
+        const isMfaValid = await this.verifyTotp(userMfa.secret, token);
         if (isMfaValid) {
           mfaVerified = true;
         } else {
           throw new UnauthorizedException('Invalid MFA token');
         }
+      } else {
+        throw new UnauthorizedException(
+          'MFA is enabled for this account. You must provide the MFA token with login.',
+        );
       }
     }
 
@@ -80,12 +79,17 @@ export class AuthService {
     return QRCode.toDataURL(secret);
   }
 
-  async verifyTotp(secret: string, token: string): Promise<boolean> {
-    return await speakeasy.totp.verify({
-      secret,
+  async verifyTotp(encryptedSecret: string, token: string): Promise<boolean> {
+    const decryptedSecret = await decryptSecret(
+      encryptedSecret,
+      process.env.MFA_KEY,
+    );
+    const isValid: boolean = await speakeasy.totp.verify({
+      secret: decryptedSecret,
       encoding: 'base32',
       token,
       window: 1, //Increase window if needed to handle timing issues
     });
+    return isValid;
   }
 }

@@ -6,10 +6,10 @@ import { AuthModule } from 'src/user-management-app/auth/auth.module';
 import { RolesPermissionsResourcesModule } from './roles-and-permissions-resources/roles-permissions-resources.module';
 @Module({
   imports: [
+    AuthModule,
     PrismaModule,
     UsersModule,
     PostsModule,
-    AuthModule,
     RolesPermissionsResourcesModule,
   ],
   controllers: [],
