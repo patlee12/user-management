@@ -1,4 +1,4 @@
-## User Management 
+## User Management
 
 This Nest.js application provides a scalable, secure backend solution for user management and authentication. It includes user login, JWT-based authentication, Multi-factor authentication (MFA), role-based authorization, user profile management, and integration with Nginx (Reverse Proxy) and Avahi (MDNS) for service discovery. This application is designed to be a boilerplate for projects requiring user account login architecture, and can be easily integrated into other projects for rapid deployment of secure user management features.
 
@@ -78,9 +78,13 @@ This project uses Nginx as a reverse proxy to handle all incoming connections. B
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
   -keyout ./certs/nginx-selfsigned.key \
   -out ./certs/nginx-selfsigned.crt
+```
 
-# If you don't want to use "user-management.local" as hostname you can set a host-name in avahi-config and update the .env variable.
+# Install Dependencies and Run App in Docker
 
+If you don't want to use "user-management.local" as hostname you can set a host-name in avahi-config and update the .env variable.
+
+```bash
 # Install dependencies.
 $ yarn install
 
