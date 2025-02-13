@@ -95,6 +95,35 @@ $ docker compose up --build
 $ docker compose up -d
 ```
 
+Give the containers a minute to complete deployment. The Nest.js app will be the last one finished deploying. Then open a browser and go to https://user-management.local/api
+
+## Avahi Tips
+
+Sometimes if you re-start the project a few times in a short period, Avahi can have hostname conflicts. Avahi will automatically resolve it and give you a host name, you just might have to scroll up or check the logs by directly by typing `docker logs avahi` in a separate terminal.
+
+# Docker tips
+
+If pgadmin gets stuck (sometimes needs a reboot)
+
+```bash
+sudo docker stop user-management-pgadmin-1
+sudo docker rm user-management-pgadmin-1
+sudo docker stop $(sudo docker ps -q)
+
+sudo docker rm -f user-management-pgadmin-1
+
+
+sudo docker inspect --format '{{.State.Pid}}' user-management-pgadmin-1
+sudo kill -9 <PID>
+sudo docker rm user-management-pgadmin-1
+
+# Remove and Rebuild.
+docker compose down --volumes --remove-orphans
+
+
+
+```
+
 ## Running the app in Development Environment
 
 ```bash
@@ -134,44 +163,6 @@ $ yarn test:e2e
 
 # test coverage.
 $ yarn test:cov
-```
-
-# Docker tips
-
-If pgadmin gets stuck (sometimes needs a reboot)
-
-```bash
-sudo docker stop user-management-pgadmin-1
-sudo docker rm user-management-pgadmin-1
-sudo docker stop $(sudo docker ps -q)
-
-sudo docker rm -f user-management-pgadmin-1
-
-
-sudo docker inspect --format '{{.State.Pid}}' user-management-pgadmin-1
-sudo kill -9 <PID>
-sudo docker rm user-management-pgadmin-1
-
-# Remove and Rebuild.
-docker compose down --volumes --remove-orphans
-
-
-
-```
-
-## Avahi Tips
-
-If you have mdns conflicts you sometimes have to flush your cache. Also make sure you have not chosen a hostname that is already in use on your network.
-
-```bash
-sudo resolvectl flush-caches
-sudo systemctl restart systemd-resolved
-sudo systemctl restart NetworkManager
-
-#Verify its still working after flush.
-systemctl status systemd-resolved
-
-
 ```
 
 ## License
