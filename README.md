@@ -99,7 +99,7 @@ Give the containers a minute to complete deployment. The Nest.js app will be the
 
 ## Avahi Tips
 
-Sometimes if you re-start the project a few times in a short period, Avahi can have hostname conflicts. Avahi will automatically resolve it and give you a host name, you just might have to scroll up or check the logs by directly by typing `docker logs avahi` in a separate terminal.
+Sometimes if you re-start the project a few times in a short period, Avahi can have hostname conflicts. Avahi will automatically resolve it and give you a host name, you just might have to scroll up or check the logs or directly by opening another terminal and typing `docker logs avahi`.
 
 # Docker tips
 
