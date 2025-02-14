@@ -2,7 +2,6 @@ import { IsArray, IsOptional, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 /**
  * DTO for updating a permission.
- *
  * This allows modifying a permission and optionally updating its associated roles.
  */
 export class UpdatePermissionDto {
