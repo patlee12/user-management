@@ -1,6 +1,7 @@
 import { Post } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 import { UserEntity } from 'src/user-management-app/users/entities/user.entity';
+import { plainToInstance } from 'class-transformer';
 
 export class PostEntity implements Post {
   @ApiProperty()
@@ -34,7 +35,7 @@ export class PostEntity implements Post {
     Object.assign(this, data);
 
     if (author) {
-      this.author = new UserEntity(author);
+      this.author = plainToInstance(UserEntity, author);
     }
   }
 }
