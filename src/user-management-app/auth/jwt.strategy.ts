@@ -5,6 +5,7 @@ import { jwtSecret } from './auth.module';
 import { UsersService } from 'src/user-management-app/users/users.service';
 import { plainToInstance } from 'class-transformer';
 import { UserEntity } from '../users/entities/user.entity';
+
 export interface JwtPayload {
   userId: number;
   mfaVerified: boolean;
@@ -21,7 +22,12 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     });
   }
 
-  async validate(payload: JwtPayload) {
+  /**
+   * Validate JwtPayload. If user is found and mfa (optional) has been verified return the UserEntity.
+   * @param payload
+   * @returns
+   */
+  async validate(payload: JwtPayload): Promise<UserEntity> {
     const user = await this.usersService.findOne(payload.userId);
 
     if (!user) {

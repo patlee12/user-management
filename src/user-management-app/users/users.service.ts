@@ -9,6 +9,7 @@ import { encryptSecret } from 'src/helpers/encryption-tools';
 import { UserEntity } from './entities/user.entity';
 import { MfaAuthEntity } from './entities/mfa-auth.entity';
 import { MfaAuthExcludeSecretEntity } from './entities/mfa-auth-exclude-secret.entity';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class UsersService {
@@ -155,7 +156,10 @@ export class UsersService {
   async findOneMfaWithoutSecret(
     userId: number,
   ): Promise<MfaAuthExcludeSecretEntity> {
-    return await this.prisma.mfa_auth.findUnique({ where: { userId: userId } });
+    const mfaAuth = await this.prisma.mfa_auth.findUnique({
+      where: { userId: userId },
+    });
+    return await plainToInstance(MfaAuthExcludeSecretEntity, mfaAuth);
   }
 
   /**
@@ -175,6 +179,9 @@ export class UsersService {
   async findOneMfaByEmailWithoutSecret(
     email: string,
   ): Promise<MfaAuthExcludeSecretEntity> {
-    return await this.prisma.mfa_auth.findUnique({ where: { email: email } });
+    const mfaAuth = await this.prisma.mfa_auth.findUnique({
+      where: { email: email },
+    });
+    return await plainToInstance(MfaAuthExcludeSecretEntity, mfaAuth);
   }
 }
