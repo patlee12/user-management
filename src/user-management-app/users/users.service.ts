@@ -6,14 +6,20 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import * as argon2 from 'argon2';
 import { UpdateMfaDto } from './dto/update-mfa.dto';
 import { encryptSecret } from 'src/helpers/encryption-tools';
-
-export const roundsOfHashing = 10;
+import { UserEntity } from './entities/user.entity';
+import { MfaAuthEntity } from './entities/mfa-auth.entity';
+import { MfaAuthExcludeSecretEntity } from './entities/mfa-auth-exclude-secret.entity';
 
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createUserDto: CreateUserDto) {
+  /**
+   * Creates a new user and hashes the password before storing it in database.
+   * @param createUserDto
+   * @returns {UserEntity}
+   */
+  async create(createUserDto: CreateUserDto): Promise<UserEntity> {
     const hashedPassword = await argon2.hash(createUserDto.password);
 
     createUserDto.password = hashedPassword;
@@ -32,19 +38,39 @@ export class UsersService {
     return await this.prisma.user.create({ data: createUserData });
   }
 
-  async findAll() {
+  /**
+   * Find All Users.
+   * @returns {UserEntity[]}
+   */
+  async findAll(): Promise<UserEntity[]> {
     return await this.prisma.user.findMany();
   }
 
-  async findOne(id: number) {
+  /**
+   * Find one user by id.
+   * @param id
+   * @returns {UserEntity}
+   */
+  async findOne(id: number): Promise<UserEntity> {
     return await this.prisma.user.findUnique({ where: { id: id } });
   }
 
-  async findOneByEmail(email: string) {
+  /**
+   * Find one User by Email.
+   * @param email
+   * @returns {UserEntity}
+   */
+  async findOneByEmail(email: string): Promise<UserEntity> {
     return await this.prisma.user.findUnique({ where: { email: email } });
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto) {
+  /**
+   * Update User by id. Also re hash a new password if its provided.
+   * @param id
+   * @param updateUserDto
+   * @returns {UserEntity}
+   */
+  async update(id: number, updateUserDto: UpdateUserDto): Promise<UserEntity> {
     if (updateUserDto.password) {
       updateUserDto.password = await argon2.hash(updateUserDto.password);
     }
@@ -65,11 +91,21 @@ export class UsersService {
     });
   }
 
-  async remove(id: number) {
+  /**
+   * Remove User by id.
+   * @param id
+   * @returns {UserEntity}
+   */
+  async remove(id: number): Promise<UserEntity> {
     return await this.prisma.user.delete({ where: { id: id } });
   }
 
-  async createMfaAuth(createMfaDto: CreateMfaDto) {
+  /**
+   * Create a new MFA auth for the user. A user may only have one MFA auth.
+   * @param createMfaDto
+   * @returns
+   */
+  async createMfaAuth(createMfaDto: CreateMfaDto): Promise<MfaAuthEntity> {
     const encryptMfaSecret = await encryptSecret(
       createMfaDto.secret,
       process.env.MFA_KEY,
@@ -79,7 +115,16 @@ export class UsersService {
     return await this.prisma.mfa_auth.create({ data: createMfaDto });
   }
 
-  async updateMfaAuth(userId: number, updateMfaDto: UpdateMfaDto) {
+  /**
+   * Update MFA auth and if a new secret is included hash it.
+   * @param userId
+   * @param updateMfaDto
+   * @returns {MfaAuthEntity}
+   */
+  async updateMfaAuth(
+    userId: number,
+    updateMfaDto: UpdateMfaDto,
+  ): Promise<MfaAuthEntity> {
     if (updateMfaDto.secret) {
       const encrytMfaSecret = await encryptSecret(
         updateMfaDto.secret,
@@ -93,10 +138,43 @@ export class UsersService {
     });
   }
 
-  async findOneMfa(userId: number) {
+  /**
+   * Find one MFA auth by user id.
+   * @param userId
+   * @returns {MfaAuthEntity}
+   */
+  async findOneMfa(userId: number): Promise<MfaAuthEntity> {
     return await this.prisma.mfa_auth.findUnique({ where: { userId: userId } });
   }
-  async findOneMfaByEmail(email: string) {
+
+  /**
+   * Find one MFA auth by user id but exclude secret in response.
+   * @param userId
+   * @returns {MfaAuthExcludeSecretEntity}
+   */
+  async findOneMfaWithoutSecret(
+    userId: number,
+  ): Promise<MfaAuthExcludeSecretEntity> {
+    return await this.prisma.mfa_auth.findUnique({ where: { userId: userId } });
+  }
+
+  /**
+   * Find one MFA auth by email.
+   * @param email
+   * @returns {MfaAuthEntity}
+   */
+  async findOneMfaByEmail(email: string): Promise<MfaAuthEntity> {
+    return await this.prisma.mfa_auth.findUnique({ where: { email: email } });
+  }
+
+  /**
+   * Find one MFA auth by email and exclude secret in response.
+   * @param email
+   * @returns {MfaAuthExcludeSecretEntity}
+   */
+  async findOneMfaByEmailWithoutSecret(
+    email: string,
+  ): Promise<MfaAuthExcludeSecretEntity> {
     return await this.prisma.mfa_auth.findUnique({ where: { email: email } });
   }
 }
