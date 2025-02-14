@@ -13,6 +13,7 @@ import * as QRCode from 'qrcode';
 import { UsersService } from 'src/user-management-app/users/users.service';
 import { JwtPayload } from './jwt.strategy';
 import { decryptSecret } from 'src/helpers/encryption-tools';
+import { MfaDto } from './dto/mfa.dto';
 
 @Injectable()
 export class AuthService {
@@ -91,6 +92,29 @@ export class AuthService {
   }
 
   /**
+   * Verify user's MFA token and enable Mfa on the user's account.
+   * @param user
+   * @param mfaDto
+   * @returns {boolean}
+   */
+  async verifyMfa(user: UserEntity, mfaDto: MfaDto): Promise<boolean> {
+    const userMfa = await this.userService.findOneMfaByEmail(user.email);
+    if (!userMfa) {
+      throw new NotFoundException('MFA configuration not found for user');
+    }
+
+    const isValid = await this.verifyTotp(userMfa.secret, mfaDto.token);
+
+    if (!isValid) {
+      throw new UnauthorizedException('Invalid MFA code');
+    }
+
+    await this.userService.update(user.id, { mfaEnabled: true });
+
+    return true;
+  }
+
+  /**
    * Verify user token that was provided from their authenticator app.
    * @param encryptedSecret stored encrypted in the mfa_auth table.
    * @param token
@@ -101,12 +125,11 @@ export class AuthService {
       encryptedSecret,
       process.env.MFA_KEY,
     );
-    const isValid: boolean = await speakeasy.totp.verify({
+    return speakeasy.totp.verify({
       secret: decryptedSecret,
       encoding: 'base32',
       token,
       window: 1,
     });
-    return isValid;
   }
 }

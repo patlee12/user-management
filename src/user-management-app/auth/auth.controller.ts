@@ -77,18 +77,7 @@ export class AuthController {
       "Verifies a 6-digit MFA token and enables MFA for the user's account if valid.",
   })
   @UseGuards(JwtAuthGuard)
-  async verifyMfa(@Request() req, @Body() { token }: MfaDto) {
-    const user: UserEntity = req.user;
-    const userMfa = await this.userService.findOneMfaByEmail(user.email);
-    const isValid = await this.authService.verifyTotp(userMfa.secret, token);
-
-    if (!isValid) {
-      throw new UnauthorizedException('Invalid MFA code');
-    }
-    if (isValid) {
-      await this.userService.update(user.id, { mfaEnabled: true });
-    }
-    // Mark the user as fully authenticated (MFA passed)
-    return { message: 'MFA verified successfully' };
+  async verifyMfa(@Request() req, @Body() mfaDto: MfaDto): Promise<boolean> {
+    return this.authService.verifyMfa(req.user, mfaDto);
   }
 }
