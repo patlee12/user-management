@@ -22,23 +22,25 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
+  /**
+   * Login using an email, password, and token if account has MFA enabled. If successful will return JWT token.
+   * @param email
+   * @param password
+   * @param token
+   * @returns {AuthResponseDto}
+   */
   async login(
     email: string,
     password: string,
     token?: string,
   ): Promise<AuthResponseDto> {
-    //Fetch a user
     const user = await this.prisma.user.findUnique({ where: { email: email } });
-
-    //If no user is found.
     if (!user) {
       throw new NotFoundException(`No user found for that email/password`);
     }
 
-    // Check if the password is correct
     const isPasswordValid = await argon2.verify(user.password, password);
 
-    //If password does not match.
     if (!isPasswordValid) {
       throw new UnauthorizedException('No user found for that email/password');
     }
@@ -64,10 +66,14 @@ export class AuthService {
       userId: user.id,
       mfaVerified: mfaVerified,
     };
-    //Generate a JWT.
     return { accessToken: this.jwtService.sign(jwtPayload) };
   }
 
+  /**
+   * This function generates a MFA secret base32.
+   * @param user A user entity.
+   * @returns {string}
+   */
   async generateMfaSecret(user: UserEntity): Promise<string> {
     const secret = await speakeasy.generateSecret({
       name: `User Management (${user.email})`,
@@ -75,10 +81,21 @@ export class AuthService {
     return secret.base32;
   }
 
+  /**
+   * Converts base32 secret to a QR code string.
+   * @param secret
+   * @returns {string}
+   */
   async generateQrCode(secret: string): Promise<string> {
     return QRCode.toDataURL(secret);
   }
 
+  /**
+   * Verify user token that was provided from their authenticator app.
+   * @param encryptedSecret stored encrypted in the mfa_auth table.
+   * @param token
+   * @returns {boolean}
+   */
   async verifyTotp(encryptedSecret: string, token: string): Promise<boolean> {
     const decryptedSecret = await decryptSecret(
       encryptedSecret,
@@ -88,7 +105,7 @@ export class AuthService {
       secret: decryptedSecret,
       encoding: 'base32',
       token,
-      window: 1, //Increase window if needed to handle timing issues
+      window: 1,
     });
     return isValid;
   }
