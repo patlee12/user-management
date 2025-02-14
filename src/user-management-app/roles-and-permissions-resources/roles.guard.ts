@@ -16,13 +16,19 @@ export class RolesGuard implements CanActivate {
     private rolesPermissionsResourcesService: RolesPermissionsResourcesService,
   ) {}
 
+  /**
+   * Checks whether the user has at least one of the required roles to access the requested resource.
+   * If the user lacks the required roles, a `ForbiddenException` is thrown.
+   * @param context - The execution context containing the request and handler information.
+   * @returns {boolean} indicating whether access is granted.
+   * @throws {ForbiddenException} If the user is not found, has no roles, or lacks the required role.
+   */
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const requiredRoles = this.reflector.get<string[]>(
+    const getRequiredRoles = this.reflector.get<string[]>(
       'roles',
       context.getHandler(),
     );
-    if (!requiredRoles) {
-      //If no roles are present. This is would be for public resources or routes.
+    if (!getRequiredRoles) {
       return true;
     }
 
@@ -37,12 +43,13 @@ export class RolesGuard implements CanActivate {
       throw new ForbiddenException('Access Denied: No roles found');
     }
 
-    //Map roles name
-    const roleNames: string[] = lookupUserRoles.map(
+    const mapRoleNames: string[] = lookupUserRoles.map(
       (UserRole) => UserRole.role.name,
     );
-    //Check if the user has at least one of the required roles
-    const hasRole = requiredRoles.some((role) => roleNames.includes(role));
+
+    const hasRole = getRequiredRoles.some((role) =>
+      mapRoleNames.includes(role),
+    );
 
     if (!hasRole) {
       throw new ForbiddenException('Access Denied: Insufficient permissions');

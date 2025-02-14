@@ -18,21 +18,26 @@ export class PermissionsGuard implements CanActivate {
     private rolesPermissionsResourcesService: RolesPermissionsResourcesService,
   ) {}
 
+  /**
+   * Checks whether the user has the required permissions to access the requested resource.
+   * If the user lacks the required permission, a `ForbiddenException` is thrown.
+   * @param context - The execution context containing the request and handler information.
+   * @returns {boolean} indicating whether access is granted.
+   * @throws {ForbiddenException} If the user is not found in the request or lacks the required permissions.
+   */
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    //Get info from request.
-    const requiredPermission = this.reflector.get<PermissionMeta>(
+    const getRequiredPermission = this.reflector.get<PermissionMeta>(
       PERMISSIONS_KEY,
       context.getHandler(),
     );
-    if (!requiredPermission) {
-      return true; //If no permissions are required, allow access.
+
+    if (!getRequiredPermission) {
+      return true;
     }
 
-    const { resourceId, actionType } = requiredPermission;
+    const { resourceId, actionType } = getRequiredPermission;
 
-    //Get user permissions from Jwtpayload in request.
     const request = await context.switchToHttp().getRequest();
-
     const user: UserEntity = request.user;
 
     if (!user) {
@@ -47,8 +52,8 @@ export class PermissionsGuard implements CanActivate {
     const userPermissions: PermissionEntity[] = getUserRoles.flatMap(
       (userRole: UserRolesEntity) => userRole.role.permissions,
     );
-    //Check user's permissions.
-    const hasPermission = userPermissions.some(
+
+    const hasPermission: boolean = userPermissions.some(
       (permission: PermissionEntity) =>
         permission.resourceId === resourceId &&
         permission.actionType === actionType,
