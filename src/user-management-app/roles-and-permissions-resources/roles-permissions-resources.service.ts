@@ -8,14 +8,20 @@ import { UserRolesDto } from './dto/user-roles.dto';
 import { RoleEntity } from './entities/role.entity';
 import { PermissionEntity } from './entities/permission.entity';
 import { UserRolesEntity } from './entities/user-roles.entity';
-import { Prisma } from '@prisma/client';
+import { Prisma, Role } from '@prisma/client';
 
 @Injectable()
 export class RolesPermissionsResourcesService {
   constructor(private prisma: PrismaService) {}
 
   //########################### Create and Assign #################################
-  async createRole(createRoleDto: CreateRoleDto) {
+
+  /**
+   * Create a new role.
+   * @param createRoleDto
+   * @returns {Role}
+   */
+  async createRole(createRoleDto: CreateRoleDto): Promise<Role> {
     const createRoleData = {
       ...createRoleDto,
       permissions: {
@@ -37,7 +43,14 @@ export class RolesPermissionsResourcesService {
     });
   }
 
-  async createPermission(createPermissionDto: CreatePermissionDto) {
+  /**
+   * Create a new permission.
+   * @param createPermissionDto
+   * @returns {PermissionEntity}
+   */
+  async createPermission(
+    createPermissionDto: CreatePermissionDto,
+  ): Promise<PermissionEntity> {
     const createPermissionData = {
       ...createPermissionDto,
       roles: {
@@ -55,19 +68,30 @@ export class RolesPermissionsResourcesService {
     });
   }
 
-  async createUserRole(userRolesDto: UserRolesDto) {
+  /**
+   * Assign a role to a user.
+   * @param userRolesDto
+   * @returns {UserRolesEntity}
+   */
+  async createUserRole(userRolesDto: UserRolesDto): Promise<UserRolesEntity> {
     const assignUserRole = await this.prisma.userRoles.create({
       data: userRolesDto,
     });
     return assignUserRole;
   }
+
   //########################### Get many Roles and many Permissions #################################
+
+  /**
+   *Find all roles including permissionIds.
+   * @returns {RoleEntity[]}
+   */
   async findAllRoles(): Promise<RoleEntity[]> {
     const allRolesWithPermissions = await this.prisma.role.findMany({
       include: { permissions: true },
     });
 
-    return allRolesWithPermissions.map((role) => {
+    return await allRolesWithPermissions.map((role: RoleEntity) => {
       return {
         id: role.id,
         name: role.name,
@@ -81,17 +105,21 @@ export class RolesPermissionsResourcesService {
     });
   }
 
+  /**
+   * Find all roles and include entire permission entity.
+   * @returns {RoleEntity[]}
+   */
   async findAllRolesWithPermissions(): Promise<RoleEntity[]> {
     const allRolesWithPermissions = await this.prisma.role.findMany({
       include: { permissions: true },
     });
 
-    return allRolesWithPermissions.map((role) => {
+    return await allRolesWithPermissions.map((role: RoleEntity) => {
       return {
         id: role.id,
         name: role.name,
         description: role.description,
-        permissionObject: role.permissions,
+        permission: role.permissions,
         createdBy: role.createdBy,
         updatedBy: role.updatedBy,
         createdAt: role.createdAt,
@@ -100,6 +128,10 @@ export class RolesPermissionsResourcesService {
     });
   }
 
+  /**
+   * Find all Permissions.
+   * @returns {PermissionEntity[]}
+   */
   async findAllPermissions(): Promise<PermissionEntity[]> {
     const allPermissions = await this.prisma.permission.findMany({});
 
@@ -108,6 +140,11 @@ export class RolesPermissionsResourcesService {
 
   //########################### Get unique Roles and unique Permissions #################################
 
+  /**
+   * Find one role by id and include permissions for that role.
+   * @param id
+   * @returns {RoleEntity}
+   */
   async findOneRole(id: number): Promise<RoleEntity> {
     return await this.prisma.role.findUnique({
       where: { id: id },
@@ -115,10 +152,20 @@ export class RolesPermissionsResourcesService {
     });
   }
 
+  /**
+   * Find one permission by id.
+   * @param id
+   * @returns {PermissionEntity}
+   */
   async findOnePermission(id: number): Promise<PermissionEntity> {
     return await this.prisma.permission.findUnique({ where: { id: id } });
   }
 
+  /**
+   * Find all roles by UserId and include their permissions.
+   * @param userId
+   * @returns {UserRolesEntity[]}
+   */
   async findUserRolesByUserId(userId: number): Promise<UserRolesEntity[]> {
     return await this.prisma.userRoles.findMany({
       where: { userId: userId },
@@ -128,7 +175,20 @@ export class RolesPermissionsResourcesService {
 
   //########################### Update unique Roles and unique Permissions #################################
 
-  async updateRole(id: number, updateRoleDto: UpdateRoleDto) {
+  /**
+   * Updates an existing role by its ID.
+   *
+   * If `permissions` are provided in `updateRoleDto`, they will be updated by associating the role with the specified permission IDs.
+   * Otherwise, only the role details will be updated.
+   *
+   * @param id
+   * @param updateRoleDto
+   * @returns {Promise<RoleEntity>} - The updated role entity.
+   */
+  async updateRole(
+    id: number,
+    updateRoleDto: UpdateRoleDto,
+  ): Promise<RoleEntity> {
     const { permissions, ...data } = updateRoleDto;
 
     const updateRole: Prisma.RoleUpdateInput = {
@@ -148,6 +208,16 @@ export class RolesPermissionsResourcesService {
     });
   }
 
+  /**
+   * Updates an existing permission by its ID.
+   *
+   * If `roles` are provided in `updatePermissionDto`, the permission will be updated to include these roles.
+   *
+   * If `roles` are omitted, only the permission's other attributes will be modified.
+   * @param id
+   * @param updatePermissionDto
+   * @returns {Promise<PermissionEntity>} - The updated permission entity.
+   */
   async updatePermission(id: number, updatePermissionDto: UpdatePermissionDto) {
     const { roles, ...data } = updatePermissionDto;
 
@@ -170,15 +240,34 @@ export class RolesPermissionsResourcesService {
 
   //########################### Delete unique Roles and unique Permissions #################################
 
-  async removeRole(id: number) {
+  /**
+   * Remove role by id.
+   * @param id
+   * @returns {RoleEntity}
+   */
+  async removeRole(id: number): Promise<RoleEntity> {
     return await this.prisma.role.delete({ where: { id: id } });
   }
 
-  async removePermission(id: number) {
+  /**
+   * Remove permission by id.
+   * @param id
+   * @returns {PermissionEntity}
+   */
+  async removePermission(id: number): Promise<PermissionEntity> {
     return await this.prisma.permission.delete({ where: { id: id } });
   }
 
-  async removeUserRole(userId: number, roleId: number) {
+  /**
+   * Un-assign user role.
+   * @param userId
+   * @param roleId
+   * @returns {UserRolesEntity}
+   */
+  async removeUserRole(
+    userId: number,
+    roleId: number,
+  ): Promise<UserRolesEntity> {
     return await this.prisma.userRoles.delete({
       where: { userId_roleId: { userId: userId, roleId: roleId } },
     });

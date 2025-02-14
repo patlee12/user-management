@@ -10,6 +10,9 @@ import {
 } from 'class-validator';
 import { CreateRoleDto } from './create-role.dto';
 
+/**
+ * DTO used to create new permissions
+ */
 export class CreatePermissionDto {
   @IsEnum(ActionType, {
     message: `Must be one of the following values: ${Object.values(ActionType).join(', ')}`,
