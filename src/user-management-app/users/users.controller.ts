@@ -21,6 +21,7 @@ import {
 } from '@nestjs/swagger';
 import { UserEntity } from './entities/user.entity';
 import { JwtAuthGuard } from 'src/user-management-app/auth/jwt-auth.guard';
+import { plainToInstance } from 'class-transformer';
 
 @Controller('users')
 @ApiTags('users')
@@ -32,14 +33,15 @@ export class UsersController {
   @Post()
   @ApiCreatedResponse({ type: UserEntity })
   async create(@Body() createUserDto: CreateUserDto): Promise<UserEntity> {
-    return new UserEntity(await this.usersService.create(createUserDto));
+    const newUser = await this.usersService.create(createUserDto);
+    return await plainToInstance(UserEntity, newUser);
   }
 
   @Get()
   @ApiOkResponse({ type: UserEntity, isArray: true })
   async findAll(): Promise<UserEntity[]> {
     const users = await this.usersService.findAll();
-    return users.map((user) => new UserEntity(user));
+    return await plainToInstance(UserEntity, users);
   }
 
   @Get(':id')
@@ -49,7 +51,7 @@ export class UsersController {
     if (!user) {
       throw new NotFoundException(`User with ${id} does not exist.`);
     }
-    return new UserEntity(user);
+    return await plainToInstance(UserEntity, user);
   }
 
   @Patch(':id')
@@ -64,7 +66,7 @@ export class UsersController {
         `User with ${id} was not updated. Verify correct id is being used.`,
       );
     }
-    return new UserEntity(updateUser);
+    return await plainToInstance(UserEntity, updateUser);
   }
 
   @Delete(':id')
@@ -76,6 +78,6 @@ export class UsersController {
         `User with ${id} was not deleted. Verify correct id is being used.`,
       );
     }
-    return new UserEntity(deleteUser);
+    return await plainToInstance(UserEntity, deleteUser);
   }
 }

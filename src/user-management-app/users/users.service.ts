@@ -8,8 +8,6 @@ import { UpdateMfaDto } from './dto/update-mfa.dto';
 import { encryptSecret } from 'src/helpers/encryption-tools';
 import { UserEntity } from './entities/user.entity';
 import { MfaAuthEntity } from './entities/mfa-auth.entity';
-import { MfaAuthExcludeSecretEntity } from './entities/mfa-auth-exclude-secret.entity';
-import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class UsersService {
@@ -36,7 +34,8 @@ export class UsersService {
       },
     };
 
-    return await this.prisma.user.create({ data: createUserData });
+    const newUser = await this.prisma.user.create({ data: createUserData });
+    return newUser;
   }
 
   /**
@@ -44,7 +43,8 @@ export class UsersService {
    * @returns {UserEntity[]}
    */
   async findAll(): Promise<UserEntity[]> {
-    return await this.prisma.user.findMany();
+    const allUsers = await this.prisma.user.findMany();
+    return allUsers;
   }
 
   /**
@@ -104,7 +104,7 @@ export class UsersService {
   /**
    * Create a new MFA auth for the user. A user may only have one MFA auth.
    * @param createMfaDto
-   * @returns
+   * @returns {MfaAuthEntity}
    */
   async createMfaAuth(createMfaDto: CreateMfaDto): Promise<MfaAuthEntity> {
     const encryptMfaSecret = await encryptSecret(
@@ -149,39 +149,11 @@ export class UsersService {
   }
 
   /**
-   * Find one MFA auth by user id but exclude secret in response.
-   * @param userId
-   * @returns {MfaAuthExcludeSecretEntity}
-   */
-  async findOneMfaWithoutSecret(
-    userId: number,
-  ): Promise<MfaAuthExcludeSecretEntity> {
-    const mfaAuth = await this.prisma.mfa_auth.findUnique({
-      where: { userId: userId },
-    });
-    return await plainToInstance(MfaAuthExcludeSecretEntity, mfaAuth);
-  }
-
-  /**
    * Find one MFA auth by email.
    * @param email
    * @returns {MfaAuthEntity}
    */
   async findOneMfaByEmail(email: string): Promise<MfaAuthEntity> {
     return await this.prisma.mfa_auth.findUnique({ where: { email: email } });
-  }
-
-  /**
-   * Find one MFA auth by email and exclude secret in response.
-   * @param email
-   * @returns {MfaAuthExcludeSecretEntity}
-   */
-  async findOneMfaByEmailWithoutSecret(
-    email: string,
-  ): Promise<MfaAuthExcludeSecretEntity> {
-    const mfaAuth = await this.prisma.mfa_auth.findUnique({
-      where: { email: email },
-    });
-    return await plainToInstance(MfaAuthExcludeSecretEntity, mfaAuth);
   }
 }
