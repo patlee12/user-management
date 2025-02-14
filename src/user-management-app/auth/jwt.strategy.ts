@@ -25,7 +25,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   /**
    * Validate JwtPayload. If user is found and mfa (optional) has been verified return the UserEntity.
    * @param payload
-   * @returns
+   * @returns {UserEntity}
    */
   async validate(payload: JwtPayload): Promise<UserEntity> {
     const user = await this.usersService.findOne(payload.userId);

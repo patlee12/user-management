@@ -24,11 +24,17 @@ export class AuthService {
   ) {}
 
   /**
-   * Login using an email, password, and token if account has MFA enabled. If successful will return JWT token.
-   * @param email
-   * @param password
-   * @param token
-   * @returns {AuthResponseDto}
+   * Authenticates a user with their email, password, and (if MFA is enabled) a multi-factor authentication (MFA) token.
+   * If successful, a JWT access token is returned.
+   * If any of the validation steps fail, an appropriate exception is thrown:
+   * - `NotFoundException` if the email does not match any user in the database.
+   * - `UnauthorizedException` if the password or MFA token is invalid, or if MFA is enabled but the token is not provided.
+   * @param email - The user's email address.
+   * @param password - The user's password.
+   * @param token - The optional MFA token (only required if MFA is enabled).
+   * @returns {AuthResponseDto} - The JWT access token.
+   * @throws {NotFoundException} - If no user is found for the provided email.
+   * @throws {UnauthorizedException} - If the password is invalid, MFA is required but no token is provided, or if the provided MFA token is invalid.
    */
   async login(
     email: string,
@@ -83,8 +89,8 @@ export class AuthService {
   }
 
   /**
-   * Converts base32 secret to a QR code string.
-   * @param secret
+   * Converts secret to a QR code string.
+   * @param secret base32 secret
    * @returns {string}
    */
   async generateQrCode(secret: string): Promise<string> {
@@ -93,8 +99,8 @@ export class AuthService {
 
   /**
    * Verify user's MFA token and enable Mfa on the user's account.
-   * @param user
-   * @param mfaDto
+   * @param user - UserEntity
+   * @param mfaDto - Mfa dto with 6 digit token.
    * @returns {boolean}
    */
   async verifyMfa(user: UserEntity, mfaDto: MfaDto): Promise<boolean> {
@@ -116,8 +122,8 @@ export class AuthService {
 
   /**
    * Verify user token that was provided from their authenticator app.
-   * @param encryptedSecret stored encrypted in the mfa_auth table.
-   * @param token
+   * @param encryptedSecret - stored encrypted in the mfa_auth table.
+   * @param token - 6 digit token from MfaDto.
    * @returns {boolean}
    */
   async verifyTotp(encryptedSecret: string, token: string): Promise<boolean> {
