@@ -1,6 +1,6 @@
 # Create certs for Nginx
 
-make sure to update paths on nginx config. Note all connections are routed through nginx (reverse proxy) so make sure to have this cert be valid and track when it expires.
+Make sure to verify paths on nginx config (It defaults to this folder). Note all connections are routed through nginx (reverse proxy) so make sure to have this cert be valid and track when it expires.
 
 ```bash
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 \

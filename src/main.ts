@@ -15,9 +15,9 @@ async function bootstrap() {
   );
 
   const config = new DocumentBuilder()
-    .setTitle('User-Managment')
+    .setTitle('User-Management')
     .setDescription(
-      'A backend microservice architecture serving user managment and data services.',
+      'A backend microservice architecture serving user management and data services.',
     )
     .setVersion('0.1')
     .addBearerAuth()
