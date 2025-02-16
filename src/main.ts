@@ -25,8 +25,8 @@ async function bootstrap() {
 
   const document = SwaggerModule.createDocument(userManagementApp, config);
 
-  if (process.env.NODE_ENV === 'Development') {
-    //Only use swagger in development
+  if (process.env.ENABLE_SWAGGER === 'true') {
+    // Recommend to only use swagger in development
     SwaggerModule.setup('api', userManagementApp, document);
   }
 
@@ -39,7 +39,10 @@ async function bootstrap() {
   userManagementApp.enableCors({ allowedHeaders: 'Authorization' });
 
   // Run migrations and seed file only if your staging a production environment.
-  if (process.env.STAGING_PRODUCTION === 'true') {
+  if (
+    process.env.STAGING_PRODUCTION === 'true' &&
+    process.env.NODE_ENV === 'Production'
+  ) {
     // Run Migrations
     await runMigrations();
     // Run seed file if Admin account doesn't exist.

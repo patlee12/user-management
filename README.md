@@ -12,7 +12,7 @@ I've included a swagger module for endpoint testing. Once the project is served 
 
 ## Create .env file in root directory (Required!)
 
-Template for environment file please generate all your own passwords (replace generic passwords like "adminpassword") by following the instructions in the comments. Please copy the following and add it to a .env file:
+Template for environment file, please generate all your own passwords and secrets below (replace generic passwords like "adminpassword") by following the instructions in the comments. Please copy the following and add it to a .env file:
 
 ```bash
 # Make your own passwords!! Use open SSL to generate your own secret.
@@ -49,9 +49,12 @@ AVAHI_HOSTNAME="user-management"
 JWT_SECRET=""
 
 # Development or Production
-NODE_ENV ="Development"
+NODE_ENV ="Production"
 
-# Stage Production Environment, if true it deploy database migrations and run admin account seed.
+# Turn on swagger module (For endpoint Testing) Recommend to disable this in a production deployment.
+ENABLE_SWAGGER ='true'
+
+# Stage Production Environment only set to true for first run in production.
 STAGING_PRODUCTION="true"
 
 # Admin Email
@@ -117,7 +120,7 @@ sudo docker inspect --format '{{.State.Pid}}' user-management-pgadmin-1
 sudo kill -9 <PID>
 sudo docker rm user-management-pgadmin-1
 
-# Remove and Rebuild.
+# Remove data base and all other volumes and Rebuild.
 docker compose down --volumes --remove-orphans
 
 
@@ -125,6 +128,8 @@ docker compose down --volumes --remove-orphans
 ```
 
 ## Running the app in Development Environment
+
+First make sure to go to .env file and change `NODE_ENV ='Development'` and also make sure `ENABLE_SWAGGER ='true'` if it isn't.
 
 ```bash
 # Install dependencies.
