@@ -12,7 +12,7 @@ I've included a swagger module for endpoint testing. Once the project is served 
 
 ## Create .env file in root directory (Required!)
 
-Template for environment file, please generate all your own passwords and secrets below (replace generic passwords like "adminpassword") by following the instructions in the comments. Please copy the following and add it to a .env file:
+Template for environment file, please copy the below template and add it to a .env file in the root level of project repository. Also, please generate all your own passwords and secrets (replace generic passwords like "adminpassword") by following the instructions in the comments.
 
 ```bash
 # Make your own passwords!! Use open SSL to generate your own secret.
