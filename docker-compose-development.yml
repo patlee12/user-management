@@ -21,33 +21,30 @@ services:
       timeout: 5s
       retries: 5
 
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: pgadmin
+  adminer:
+    image: adminer
+    container_name: adminer
     restart: always
     depends_on:
       postgres:
         condition: service_healthy
-    env_file:
-      - .env
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
     ports:
-      - '5050:80'
+      - '8081:8080' # Adminer web UI running on port 8080 inside the container
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+      ADMINER_DEFAULT_USER: ${POSTGRES_USER}
+      ADMINER_DEFAULT_PASSWORD: ${POSTGRES_PASSWORD}
+      ADMINER_DEFAULT_DB: ${POSTGRES_DB}
     networks:
       - full-stack-network
-    volumes:
-      - pgadmin:/var/lib/pgadmin
     healthcheck:
-      test: ['CMD-SHELL', 'curl --fail http://localhost || exit 1']
+      test: ['CMD-SHELL', 'curl --fail http://localhost:8080 || exit 1']
       interval: 15s
       timeout: 5s
       retries: 5
 
 volumes:
   postgres:
-  pgadmin:
 
 networks:
   full-stack-network:

@@ -26,11 +26,6 @@ POSTGRES_DB="hive-db"
 DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:5432/${POSTGRES_DB}"
 DATABASE_URL_PROD="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}"
 
-## PgAdmin
-PGADMIN_DEFAULT_EMAIL="admin@pgadmin.com"
-PGADMIN_DEFAULT_PASSWORD="adminpassword"
-SCRIPT_NAME="/pgadmin"
-
 ## Nginx
 NGINX_HOST="user-management.local"
 NGINX_PROXY="nestjs:3000"
@@ -106,21 +101,22 @@ Sometimes if you re-start the project a few times in a short period, Avahi can h
 
 # Docker tips
 
-If pgadmin gets stuck (sometimes needs a reboot)
+If a container gets stuck (sometimes needs a reboot). See example below and first run `docker ps ` to find your container:
 
 ```bash
-sudo docker stop user-management-pgadmin-1
-sudo docker rm user-management-pgadmin-1
+sudo docker stop user-management-pgweb-1
+sudo docker rm user-management-pgweb-1
 sudo docker stop $(sudo docker ps -q)
 
-sudo docker rm -f user-management-pgadmin-1
+sudo docker rm -f user-management-pgweb-1
 
 
-sudo docker inspect --format '{{.State.Pid}}' user-management-pgadmin-1
+sudo docker inspect --format '{{.State.Pid}}' user-management-pgweb-1
 sudo kill -9 <PID>
-sudo docker rm user-management-pgadmin-1
+sudo docker rm user-management-pgweb-1
 
-# Remove data base and all other volumes and Rebuild.
+# Remove volumes and Rebuild.
+# (Warning: Removes database!!! if you include volumes)
 docker compose down --volumes --remove-orphans
 
 
@@ -138,7 +134,7 @@ $ yarn install
 #Setup Prisma ORM.
 $ yarn prisma generate
 
-# Run the docker-compose-development.yml which serves postgres and pgAdmin.
+# Run the docker-compose-development.yml which serves postgres and pgweb.
 $ docker compose -f docker-compose-development.yml up --build
 
 # Need to run postgres container for this to work.
@@ -156,6 +152,29 @@ $ yarn build
 # production mode.
 $ yarn start:prod
 ```
+
+# Using Adminer DB tool
+
+(Development)
+After development container environment is running http://localhost:8081
+
+(Production)
+After production container environment is running
+https://user-management.local/adminer
+
+Assuming you have this in your .env file:
+
+```bash
+## Postgres
+POSTGRES_USER="admin"
+POSTGRES_PASSWORD="mypassword"
+POSTGRES_DB="hive-db"
+```
+
+1. Select PostgreSQL
+2. Username: admin
+3. password: mypassword
+4. Database: hive-db
 
 ## Test
 

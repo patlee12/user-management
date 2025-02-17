@@ -1,41 +1,42 @@
 services:
   nginx:
-    image: nginx:alpine
+    build:
+      context: .
+      dockerfile: nginx.Dockerfile
     container_name: nginx
     restart: always
     ports:
-      - '80:80' # HTTP
-      - '443:443' # HTTPS
+      - '80:80'
+      - '443:443'
     volumes:
       - ./certs:/etc/nginx/certs
       - ./nginx.conf:/etc/nginx/nginx.conf
     networks:
-      - full-stack-network
+      full-stack-network:
+        aliases:
+          - adminer
     command: ['nginx', '-g', 'daemon off;']
     env_file:
       - .env
+    depends_on:
+      - adminer # Ensure Nginx waits for Adminer service to be up
 
   avahi:
     image: flungo/avahi
     container_name: avahi
-    network_mode: host # Required for mDNS
+    network_mode: host
     restart: always
     env_file:
       - .env
     volumes:
-      - ./avahi-config:/etc/avahi # Optional: Custom configuration
+      - ./avahi-config:/etc/avahi
     hostname: ${AVAHI_HOSTNAME}
     command:
       - /bin/sh
       - -c
       - |
-        # Start Avahi daemon in the background
         /usr/sbin/avahi-daemon &
-
-        # Wait for Avahi to initialize
         sleep 35
-
-        # Just keep the container running
         tail -f /dev/null
 
   postgres:
@@ -47,7 +48,7 @@ services:
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB} # Ensure the correct database is specified
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - postgres:/var/lib/postgresql/data
     networks:
@@ -58,18 +59,21 @@ services:
       timeout: 5s
       retries: 10
 
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: pgadmin
+  adminer:
+    image: adminer
+    container_name: adminer
     restart: always
-    env_file:
-      - .env
     ports:
-      - '5050:80'
+      - '8080:8080' # Adminer's web UI exposed on port 8080 externally
     networks:
       - full-stack-network
-    volumes:
-      - pgadmin:/var/lib/pgadmin # Ensure pgAdmin has its own volume
+    depends_on:
+      - postgres
+    environment:
+      ADMINER_DEFAULT_SERVER: 'postgres'
+      ADMINER_DEFAULT_DB: ${POSTGRES_DB}
+      ADMINER_DEFAULT_USER: ${POSTGRES_USER}
+      ADMINER_DEFAULT_PASSWORD: ${POSTGRES_PASSWORD}
 
   nestjs:
     build:
@@ -78,7 +82,7 @@ services:
     container_name: nestjs
     restart: always
     ports:
-      - '3000:3000' # Expose the port your app will run on
+      - '3000:3000'
     env_file:
       - .env
     networks:
@@ -97,7 +101,6 @@ services:
 
 volumes:
   postgres:
-  pgadmin: # Define separate volume for pgAdmin to avoid any overlap with other services
 
 networks:
   full-stack-network:
