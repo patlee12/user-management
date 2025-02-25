@@ -134,7 +134,7 @@ $ yarn install
 #Setup Prisma ORM.
 $ yarn prisma generate
 
-# Run the docker-compose-development.yml which serves postgres and pgweb.
+# Run the docker-compose-development.yml which serves postgres and adminer.
 $ docker compose -f docker-compose-development.yml up --build
 
 # Need to run postgres container for this to work.
