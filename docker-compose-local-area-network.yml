@@ -2,7 +2,7 @@ services:
   nginx:
     build:
       context: .
-      dockerfile: nginx.Dockerfile
+      dockerfile: nginx.localarea.Dockerfile
     container_name: nginx
     restart: always
     ports:
@@ -10,7 +10,7 @@ services:
       - '443:443'
     volumes:
       - ./certs:/etc/nginx/certs
-      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx.localarea.conf:/etc/nginx/nginx.conf
     networks:
       full-stack-network:
         aliases:
