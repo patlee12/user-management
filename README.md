@@ -1,8 +1,8 @@
 ## User Management
 
-This Nest.js application provides a scalable, secure backend solution for user management and authentication. It includes user login, JWT-based authentication, Multi-factor authentication (MFA), role-based authorization, user profile management, and integration with Nginx (Reverse Proxy) and Avahi (MDNS) for service discovery. This application is designed to be a boilerplate for projects requiring user account login architecture, and can be easily integrated into other projects for rapid deployment of secure user management features.
+This Nest.js application provides a scalable, secure backend solution for user management and authentication. It includes user login, JWT-based authentication, Multi-factor authentication (MFA), role-based authorization, user profile management, and integration with Nginx (Reverse Proxy) and Avahi (MDNS) for service discovery in local area setups. This application is designed to be a boilerplate for projects requiring user account login architecture, and can be easily integrated into other projects for rapid deployment of secure user management features.
 
-I've included a swagger module for endpoint testing. Once the project is served go to https://user-management.local/api (see section "Running the App in a Production Environment" for setup)
+I've included a swagger module for endpoint testing. Once the project is served in your local area network go to https://user-management.local/api (see section "Running the App in a local area network in a Production Environment")
 
 ## Dependencies:
 
@@ -58,9 +58,9 @@ ADMIN_PASSWORD = ""
 MFA_KEY=""
 ```
 
-## Running the App in a Production Environment
+## Running the App in a local area network in a Production Environment
 
-It is recommended to test the project locally using docker before running it in an official production environment. You also may want to update the run-admin-seed.ts file with specifics related to your project if you have been developing new database models etc.
+It is recommended to test the project locally using docker before running it in an official production environment like AWS. You also may want to update the run-admin-seed.ts file with specifics related to your project if you have been developing new database models etc.
 
 (Reminder: update all passwords in the .env file)
 
@@ -74,19 +74,27 @@ openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
   -out ./certs/nginx-selfsigned.crt
 ```
 
-# Install Dependencies and Run App in Docker
+## Install Dependencies and Run the App Locally with Docker
 
-If you don't want to use "user-management.local" as hostname you can set a host-name in avahi-config and update the .env variable.
+The following steps will set up the application and create a `.local` domain on your local area network using Avahi for service discovery.
+
+### Customizing the Hostname
+
+- By default, the hostname is set to `user-management.local`.
+- To use a different hostname, update the Avahi configuration and modify the corresponding `.env` `AVAHI_HOSTNAME="user-management"` variable.
+
+### Setup Instructions
 
 ```bash
-# Install dependencies.
-$ yarn install
+# Install dependencies
+yarn install
 
-# Run the project with docker:
-$ docker compose up --build
+# Start the application using Docker Compose includes Avahi (MDNS) for local network service discovery.
+docker compose -f docker-compose-local-area-network.yml up --build
 
-# Keep it running in background by adding the -d flag.
-$ docker compose up -d
+# Run the application in detached mode (background process will continuously run)
+docker compose -f docker-compose-local-area-network.yml up -d
+
 ```
 
 Give the containers a minute to complete deployment. The Nest.js app will be the last one finished deploying. Then open a browser and go to https://user-management.local/api

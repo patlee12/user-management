@@ -78,7 +78,7 @@ services:
   nestjs:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: nest.Dockerfile
     container_name: nestjs
     restart: always
     ports:
