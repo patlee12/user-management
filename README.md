@@ -26,10 +26,6 @@ POSTGRES_DB="hive-db"
 DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:5432/${POSTGRES_DB}"
 DATABASE_URL_PROD="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}"
 
-## Nginx
-NGINX_HOST="user-management.local"
-NGINX_PROXY="nestjs:3000"
-
 ## Avahi
 AVAHI_START_DAEMON="true"
 DISABLE_SYSTEMD="true"
