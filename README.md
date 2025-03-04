@@ -89,7 +89,7 @@ The following steps will set up the application and create a `.local` domain on 
 # Install dependencies
 yarn install
 
-# Start the application using Docker Compose includes Avahi (MDNS) for local network service discovery.
+# Start the application using Docker Compose includes Avahi (MDNS) and Nginx (Reverse proxy) for local network service discovery.
 docker compose -f docker-compose-local-area-network.yml up --build
 
 # Run the application in detached mode (background process will continuously run)
