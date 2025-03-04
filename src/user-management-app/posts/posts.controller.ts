@@ -20,6 +20,7 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { PostEntity } from './entities/post.entity';
+import { plainToInstance } from 'class-transformer';
 import { JwtAuthGuard } from 'src/user-management-app/auth/jwt-auth.guard';
 
 @Controller('posts')
@@ -32,7 +33,8 @@ export class PostsController {
   @ApiBearerAuth()
   @ApiCreatedResponse({ type: PostEntity })
   async create(@Body() createPostDto: CreatePostDto) {
-    return new PostEntity(await this.postsService.create(createPostDto));
+    const newPost = await this.postsService.create(createPostDto);
+    return plainToInstance(PostEntity, newPost);
   }
 
   @Get()
@@ -41,7 +43,8 @@ export class PostsController {
   @ApiOkResponse({ type: PostEntity, isArray: true })
   async findAll() {
     const posts = await this.postsService.findAll();
-    return posts.map((post) => new PostEntity(post));
+
+    return plainToInstance(PostEntity, posts);
   }
 
   @Get('byAuthor/:authorId')
@@ -55,7 +58,7 @@ export class PostsController {
         `Posts with author id ${authorId} do not exist.`,
       );
     }
-    return posts.map((post) => new PostEntity(post));
+    return plainToInstance(PostEntity, posts);
   }
 
   @Get(':id')
@@ -67,7 +70,7 @@ export class PostsController {
     if (!post) {
       throw new NotFoundException(`Post id ${id} does not exist.`);
     }
-    return new PostEntity(post);
+    return plainToInstance(PostEntity, post);
   }
 
   @Patch(':id')
@@ -84,7 +87,7 @@ export class PostsController {
         `Post id ${id} was not updated. Verify correct id is being used.`,
       );
     }
-    return new PostEntity(updatePost);
+    return plainToInstance(PostEntity, updatePost);
   }
 
   @Delete(':id')
@@ -98,6 +101,6 @@ export class PostsController {
         `Post id ${id} was not deleted. Verify correct id is being used.`,
       );
     }
-    return new PostEntity(deletePost);
+    return plainToInstance(PostEntity, deletePost);
   }
 }
