@@ -101,6 +101,10 @@ export class UsersService {
     return await this.prisma.user.delete({ where: { id: id } });
   }
 
+  /********************************************************************************************************************
+   * **************************************** User Multi-factor Authentication *****************************************
+   */
+
   /**
    * Create a new MFA auth for the user. A user may only have one MFA auth.
    * @param createMfaDto

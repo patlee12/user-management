@@ -2,6 +2,10 @@ import { Role } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 import { PermissionEntity } from './permission.entity';
 
+/**
+ * Represents a role in the system, mapped from the database Role model.
+ * Includes related permissions and metadata for API responses.
+ */
 export class RoleEntity implements Role {
   @ApiProperty()
   id: number;

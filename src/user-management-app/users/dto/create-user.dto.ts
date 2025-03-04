@@ -12,6 +12,9 @@ import {
 } from 'class-validator';
 import { UserRolesDto } from 'src/user-management-app/roles-and-permissions-resources/dto/user-roles.dto';
 
+/**
+ * Data transfer object used to create a unique user in database.
+ */
 export class CreateUserDto {
   @IsString()
   @IsNotEmpty()

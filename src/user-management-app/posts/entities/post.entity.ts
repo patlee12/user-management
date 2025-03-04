@@ -1,8 +1,12 @@
 import { Post } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 import { UserEntity } from 'src/user-management-app/users/entities/user.entity';
-import { plainToInstance } from 'class-transformer';
+import { plainToInstance, Transform } from 'class-transformer';
 
+/**
+ * Represents a Post entity used for API responses in a NestJS application. Uses Transform to ensure proper
+ * serialization while excluding sensitive fields (e.g., password).
+ */
 export class PostEntity implements Post {
   @ApiProperty()
   id: number;
@@ -29,13 +33,8 @@ export class PostEntity implements Post {
   authorId: number;
 
   @ApiProperty({ required: false, type: UserEntity })
+  @Transform(({ value }) => plainToInstance(UserEntity, value), {
+    toClassOnly: true,
+  })
   author?: UserEntity;
-
-  constructor({ author, ...data }: Partial<PostEntity>) {
-    Object.assign(this, data);
-
-    if (author) {
-      this.author = plainToInstance(UserEntity, author);
-    }
-  }
 }

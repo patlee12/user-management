@@ -1,6 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString, Length } from 'class-validator';
 
+/**
+ * Token from authenticator used to verify user Mfa.
+ */
 export class MfaDto {
   @IsNotEmpty()
   @IsString()

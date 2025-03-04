@@ -8,6 +8,9 @@ import {
   Length,
 } from 'class-validator';
 
+/**
+ * Data transfer object passed to server to log user in and provide access token JWT on successful login.
+ */
 export class LoginDto {
   @IsEmail()
   @IsNotEmpty()

@@ -7,6 +7,9 @@ import {
   MinLength,
 } from 'class-validator';
 
+/**
+ * Data transfer object used to create a new post.
+ */
 export class CreatePostDto {
   @IsString()
   @IsNotEmpty()

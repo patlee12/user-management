@@ -2,11 +2,11 @@ import { User } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
 
+/**
+ * Represents a user in the system.
+ * Excludes the 'password' field from API responses for security.
+ */
 export class UserEntity implements User {
-  constructor(partial: Partial<UserEntity>) {
-    Object.assign(this, partial);
-  }
-
   @ApiProperty()
   id: number;
 
@@ -19,7 +19,8 @@ export class UserEntity implements User {
   @ApiProperty({ required: true, nullable: false })
   email: string | null;
 
-  @Exclude()
+  @Exclude() // Ensures the password is not exposed
+  @ApiProperty()
   password: string;
 
   @ApiProperty()

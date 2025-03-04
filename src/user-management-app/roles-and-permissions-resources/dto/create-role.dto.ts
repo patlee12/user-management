@@ -2,6 +2,9 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsOptional, IsString, IsArray, IsNumber } from 'class-validator';
 import { CreatePermissionDto } from './create-permission.dto';
 
+/**
+ * A data transfer object to be used for creating new roles and assigning permissions to it.
+ */
 export class CreateRoleDto {
   @IsString()
   @ApiProperty()

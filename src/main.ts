@@ -17,7 +17,7 @@ async function bootstrap() {
   const config = new DocumentBuilder()
     .setTitle('User-Management')
     .setDescription(
-      'A backend microservice architecture serving user management and data services.',
+      'A backend microservice architecture serving user management and authentication services.',
     )
     .setVersion('0.1')
     .addBearerAuth()
@@ -39,6 +39,7 @@ async function bootstrap() {
   userManagementApp.enableCors({ allowedHeaders: 'Authorization' });
 
   // Run migrations and seed file only if your staging a production environment.
+  // Recommended to remove this for larger projects and run it in your Dev-ops CI/CD pipeline and not app level.
   if (
     process.env.STAGING_PRODUCTION === 'true' &&
     process.env.NODE_ENV === 'Production'

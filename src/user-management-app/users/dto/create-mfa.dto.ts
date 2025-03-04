@@ -7,6 +7,9 @@ import {
   IsBase32,
 } from 'class-validator';
 
+/**
+ * Data transfer object used to create a new Mfa entry in database tied to a specific user.
+ */
 export class CreateMfaDto {
   @IsString()
   @IsBase32()
