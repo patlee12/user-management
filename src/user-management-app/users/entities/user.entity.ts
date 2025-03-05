@@ -26,9 +26,6 @@ export class UserEntity implements User {
   @ApiProperty()
   mfaEnabled: boolean;
 
-  @ApiProperty()
-  verified: boolean;
-
   @ApiProperty({ required: false, nullable: true })
   userRoles?: number[];
 
