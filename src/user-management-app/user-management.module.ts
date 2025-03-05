@@ -4,10 +4,12 @@ import { UsersModule } from 'src/user-management-app/users/users.module';
 import { PostsModule } from './posts/posts.module';
 import { AuthModule } from 'src/user-management-app/auth/auth.module';
 import { RolesPermissionsResourcesModule } from './roles-and-permissions-resources/roles-permissions-resources.module';
+import { AccountRequestsModule } from './account-requests/account-requests.module';
 @Module({
   imports: [
     AuthModule,
     PrismaModule,
+    AccountRequestsModule,
     UsersModule,
     PostsModule,
     RolesPermissionsResourcesModule,

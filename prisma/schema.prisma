@@ -12,6 +12,19 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model AccountRequest {
+  id         Int      @id @default(autoincrement())
+  username   String   @unique
+  name       String?
+  email      String   @unique
+  password   String
+  token      String   @unique
+  expiresAt  DateTime 
+  createdAt  DateTime @default(now())
+
+  @@unique([id, email])
+}
+
 model User {
   id          Int      @id @default(autoincrement())
   username    String   @unique
