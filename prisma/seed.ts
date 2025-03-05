@@ -16,6 +16,7 @@ async function main() {
       username: 'Admin',
       name: 'Admin',
       password: passwordAdmin,
+      verified: true,
       email: process.env.ADMIN_EMAIL,
     },
   });
