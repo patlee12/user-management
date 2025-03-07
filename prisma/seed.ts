@@ -31,7 +31,7 @@ async function main() {
     },
   });
 
-  const createRole = await prisma.role.upsert({
+  const createAdminRole = await prisma.role.upsert({
     where: { name: 'Admin' },
     update: {},
     create: {
@@ -62,10 +62,26 @@ async function main() {
     },
   });
 
-  const updateUserRoles = await prisma.userRoles.upsert({
-    where: { userId_roleId: { userId: user.id, roleId: createRole.id } },
+  const createUserRole = await prisma.role.upsert({
+    where: { name: 'User' },
     update: {},
-    create: { userId: user.id, roleId: createRole.id, assignedBy: user.id },
+    create: {
+      name: 'User',
+      description: 'Regular User across the entire application.',
+      permissions: {},
+      createdBy: user.id,
+      updatedBy: user.id,
+    },
+  });
+
+  const updateUserRoles = await prisma.userRoles.upsert({
+    where: { userId_roleId: { userId: user.id, roleId: createAdminRole.id } },
+    update: {},
+    create: {
+      userId: user.id,
+      roleId: createAdminRole.id,
+      assignedBy: user.id,
+    },
   });
 
   const post = await prisma.post.upsert({
@@ -83,7 +99,8 @@ async function main() {
   console.log(
     { user },
     { createResource },
-    { createRole },
+    { createAdminRole },
+    { createUserRole },
     { updateUserRoles },
     { post },
   );

@@ -19,7 +19,7 @@ export class UserEntity implements User {
   @ApiProperty({ required: true, nullable: false })
   email: string | null;
 
-  @Exclude() // Ensures the password is not exposed
+  @Exclude()
   @ApiProperty()
   password: string;
 
