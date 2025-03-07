@@ -1,32 +1,28 @@
-import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
+import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class MailService {
-  private transporter: nodemailer.Transporter;
+  private transporter;
 
   constructor() {
     this.transporter = nodemailer.createTransport({
-      host: 'localhost',
-      port: 25, // SMTP port
-      secure: false, // Use false for non-SSL (port 25), or true if you are using SSL (port 465 or 587)
+      service: 'gmail',
       auth: {
-        user: 'admin', // Use MAIL_ADMIN_USER for authentication
-        pass: 'admin_password', // Use MAIL_ADMIN_PASSWORD
-      },
-      tls: {
-        rejectUnauthorized: false, // For self-signed certs; set to true in production if valid SSL cert is used
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
       },
     });
   }
 
-  async sendMail(to: string, subject: string, text: string) {
-    const info = await this.transporter.sendMail({
-      from: '"NestJS Mailer" <no-reply@user-management.net>', // Ensure this matches MAIL_DOMAIN
-      to, // List of recipients
-      subject, // Subject line
-      text, // Plain text body
-    });
-    console.log('Message sent: %s', info.messageId);
+  async sendEmail(to: string, subject: string, text: string) {
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to,
+      subject,
+      text,
+    };
+
+    return this.transporter.sendMail(mailOptions);
   }
 }
