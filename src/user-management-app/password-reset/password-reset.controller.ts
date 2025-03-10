@@ -6,40 +6,87 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { PasswordResetService } from './password-reset.service';
 import { CreatePasswordResetDto } from './dto/create-password-reset.dto';
 import { UpdatePasswordResetDto } from './dto/update-password-reset.dto';
+import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { PasswordResetEntity } from './entities/password-reset.entity';
+import { ConfirmPasswordResetDto } from './dto/confirm-password-reset.dto';
+import { UserEntity } from '../users/entities/user.entity';
+import { plainToInstance } from 'class-transformer';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../roles-and-permissions-resources/roles.guard';
+import { Roles } from '../roles-and-permissions-resources/roles.decorator';
 
 @Controller('password-reset')
+@ApiTags('account-requests')
 export class PasswordResetController {
   constructor(private readonly passwordResetService: PasswordResetService) {}
 
   @Post()
-  create(@Body() createPasswordResetDto: CreatePasswordResetDto) {
-    return this.passwordResetService.create(createPasswordResetDto);
+  @ApiCreatedResponse({ type: PasswordResetEntity })
+  async create(
+    @Body() createPasswordResetDto: CreatePasswordResetDto,
+  ): Promise<PasswordResetEntity> {
+    const newPasswordReset = await this.passwordResetService.create(
+      createPasswordResetDto,
+    );
+    return plainToInstance(PasswordResetEntity, newPasswordReset);
+  }
+
+  @Post('confirm')
+  @ApiCreatedResponse({ type: UserEntity })
+  async confirmPasswordReset(
+    @Body() confirmPasswordResetDto: ConfirmPasswordResetDto,
+  ): Promise<UserEntity> {
+    const confirmPasswordReset =
+      await this.passwordResetService.confirmPasswordReset(
+        confirmPasswordResetDto,
+      );
+    return plainToInstance(UserEntity, confirmPasswordReset);
   }
 
   @Get()
-  findAll() {
-    return this.passwordResetService.findAll();
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('Admin')
+  @ApiOkResponse({ type: PasswordResetEntity, isArray: true })
+  async findAll(): Promise<PasswordResetEntity[]> {
+    const allPasswordResets = await this.passwordResetService.findAll();
+    return plainToInstance(PasswordResetEntity, allPasswordResets);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.passwordResetService.findOne(+id);
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('Admin')
+  @ApiOkResponse({ type: PasswordResetEntity })
+  async findOne(@Param('id') id: string): Promise<PasswordResetEntity> {
+    const passwordReset = await this.passwordResetService.findOne(+id);
+    return plainToInstance(PasswordResetEntity, passwordReset);
   }
 
   @Patch(':id')
-  update(
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('Admin')
+  @ApiOkResponse({ type: PasswordResetEntity })
+  async update(
     @Param('id') id: string,
     @Body() updatePasswordResetDto: UpdatePasswordResetDto,
-  ) {
-    return this.passwordResetService.update(+id, updatePasswordResetDto);
+  ): Promise<PasswordResetEntity> {
+    const updatePasswordReset = await this.passwordResetService.update(
+      +id,
+      updatePasswordResetDto,
+    );
+    return plainToInstance(PasswordResetEntity, updatePasswordReset);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.passwordResetService.remove(+id);
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('Admin')
+  @ApiOkResponse({ type: PasswordResetEntity })
+  async remove(@Param('id') id: string): Promise<PasswordResetEntity> {
+    const removePasswordReset = await this.passwordResetService.remove(+id);
+    return plainToInstance(PasswordResetEntity, removePasswordReset);
   }
 }
