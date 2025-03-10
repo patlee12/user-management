@@ -3,7 +3,6 @@ import { CreateAccountRequestDto } from './dto/create-account-request.dto';
 import { UpdateAccountRequestDto } from './dto/update-account-request.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as argon2 from 'argon2';
-import * as crypto from 'crypto';
 import { AccountRequestEntity } from './entities/account-request.entity';
 import { UserEntity } from '../users/entities/user.entity';
 import { VerifyAccountRequestDto } from './dto/verify-account-request.dto';
@@ -12,19 +11,11 @@ import {
   InvalidTokenError,
   TokenExpiredError,
 } from './errors/account-request-errors';
+import { generateToken } from 'src/helpers/encryption-tools';
 
 @Injectable()
 export class AccountRequestsService {
   constructor(private prisma: PrismaService) {}
-
-  /**
-   * Uses Crypto library to generate a random 64-character hex token.
-   * @returns {string}
-   */
-  async generateToken(): Promise<string> {
-    return await crypto.randomBytes(32).toString('hex');
-  }
-
   /**
    * Creates a new account request and hashes the password and token securely.
    * @param createAccountRequestDto
@@ -36,13 +27,20 @@ export class AccountRequestsService {
     // Secure the passwords and token in database
     const hashedPassword = await argon2.hash(createAccountRequestDto.password);
     createAccountRequestDto.password = hashedPassword;
-    const rawRandomToken = await this.generateToken();
-    createAccountRequestDto.token = await argon2.hash(rawRandomToken);
+    const rawRandomToken = await generateToken();
+    // ### Block saved for when email service is sending the unencrypted token to user's email######
+    const hashedToken = await argon2.hash(rawRandomToken);
     // Set to token and request to expire in 1 hour unless verified.
-    createAccountRequestDto.expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+    const expiresAt = await new Date(Date.now() + 60 * 60 * 1000);
 
+    const accountRequestData = {
+      ...createAccountRequestDto,
+      password: hashedPassword,
+      token: hashedToken,
+      expiresAt: expiresAt,
+    };
     const newAccountRequest = await this.prisma.accountRequest.create({
-      data: createAccountRequestDto,
+      data: accountRequestData,
     });
     return newAccountRequest;
   }

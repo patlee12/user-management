@@ -6,10 +6,13 @@ const IV_LENGTH = 16; // AES requires 16-byte IV
  * Encrypt secret using crypto library and Server key.
  * @param secret
  * @param serverKey
- * @returns {string}
+ * @returns {Promise<string>}
  */
-export function encryptSecret(secret: string, serverKey: string): string {
-  const iv = crypto.randomBytes(IV_LENGTH);
+export async function encryptSecret(
+  secret: string,
+  serverKey: string,
+): Promise<string> {
+  const iv = await crypto.randomBytes(IV_LENGTH);
   const cipher = crypto.createCipheriv(
     'aes-256-cbc',
     Buffer.from(serverKey, 'hex'),
@@ -40,4 +43,12 @@ export function decryptSecret(
   let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
   decrypted += decipher.final('utf8');
   return decrypted;
+}
+
+/**
+ * Uses Crypto library to generate a random 64-character hex token.
+ * @returns {Promise<string>}
+ */
+export async function generateToken(): Promise<string> {
+  return await crypto.randomBytes(32).toString('hex');
 }

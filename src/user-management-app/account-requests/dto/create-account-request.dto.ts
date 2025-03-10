@@ -7,9 +7,7 @@ import {
   MaxLength,
   Matches,
   IsEmail,
-  IsDate,
 } from 'class-validator';
-import { Type } from 'class-transformer';
 
 /**
  * Data transfer object used to create a new account request.
@@ -40,12 +38,4 @@ export class CreateAccountRequestDto {
   @IsNotEmpty()
   @ApiProperty()
   email: string;
-
-  @ApiProperty({ required: false })
-  token?: string;
-
-  @IsDate()
-  @Type(() => Date)
-  @ApiProperty()
-  expiresAt: Date;
 }
