@@ -19,6 +19,8 @@ import { plainToInstance } from 'class-transformer';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../roles-and-permissions-resources/roles.guard';
 import { Roles } from '../roles-and-permissions-resources/roles.decorator';
+import { Throttle } from '@nestjs/throttler';
+import { PASSWORD_RESET_THROTTLE } from 'src/common/constraints';
 
 @Controller('password-reset')
 @ApiTags('account-requests')
@@ -26,6 +28,7 @@ export class PasswordResetController {
   constructor(private readonly passwordResetService: PasswordResetService) {}
 
   @Post()
+  @Throttle(PASSWORD_RESET_THROTTLE)
   @ApiCreatedResponse({ type: PasswordResetEntity })
   async create(
     @Body() createPasswordResetDto: CreatePasswordResetDto,
@@ -37,6 +40,7 @@ export class PasswordResetController {
   }
 
   @Post('confirm')
+  @Throttle(PASSWORD_RESET_THROTTLE)
   @ApiCreatedResponse({ type: UserEntity })
   async confirmPasswordReset(
     @Body() confirmPasswordResetDto: ConfirmPasswordResetDto,
