@@ -1,11 +1,13 @@
 import * as nodemailer from 'nodemailer';
 import { Injectable, Logger } from '@nestjs/common';
 import { mailConfig } from './mail.config';
+import { EmailVerificationDto } from './dto/email-verification.dto';
+import { EmailPasswordResetDto } from './dto/email-password-reset.dto';
 
 @Injectable()
-export class MailService {
+export class MailingService {
   private transporter;
-  private logger = new Logger(MailService.name);
+  private logger = new Logger(MailingService.name);
 
   constructor() {
     this.transporter = nodemailer.createTransport(mailConfig);
@@ -45,34 +47,38 @@ export class MailService {
 
   /**
    * Sends a password reset email to the specified recipient.
-   * @param to - Recipient's email address.
-   * @param resetLink - URL link for resetting the password.
+   * @param emailPasswordResetDto - A data transfer object containing email and resetLink.
    * @returns A promise that resolves when the email is sent successfully.
    */
-  async sendPasswordResetEmail(to: string, resetLink: string): Promise<void> {
+  async sendPasswordResetEmail(
+    emailPasswordResetDto: EmailPasswordResetDto,
+  ): Promise<void> {
     const subject = 'Password Reset Request';
     const html = `
     <p>You requested to reset your password.</p>
-    <a href="${resetLink}">Click here to reset</a>
+    <a href="${emailPasswordResetDto.resetLink}">Click here to reset</a>
   `;
-    return this.sendEmail(to, subject, undefined, html);
+    return this.sendEmail(
+      emailPasswordResetDto.email,
+      subject,
+      undefined,
+      html,
+    );
   }
 
   /**
    * Sends an email verification request to the specified recipient.
-   * @param to - Recipient's email address.
-   * @param verificationLink - URL link for verifying the email address.
+   * @param emailVerificationDto - A data transfer object containing email and verification link.
    * @returns A promise that resolves when the email is sent successfully.
    */
   async sendVerificationEmail(
-    to: string,
-    verificationLink: string,
+    emailVerificationDto: EmailVerificationDto,
   ): Promise<void> {
     const subject = 'Verify Your Email Address';
     const html = `
     <p>Click the link below to verify your email:</p>
-    <a href="${verificationLink}">Verify Email</a>
+    <a href="${emailVerificationDto.verifyLink}">Verify Email</a>
   `;
-    return this.sendEmail(to, subject, undefined, html);
+    return this.sendEmail(emailVerificationDto.email, subject, undefined, html);
   }
 }
