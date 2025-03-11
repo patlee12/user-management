@@ -27,6 +27,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Permissions } from './permissions.decorator';
 import { PermissionsGuard } from './permissions.guard';
 import { RolesGuard } from './roles.guard';
+import { Roles } from './roles.decorator';
 
 @Controller('roles-and-permissions')
 @ApiTags('roles-and-permissions')
@@ -48,6 +49,7 @@ export class RolesPermissionsResourcesController {
 
   @Post('create-permission')
   @ApiCreatedResponse({ type: PermissionEntity })
+  @Roles('Admin')
   async createPermission(
     @Body() createPermissionDto: CreatePermissionDto,
   ): Promise<PermissionEntity> {
@@ -58,6 +60,7 @@ export class RolesPermissionsResourcesController {
 
   @Post('create-userRole')
   @ApiCreatedResponse({ type: UserRolesEntity })
+  @Roles('Admin')
   async createUserRole(
     @Body() userRolesDto: UserRolesDto,
   ): Promise<UserRolesEntity> {
@@ -113,6 +116,7 @@ export class RolesPermissionsResourcesController {
 
   @Patch('role/:roleId')
   @ApiOkResponse({ type: RoleEntity })
+  @Roles('Admin')
   async updateRole(
     @Param('roleId') id: string,
     @Body() updateRoleDto: UpdateRoleDto,
@@ -125,6 +129,7 @@ export class RolesPermissionsResourcesController {
 
   @Patch('permission/:permissionId')
   @ApiOkResponse({ type: PermissionEntity })
+  @Roles('Admin')
   async updatePermission(
     @Param('permissionId') id: string,
     @Body() updatePermissionDto: UpdatePermissionDto,
@@ -138,18 +143,21 @@ export class RolesPermissionsResourcesController {
   //########################### Update unique Roles and unique Permissions #################################
 
   @Delete('role/:id')
+  @Roles('Admin')
   @ApiOkResponse({ type: RoleEntity })
   async removeRole(@Param('id') id: string): Promise<RoleEntity> {
     return await this.rolesPermissionsResourcesService.removeRole(+id);
   }
 
   @Delete('permission/:id')
+  @Roles('Admin')
   @ApiOkResponse({ type: PermissionEntity })
   async removePermission(@Param('id') id: string): Promise<PermissionEntity> {
     return await this.rolesPermissionsResourcesService.removePermission(+id);
   }
 
   @Delete('userRole')
+  @Roles('Admin')
   @ApiOkResponse({ type: UserRolesEntity })
   async removeUserRole(
     @Body() userRolesDto: UserRolesDto,

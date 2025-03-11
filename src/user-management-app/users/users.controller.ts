@@ -22,10 +22,12 @@ import {
 import { UserEntity } from './entities/user.entity';
 import { JwtAuthGuard } from 'src/user-management-app/auth/jwt-auth.guard';
 import { plainToInstance } from 'class-transformer';
+import { RolesGuard } from '../roles-and-permissions-resources/roles.guard';
+import { Roles } from '../roles-and-permissions-resources/roles.decorator';
 
 @Controller('users')
 @ApiTags('users')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth()
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
@@ -71,6 +73,7 @@ export class UsersController {
 
   @Delete(':id')
   @ApiOkResponse({ type: UserEntity })
+  @Roles('Admin')
   async remove(@Param('id', ParseIntPipe) id: number): Promise<UserEntity> {
     const deleteUser = await this.usersService.remove(id);
     if (!deleteUser) {
