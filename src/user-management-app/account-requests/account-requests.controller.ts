@@ -69,6 +69,8 @@ export class AccountRequestsController {
   @Get(':id')
   @ApiOkResponse({ type: AccountRequestEntity })
   @Throttle(GLOBAL_THROTTLE_CONFIG)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('Admin')
   async findOne(@Param('id') id: string): Promise<AccountRequestEntity> {
     const accountRequest = await this.accountRequestsService.findOne(+id);
     return plainToInstance(AccountRequestEntity, accountRequest);
