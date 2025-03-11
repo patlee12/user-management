@@ -19,6 +19,11 @@ import { plainToInstance } from 'class-transformer';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../roles-and-permissions-resources/roles.guard';
 import { Roles } from '../roles-and-permissions-resources/roles.decorator';
+import { Throttle } from '@nestjs/throttler';
+import {
+  ACCOUNT_REQUEST_THROTTLE,
+  GLOBAL_THROTTLE_CONFIG,
+} from 'src/common/constraints';
 
 @Controller('account-requests')
 @ApiTags('account-requests')
@@ -28,6 +33,7 @@ export class AccountRequestsController {
   ) {}
 
   @Post()
+  @Throttle(ACCOUNT_REQUEST_THROTTLE)
   @ApiCreatedResponse({ type: AccountRequestEntity })
   async create(
     @Body() createAccountRequestDto: CreateAccountRequestDto,
@@ -39,6 +45,7 @@ export class AccountRequestsController {
   }
 
   @Post('verify')
+  @Throttle(ACCOUNT_REQUEST_THROTTLE)
   @ApiCreatedResponse({ type: UserEntity })
   async verifyAccountRequest(
     @Body() verifyAccountRequestDto: VerifyAccountRequestDto,
@@ -61,12 +68,14 @@ export class AccountRequestsController {
 
   @Get(':id')
   @ApiOkResponse({ type: AccountRequestEntity })
+  @Throttle(GLOBAL_THROTTLE_CONFIG)
   async findOne(@Param('id') id: string): Promise<AccountRequestEntity> {
     const accountRequest = await this.accountRequestsService.findOne(+id);
     return plainToInstance(AccountRequestEntity, accountRequest);
   }
 
   @Get('byEmail/:email')
+  @Throttle(GLOBAL_THROTTLE_CONFIG)
   @ApiOkResponse({ type: AccountRequestEntity })
   async findOneByEmail(
     @Param('email') email: string,
