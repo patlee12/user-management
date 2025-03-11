@@ -6,13 +6,16 @@ import {
   HttpStatus,
   Logger,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { MailingService } from './mailing.service';
 import { EmailVerificationDto } from './dto/email-verification.dto';
 import { EmailPasswordResetDto } from './dto/email-password-reset.dto';
+import { GLOBAL_THROTTLE_CONFIG } from 'src/common/constraints';
 
 @ApiTags('mailing')
 @Controller('mailing')
+@Throttle(GLOBAL_THROTTLE_CONFIG)
 export class MailingController {
   private logger = new Logger(MailingController.name);
 

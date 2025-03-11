@@ -21,6 +21,8 @@ import { UsersService } from 'src/user-management-app/users/users.service';
 import { UserEntity } from 'src/user-management-app/users/entities/user.entity';
 import { MfaResponseDto } from './dto/mfa-response.dto';
 import { MfaDto } from './dto/mfa.dto';
+import { Throttle } from '@nestjs/throttler';
+import { LOGIN_THROTTLE } from 'src/common/constraints';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -32,6 +34,7 @@ export class AuthController {
   ) {}
 
   @Post('login')
+  @Throttle(LOGIN_THROTTLE)
   @ApiOperation({
     summary: 'Login successfully and receive an access token.',
     description:
