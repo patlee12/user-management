@@ -23,7 +23,7 @@ import { Throttle } from '@nestjs/throttler';
 import { PASSWORD_RESET_THROTTLE } from 'src/common/constraints';
 
 @Controller('password-reset')
-@ApiTags('account-requests')
+@ApiTags('password-reset')
 export class PasswordResetController {
   constructor(private readonly passwordResetService: PasswordResetService) {}
 

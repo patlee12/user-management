@@ -18,3 +18,17 @@ export class InvalidTokenError extends Error {
     this.name = 'InvalidTokenError';
   }
 }
+
+export class UserNotFoundError extends Error {
+  constructor(message = 'User was not found') {
+    super(message);
+    this.name = 'UserNotFoundError';
+  }
+}
+
+export class PasswordResetEmailFailedError extends Error {
+  constructor(message = 'Password Reset Email Failed') {
+    super(message);
+    this.name = 'PasswordResetEmailFailedError';
+  }
+}

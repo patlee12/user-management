@@ -3,6 +3,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { mailConfig } from './mail.config';
 import { EmailVerificationDto } from './dto/email-verification.dto';
 import { EmailPasswordResetDto } from './dto/email-password-reset.dto';
+import * as path from 'path';
+import * as fs from 'fs';
 
 @Injectable()
 export class MailingService {
@@ -11,6 +13,37 @@ export class MailingService {
 
   constructor() {
     this.transporter = nodemailer.createTransport(mailConfig);
+  }
+
+  /**
+   * Loads an HTML email template and dynamically replaces placeholders with actual values.
+   * @param templateName - The name of the template file (e.g., 'password-reset.html').
+   * @param replacements - A record of key-value pairs where the key is the placeholder in the template
+   *                       (e.g., `{{link}}`) and the value is the string to replace it with.
+   * @returns The processed HTML content with all placeholders replaced.
+   */
+  private loadTemplate(
+    templateName: string,
+    replacements: Record<string, string>,
+  ): string {
+    try {
+      const filePath = path.resolve(__dirname, './templates', templateName);
+
+      if (!fs.existsSync(filePath)) {
+        throw new Error(`Template not found at path: ${filePath}`);
+      }
+
+      let template = fs.readFileSync(filePath, 'utf8');
+
+      for (const [key, value] of Object.entries(replacements)) {
+        template = template.replace(new RegExp(`{{${key}}}`, 'g'), value);
+      }
+
+      return template;
+    } catch (error: any) {
+      console.error(`Failed to load template: ${error.message}`);
+      throw new Error(`Failed to load template: ${error.message}`);
+    }
   }
 
   /**
@@ -37,7 +70,6 @@ export class MailingService {
       };
 
       await this.transporter.sendMail(mailOptions);
-      this.logger.log(`Email sent to ${to}`);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       this.logger.error(`Failed to send email to ${to}: ${message}`);
@@ -54,11 +86,14 @@ export class MailingService {
     emailPasswordResetDto: EmailPasswordResetDto,
   ): Promise<void> {
     const subject = 'Password Reset Request';
-    const html = `
-    <p>You requested to reset your password.</p>
-    <a href="${emailPasswordResetDto.resetLink}">Click here to reset</a>
-  `;
-    return this.sendEmail(
+
+    const html = await this.loadTemplate('password-reset.html', {
+      link: emailPasswordResetDto.resetLink,
+      year: new Date().getFullYear().toString(),
+      company: 'User-Management',
+    });
+
+    return await this.sendEmail(
       emailPasswordResetDto.email,
       subject,
       undefined,
@@ -75,10 +110,18 @@ export class MailingService {
     emailVerificationDto: EmailVerificationDto,
   ): Promise<void> {
     const subject = 'Verify Your Email Address';
-    const html = `
-    <p>Click the link below to verify your email:</p>
-    <a href="${emailVerificationDto.verifyLink}">Verify Email</a>
-  `;
-    return this.sendEmail(emailVerificationDto.email, subject, undefined, html);
+
+    const html = await this.loadTemplate('email-verification.html', {
+      link: emailVerificationDto.verifyLink,
+      year: new Date().getFullYear().toString(),
+      company: 'User-Management',
+    });
+
+    return await this.sendEmail(
+      emailVerificationDto.email,
+      subject,
+      undefined,
+      html,
+    );
   }
 }

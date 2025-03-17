@@ -10,12 +10,18 @@ import {
   AccountRequestNotFoundError,
   InvalidTokenError,
   TokenExpiredError,
+  VerificationEmailFailed,
 } from './errors/account-request-errors';
 import { generateToken } from 'src/helpers/encryption-tools';
+import { MailingService } from '../mailing/mailing.service';
+import { EmailVerificationDto } from '../mailing/dto/email-verification.dto';
 
 @Injectable()
 export class AccountRequestsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly mailingService: MailingService,
+  ) {}
   /**
    * Creates a new account request and hashes the password and token securely.
    * @param createAccountRequestDto
@@ -24,24 +30,46 @@ export class AccountRequestsService {
   async create(
     createAccountRequestDto: CreateAccountRequestDto,
   ): Promise<AccountRequestEntity> {
-    // Secure the passwords and token in database
+    // Hash the password
     const hashedPassword = await argon2.hash(createAccountRequestDto.password);
     createAccountRequestDto.password = hashedPassword;
-    const rawRandomToken = await generateToken();
-    // ### Block saved for when email service is sending the unencrypted token to user's email######
-    const hashedToken = await argon2.hash(rawRandomToken);
-    // Set to token and request to expire in 1 hour unless verified.
-    const expiresAt = await new Date(Date.now() + 60 * 60 * 1000);
 
+    // Generate a raw token
+    const rawRandomToken = await generateToken();
+
+    // Construct the verification link using the raw token
+    const verificationLink = `${process.env.FRONTEND_URL}/verify-email?token=${rawRandomToken}`;
+
+    // Send verification email BEFORE hashing the token
+    const emailVerificationDto: EmailVerificationDto = {
+      email: createAccountRequestDto.email,
+      verifyLink: verificationLink,
+    };
+
+    try {
+      await this.mailingService.sendVerificationEmail(emailVerificationDto);
+    } catch (error) {
+      throw new VerificationEmailFailed();
+    }
+
+    // Hash the token AFTER sending the email
+    const hashedToken = await argon2.hash(rawRandomToken);
+
+    // Set token and request expiration (1 hour)
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+    // Save to the database
     const accountRequestData = {
       ...createAccountRequestDto,
       password: hashedPassword,
       token: hashedToken,
       expiresAt: expiresAt,
     };
+
     const newAccountRequest = await this.prisma.accountRequest.create({
       data: accountRequestData,
     });
+
     return newAccountRequest;
   }
 
@@ -86,6 +114,7 @@ export class AccountRequestsService {
         username: accountRequest.username,
         name: accountRequest.name,
         email: accountRequest.email,
+        emailVerified: true,
         password: accountRequest.password,
         createdAt: new Date(),
         updatedAt: new Date(),

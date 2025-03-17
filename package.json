@@ -6,7 +6,8 @@
   "private": true,
   "license": "MIT",
   "scripts": {
-    "build": "nest build",
+    "build": "nest build && yarn copy-mailing-templates",
+    "copy-mailing-templates": "mkdir -p dist/src/user-management-app/mailing/templates && cp -R src/user-management-app/mailing/templates/* dist/src/user-management-app/mailing/templates",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",

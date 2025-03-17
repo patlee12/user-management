@@ -26,18 +26,19 @@ model AccountRequest {
 }
 
 model User {
-  id          Int      @id @default(autoincrement())
-  username    String   @unique
-  name        String?
-  email       String   @unique
-  password    String
-  mfaEnabled  Boolean  @default(false)
-  userRoles   UserRoles[]
-  posts       Post[]
-  mfa_auth    mfa_auth[]
+  id            Int      @id @default(autoincrement())
+  username      String   @unique
+  name          String?
+  email         String   @unique
+  password      String
+  mfaEnabled    Boolean  @default(false)
+  emailVerified Boolean  @default(false)
+  userRoles     UserRoles[]
+  posts         Post[]
+  mfa_auth      mfa_auth[]
   PasswordReset PasswordReset[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   @@unique([id, email])
 }

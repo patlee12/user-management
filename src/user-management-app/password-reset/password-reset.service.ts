@@ -12,13 +12,18 @@ import {
   PasswordResetNotFoundError,
   TokenExpiredError,
   InvalidTokenError,
+  UserNotFoundError,
+  PasswordResetEmailFailedError,
 } from './errors/password-reset-errors';
+import { MailingService } from '../mailing/mailing.service';
+import { EmailPasswordResetDto } from '../mailing/dto/email-password-reset.dto';
 
 @Injectable()
 export class PasswordResetService {
   constructor(
     private prisma: PrismaService,
     private userService: UsersService,
+    private mailingService: MailingService,
   ) {}
 
   /**
@@ -29,21 +34,54 @@ export class PasswordResetService {
   async create(
     createPasswordResetDto: CreatePasswordResetDto,
   ): Promise<PasswordResetEntity> {
-    // Secure the passwords and token in database
-    const rawRandomToken = await generateToken();
-    // ### Block saved for when email service is sending the unencrypted token to user's email######
-    const hashedToken = await argon2.hash(rawRandomToken);
-    // Set to token and request to expire in 1 hour unless verified.
-    const expiresAt = await new Date(Date.now() + 60 * 60 * 1000);
+    const { userId } = createPasswordResetDto;
 
-    const passwordResetData = {
-      ...createPasswordResetDto,
-      token: hashedToken,
-      expiresAt: expiresAt,
+    // Lookup user email using userId
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new UserNotFoundError(`User with ID ${userId} not found`);
+    }
+
+    // Generate the raw token
+    const rawRandomToken = await generateToken();
+
+    // Construct the password reset link using the token
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${rawRandomToken}`;
+
+    // Send password reset email BEFORE hashing the token
+    const emailPasswordResetDto: EmailPasswordResetDto = {
+      email: user.email,
+      resetLink: resetLink,
     };
+
+    try {
+      await this.mailingService.sendPasswordResetEmail(emailPasswordResetDto);
+    } catch (error) {
+      throw new PasswordResetEmailFailedError(
+        'Failed to send password reset email',
+      );
+    }
+
+    // Hash the token AFTER sending the email
+    const hashedToken = await argon2.hash(rawRandomToken);
+
+    // Set token expiration (1 hour)
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+    // Save the hashed token and expiration to the database
+    const passwordResetData = {
+      userId,
+      token: hashedToken,
+      expiresAt,
+    };
+
     const createPasswordReset = await this.prisma.passwordReset.create({
       data: passwordResetData,
     });
+
     return createPasswordReset;
   }
 

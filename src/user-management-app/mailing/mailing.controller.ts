@@ -1,11 +1,4 @@
-import {
-  Body,
-  Controller,
-  Post,
-  HttpCode,
-  HttpStatus,
-  Logger,
-} from '@nestjs/common';
+import { Body, Controller, Post, HttpCode, HttpStatus } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { MailingService } from './mailing.service';
@@ -17,8 +10,6 @@ import { GLOBAL_THROTTLE_CONFIG } from 'src/common/constraints';
 @Controller('mailing')
 @Throttle(GLOBAL_THROTTLE_CONFIG)
 export class MailingController {
-  private logger = new Logger(MailingController.name);
-
   constructor(private readonly mailingService: MailingService) {}
 
   @Post('send-verification-email')
@@ -32,9 +23,6 @@ export class MailingController {
   async sendVerificationEmail(
     @Body() emailVerificationDto: EmailVerificationDto,
   ): Promise<{ message: string }> {
-    this.logger.log(
-      `Sending verification email to ${emailVerificationDto.email}`,
-    );
     await this.mailingService.sendVerificationEmail(emailVerificationDto);
     return { message: 'Verification email sent successfully' };
   }
@@ -50,9 +38,6 @@ export class MailingController {
   async sendPasswordResetEmail(
     @Body() emailPasswordResetDto: EmailPasswordResetDto,
   ): Promise<{ message: string }> {
-    this.logger.log(
-      `Sending password reset email to ${emailPasswordResetDto.email}`,
-    );
     await this.mailingService.sendPasswordResetEmail(emailPasswordResetDto);
     return { message: 'Password reset email sent successfully' };
   }

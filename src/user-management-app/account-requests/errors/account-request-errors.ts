@@ -18,3 +18,10 @@ export class InvalidTokenError extends Error {
     this.name = 'InvalidTokenError';
   }
 }
+
+export class VerificationEmailFailed extends Error {
+  constructor(message = 'Verification Email Failed') {
+    super(message);
+    this.name = 'VerificationEmailFailedError';
+  }
+}

@@ -47,6 +47,11 @@ export class CreateUserDto {
   @ApiProperty()
   email: string;
 
+  @IsBoolean()
+  @IsOptional()
+  @ApiProperty({ required: false })
+  emailVerified?: boolean;
+
   @IsArray()
   @IsOptional()
   @ApiProperty({

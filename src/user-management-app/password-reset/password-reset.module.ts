@@ -4,6 +4,7 @@ import { PasswordResetController } from './password-reset.controller';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { UsersService } from '../users/users.service';
 import { RolesPermissionsResourcesService } from '../roles-and-permissions-resources/roles-permissions-resources.service';
+import { MailingService } from '../mailing/mailing.service';
 
 @Module({
   controllers: [PasswordResetController],
@@ -11,6 +12,7 @@ import { RolesPermissionsResourcesService } from '../roles-and-permissions-resou
     PasswordResetService,
     UsersService,
     RolesPermissionsResourcesService,
+    MailingService,
   ],
   imports: [PrismaModule],
 })

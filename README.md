@@ -56,6 +56,14 @@ ADMIN_PASSWORD = ""
 
 # Mfa Encryption Key openssl rand -hex 32.
 MFA_KEY=""
+
+# Email service account and password currently using gmail SMTP server but doesn't require gmail.
+MAIL_SERVICE_PROVIDER="gmail"
+EMAIL_USER=""
+EMAIL_PASS=""
+
+# Front End URL
+FRONTEND_URL=""
 ```
 
 ## Running the App in a local area network in a Production Environment
