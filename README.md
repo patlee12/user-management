@@ -1,6 +1,8 @@
 ## User Management
 
-This Nest.js application provides a scalable, secure backend solution for user management and authentication. It includes user login, account requests, email verification, password recovery, JWT-based authentication, Multi-factor authentication (MFA), role-based authorization, user profile management, and integration with Nginx (Reverse Proxy) and Avahi (MDNS) for service discovery in local area setups. This application is designed to be used as boilerplate for monolithic projects that want to plan for microservice pivot when it is needed because of the modular and opinionated approach offered by Nest.js framework.
+This Nest.js application provides a scalable and secure backend solution for user management and authentication. It includes essential features such as user login, account creation requests, email verification, password recovery, JWT-based authentication, multi-factor authentication (MFA), and role-based authorization. The application also supports user profile management and integrates with Nginx (as a reverse proxy) and Avahi (for mDNS-based service discovery) to enable seamless operation in local area network setups.
+
+Designed as a boilerplate for monolithic projects, this application follows a modular and opinionated structure, allowing for an easy pivot to a microservices architecture when needed—thanks to the flexibility and scalability of the Nest.js framework.
 
 Included a swagger module for endpoint testing. Once the project is served in your local area network go to https://user-management.local/api (see section "Running the App in a local area network in a Production Environment")
 
