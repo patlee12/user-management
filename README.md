@@ -66,6 +66,9 @@ EMAIL_PASS=""
 
 # Front End URL
 FRONTEND_URL=""
+
+# AdminJs openssl rand -base64 32
+COOKIE_SECRET=""
 ```
 
 ## Running the App in a local area network in a Production Environment

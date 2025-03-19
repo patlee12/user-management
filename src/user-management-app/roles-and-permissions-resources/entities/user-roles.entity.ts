@@ -8,6 +8,9 @@ import { RoleEntity } from './role.entity';
  */
 export class UserRolesEntity implements UserRoles {
   @ApiProperty()
+  id: number;
+
+  @ApiProperty()
   userId: number;
 
   @ApiProperty()

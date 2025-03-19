@@ -108,17 +108,18 @@ model Permission {
 
 
 model UserRoles {
-  user        User      @relation(fields: [userId],references: [id])
+  id          Int      @id @default(autoincrement()) // New auto-incrementing id
+  user        User     @relation(fields: [userId], references: [id])
   userId      Int
-  role        Role      @relation(fields: [roleId],references: [id])
+  role        Role     @relation(fields: [roleId], references: [id])
   roleId      Int
-  assignedBy  Int      //Tracks which user assigned the role to user
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  assignedBy  Int      // Tracks which user assigned the role to user
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  @@id([userId, roleId])  // Composite primary key
   @@unique([userId, roleId]) // Unique constraint to prevent duplicate user-role pairs
 }
+
 
 model Post {
   id          Int      @id @default(autoincrement())

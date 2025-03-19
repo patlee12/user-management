@@ -1,13 +1,17 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "NodeNext",  // or "module": "ES6"
+    "target": "ESNext",
+    "moduleResolution": "node16",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "strict": true,
     "allowJs": true,
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
-    "target": "ES2021",
     "sourceMap": true,
     "outDir": "./dist",
     "rootDir": "./",
@@ -18,11 +22,8 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
-    "resolveJsonModule": true,
-    "esModuleInterop": true,
     "noEmit": false,
     "incremental": false,
-    "strict": true,
     "paths": {
       "src/*": ["./src/*"]
     }

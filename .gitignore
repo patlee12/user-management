@@ -38,3 +38,5 @@ lerna-debug.log*
 *.key
 
 /data
+
+.adminjs
