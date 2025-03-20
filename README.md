@@ -1,10 +1,10 @@
 ## User Management
 
-This Nest.js application provides a scalable and secure backend solution for user management and authentication. It includes essential features such as user login, account creation requests, email verification, password recovery, JWT-based authentication, multi-factor authentication (MFA), and role-based authorization. The application also supports user profile management and integrates with Nginx (as a reverse proxy) and Avahi (for mDNS-based service discovery) to enable seamless operation in local area network setups.
+This Nest.js application provides a scalable and secure backend solution for user management and authentication. It includes essential features such as user login, Admin Panel (Admin.js) account creation requests, email verification, password recovery, JWT-based authentication, multi-factor authentication (MFA), and role-based authorization. The application also supports user profile management and integrates with Nginx (as a reverse proxy) and Avahi (for mDNS-based service discovery) to enable seamless operation in local area network setups.
 
 Designed as a boilerplate for monolithic projects, this application follows a modular and opinionated structure, allowing for an easy pivot to a microservices architecture when needed—thanks to the flexibility and scalability of the Nest.js framework.
 
-Included a swagger module for endpoint testing. Once the project is served in your local area network go to https://user-management.local/api (see section "Running the App in a local area network in a Production Environment")
+Included a swagger module for endpoint testing and Admin Module. Once the project is served in your local area network go to https://user-management.local/api for swagger and https://user-management.local/admin for Admin panel (see section "Running the App in a local area network in a Production Environment")
 
 ## Dependencies:
 
@@ -110,7 +110,7 @@ docker compose -f docker-compose-local-area-network.yml up -d
 
 ```
 
-Give the containers a minute to complete deployment. The Nest.js app will be the last one finished deploying. Then open a browser and go to https://user-management.local/api
+Give the containers a minute to complete deployment. The Nest.js app will be the last one finished deploying. Then open a browser and go to https://user-management.local/api for the swagger module and https://user-management.local/admin for the Admin.js module. You will need to use `ADMIN_EMAIL and ADMIN_PASSWORD` for logging into admin panel.
 
 ## Avahi Tips
 
