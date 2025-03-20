@@ -9,6 +9,7 @@ import {
 import { PrismaClientExceptionFilter } from './prisma-client-exception/prisma-client-exception.filter';
 import { runAdminSeed } from './run-admin-seed';
 import { runMigrations } from './run-migrations';
+import * as os from 'os';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -57,10 +58,39 @@ async function bootstrap() {
     await runAdminSeed();
   }
 
+  // Get the local IP address of the server (LAN IP, including Docker interfaces)
+  const networkInterfaces = os.networkInterfaces();
+  let localIpAddress = 'localhost'; // Default to localhost
+  let dockerIpAddress = ''; // Store Docker IP
+
+  for (const interfaceName in networkInterfaces) {
+    for (const interfaceInfo of networkInterfaces[interfaceName]) {
+      // Check for non-internal IPv4 addresses
+      if (interfaceInfo.family === 'IPv4' && !interfaceInfo.internal) {
+        if (interfaceName.startsWith('docker')) {
+          // Store Docker IP
+          dockerIpAddress = interfaceInfo.address;
+        } else {
+          // Use the first LAN address found
+          localIpAddress = interfaceInfo.address;
+        }
+      }
+    }
+  }
+
   // Start the app and log the server information
   await userManagementApp.listen(3000);
-  logger.log(`🚀 Server running at http://localhost:3000`);
-  logger.log(`🚀 AdminJS running at http://localhost:3000/admin`);
+
+  // Log both LAN and Docker IP addresses, if available
+  logger.log(`🚀 Server running at http://${localIpAddress}:3000 (LAN IP)`);
+  logger.log(`🚀 AdminJS running at http://${localIpAddress}:3000/admin`);
+
+  if (dockerIpAddress) {
+    logger.log(`🚀 Docker running at http://${dockerIpAddress}:3000`);
+    logger.log(
+      `🚀 AdminJS Docker running at http://${dockerIpAddress}:3000/admin`,
+    );
+  }
 }
 
 bootstrap();
