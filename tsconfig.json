@@ -13,9 +13,9 @@
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
     "sourceMap": true,
-    "outDir": "./dist",
-    "rootDir": "./",
-    "baseUrl": "./",
+    "outDir": "./dist",  // Default build folder at the root
+    "rootDir": "./",  // Root directory for all apps
+    "baseUrl": "./",  // Base directory for imports
     "skipLibCheck": true,
     "strictNullChecks": false,
     "noImplicitAny": false,
@@ -25,9 +25,14 @@
     "noEmit": false,
     "incremental": false,
     "paths": {
-      "src/*": ["./src/*"]
+      "src/*": ["./apps/backend/src/*", "./apps/frontend/src/*"]  // Adjust for both apps
     }
   },
-  "include": ["src/**/*","prisma/**/*", "prisma/seed.ts"],
+  "include": [
+    "apps/backend/src/**/*",
+    "apps/frontend/src/**/*",
+    "apps/backend/prisma/**/*",
+    "apps/backend/prisma/seed.ts"
+  ],
   "exclude": ["node_modules"]
 }

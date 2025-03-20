@@ -1,0 +1,107 @@
+services:
+  nginx:
+    build:
+      context: ./docker  
+      dockerfile: nginx/nginx.localarea.Dockerfile  # Path to the Nginx Dockerfile
+    container_name: nginx
+    restart: always
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./docker/nginx/certs:/etc/nginx/certs  
+      - ./docker/nginx/nginx.localarea.conf:/etc/nginx/nginx.conf 
+    networks:
+      full-stack-network:
+        aliases:
+          - adminer
+    command: ['nginx', '-g', 'daemon off;']
+    env_file:
+      - .env  # Path to environment file (assuming root directory)
+    depends_on:
+      - adminer # Ensure Nginx waits for Adminer service to be up
+
+  avahi:
+    image: flungo/avahi
+    container_name: avahi
+    network_mode: host
+    restart: always
+    env_file:
+      - .env  # Path to environment file (assuming root directory)
+    volumes:
+      - ./docker/avahi-config:/etc/avahi  # Update path to avahi-config folder inside the docker folder
+    hostname: ${AVAHI_HOSTNAME}
+    command:
+      - /bin/sh
+      - -c
+      - |
+        /usr/sbin/avahi-daemon &
+        sleep 35
+        tail -f /dev/null
+
+  postgres:
+    image: postgres:13.5
+    container_name: postgres
+    restart: always
+    env_file:
+      - .env  # Path to environment file (assuming root directory)
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    networks:
+      - full-stack-network
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
+      interval: 20s
+      timeout: 5s
+      retries: 10
+
+  adminer:
+    image: adminer
+    container_name: adminer
+    restart: always
+    ports:
+      - '8080:8080'  
+    networks:
+      - full-stack-network
+    depends_on:
+      - postgres
+    environment:
+      ADMINER_DEFAULT_SERVER: 'postgres'
+      ADMINER_DEFAULT_DB: ${POSTGRES_DB}
+      ADMINER_DEFAULT_USER: ${POSTGRES_USER}
+      ADMINER_DEFAULT_PASSWORD: ${POSTGRES_PASSWORD}
+
+  nestjs:
+    build:
+      context: ./apps/backend  # This is where the source code for NestJS is located
+      dockerfile: ../docker/nest.Dockerfile  # Reference the NestJS Dockerfile in the docker folder
+    container_name: nestjs
+    restart: always
+    ports:
+      - '3000:3000'
+    env_file:
+      - ./apps/backend/.env  # Path to the environment file in the backend folder
+    networks:
+      - full-stack-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: '${DATABASE_URL_PROD}'
+    command:
+      [
+        'sh',
+        '-c',
+        '/wait-for-it.sh postgres:5432 --timeout=30 --strict -- yarn start:prod',
+      ]
+
+volumes:
+  postgres:
+
+networks:
+  full-stack-network:
+    driver: bridge

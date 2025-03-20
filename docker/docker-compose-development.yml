@@ -1,0 +1,52 @@
+services:
+  postgres:
+    image: postgres:13.5
+    container_name: postgres
+    restart: always
+    env_file:
+      - ../.env  # Path to the .env file at the root of the monorepo
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    networks:
+      - full-stack-network
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  adminer:
+    image: adminer
+    container_name: adminer
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - '8081:8080'  # Adminer web UI running on port 8080 inside the container
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+      ADMINER_DEFAULT_USER: ${POSTGRES_USER}
+      ADMINER_DEFAULT_PASSWORD: ${POSTGRES_PASSWORD}
+      ADMINER_DEFAULT_DB: ${POSTGRES_DB}
+    networks:
+      - full-stack-network
+    healthcheck:
+      test: ['CMD-SHELL', 'curl --fail http://localhost:8080 || exit 1']
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres:
+
+networks:
+  full-stack-network:
+    name: full-stack-network
+    driver: bridge
