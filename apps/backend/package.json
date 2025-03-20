@@ -43,6 +43,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "crypto": "^1.0.1",
+    "dotenv": "^16.4.7",
     "express-formidable": "^1.2.0",
     "express-session": "^1.18.1",
     "nodemailer": "^6.9.16",

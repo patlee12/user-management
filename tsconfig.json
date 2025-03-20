@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "module": "NodeNext",  // or "module": "ES6"
+    "module": "NodeNext", 
     "target": "ESNext",
     "moduleResolution": "node16",
     "esModuleInterop": true,
@@ -13,19 +13,18 @@
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
     "sourceMap": true,
-    "outDir": "./dist",  // Default build folder at the root
-    "rootDir": "./",  // Root directory for all apps
-    "baseUrl": "./",  // Base directory for imports
+    "outDir": "./dist", 
+    "rootDir": "./",  
+    "baseUrl": ".",  
     "skipLibCheck": true,
     "strictNullChecks": false,
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
-    "noEmit": false,
     "incremental": false,
     "paths": {
-      "src/*": ["./apps/backend/src/*", "./apps/frontend/src/*"]  // Adjust for both apps
+      "src/*": ["apps/backend/src/*", "apps/frontend/src/*"]  
     }
   },
   "include": [

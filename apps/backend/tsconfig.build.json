@@ -1,11 +1,11 @@
 {
-  "extends": "../tsconfig.json", // Extends the base tsconfig at the root
-  "exclude": ["node_modules", "test", "**/*spec.ts"], // Exclude test files
+  "extends": "./tsconfig.json", // Extend the backend's tsconfig.json
   "compilerOptions": {
-    "rootDir": "./", // Root directory for the backend app
-    "baseUrl": "./", // Base directory for backend imports
-    "outDir": "./dist", // Build output for backend app
-    "incremental": true
+    "rootDir": "./", // Backend build root
+    "baseUrl": "./", // Backend base directory
+    "outDir": "./dist", // Build output directory
+    "incremental": true // Enable incremental builds
   },
-  "include": ["src/**/*", "prisma/**/*", "prisma/seed.ts"]
+  "include": ["src/**/*", "prisma/**/*", "prisma/seed.ts"],
+  "exclude": ["node_modules", "test", "**/*spec.ts"]
 }
