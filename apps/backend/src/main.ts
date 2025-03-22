@@ -12,25 +12,27 @@ import { runMigrations } from './run-migrations';
 import * as os from 'os';
 import * as dotenv from 'dotenv';
 
-// Load the root .env file
-dotenv.config({ path: '../../.env' });
+// Perform substitutions for the database url in Development only.
+if (process.env.NODE_ENV === 'Development') {
+  // Load the root .env file
+  dotenv.config({ path: '../../docker/.env' });
 
-// Load the backend .env file
-dotenv.config({ path: './.env' });
+  // Load the backend .env file
+  dotenv.config({ path: './.env' });
 
-// Perform substitutions for the database url
-const databaseUrl = process.env.DATABASE_URL?.replace(
-  '${POSTGRES_USER}',
-  process.env.POSTGRES_USER || 'default_user',
-)
-  .replace(
-    '${POSTGRES_PASSWORD}',
-    process.env.POSTGRES_PASSWORD || 'default_password',
+  const databaseUrl = process.env.DATABASE_URL?.replace(
+    '${POSTGRES_USER}',
+    process.env.POSTGRES_USER || 'default_user',
   )
-  .replace('${POSTGRES_DB}', process.env.POSTGRES_DB || 'default_db');
+    .replace(
+      '${POSTGRES_PASSWORD}',
+      process.env.POSTGRES_PASSWORD || 'default_password',
+    )
+    .replace('${POSTGRES_DB}', process.env.POSTGRES_DB || 'default_db')
+    .replace('@postgres:', '@localhost:');
 
-// Update the DATABASE_URL environment variable for later use
-process.env.DATABASE_URL = databaseUrl || process.env.DATABASE_URL;
+  process.env.DATABASE_URL = databaseUrl || process.env.DATABASE_URL;
+}
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');

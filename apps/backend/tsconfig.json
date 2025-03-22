@@ -9,6 +9,9 @@
       "strictNullChecks": false, // Disable strict null checks
       "noImplicitAny": false, // Allow implicit any types
       "strictBindCallApply": false, // Disable strict checking for bind/call/apply methods
+      "experimentalDecorators": true,
+      "emitDecoratorMetadata": true,
+      "esModuleInterop": true,
       "paths": {
         "src/*": ["./src/*"] // Alias 'src' to point to the backend src folder
       }

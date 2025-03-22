@@ -1,25 +1,23 @@
 services:
   nginx:
     build:
-      context: ./docker  
-      dockerfile: nginx/nginx.localarea.Dockerfile  # Path to the Nginx Dockerfile
+      context: ../ # Project root as build context
+      dockerfile: ./docker/nginx/nginx.localarea.Dockerfile
     container_name: nginx
     restart: always
     ports:
       - '80:80'
       - '443:443'
     volumes:
-      - ./docker/nginx/certs:/etc/nginx/certs  
-      - ./docker/nginx/nginx.localarea.conf:/etc/nginx/nginx.conf 
+      - ./nginx/certs:/etc/nginx/certs # Bind mount with './'
+      - ./nginx/nginx.localarea.conf:/etc/nginx/nginx.conf
     networks:
       full-stack-network:
         aliases:
           - adminer
     command: ['nginx', '-g', 'daemon off;']
     env_file:
-      - .env  # Path to environment file (assuming root directory)
-    depends_on:
-      - adminer # Ensure Nginx waits for Adminer service to be up
+      - ./.env # .env file in the docker folder
 
   avahi:
     image: flungo/avahi
@@ -27,14 +25,15 @@ services:
     network_mode: host
     restart: always
     env_file:
-      - .env  # Path to environment file (assuming root directory)
+      - ./.env # .env file in the docker folder
     volumes:
-      - ./docker/avahi-config:/etc/avahi  # Update path to avahi-config folder inside the docker folder
+      - ./avahi-config:/etc/avahi # Bind mount with './'
     hostname: ${AVAHI_HOSTNAME}
     command:
       - /bin/sh
       - -c
       - |
+        rm -rf /var/run/avahi-daemon/*
         /usr/sbin/avahi-daemon &
         sleep 35
         tail -f /dev/null
@@ -44,7 +43,7 @@ services:
     container_name: postgres
     restart: always
     env_file:
-      - .env  # Path to environment file (assuming root directory)
+      - ./.env # .env file in the docker folder
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -63,8 +62,10 @@ services:
     image: adminer
     container_name: adminer
     restart: always
+    env_file:
+      - ./.env # .env file in the docker folder
     ports:
-      - '8080:8080'  
+      - '8080:8080'
     networks:
       - full-stack-network
     depends_on:
@@ -77,21 +78,20 @@ services:
 
   nestjs:
     build:
-      context: ./apps/backend  # This is where the source code for NestJS is located
-      dockerfile: ../docker/nest.Dockerfile  # Reference the NestJS Dockerfile in the docker folder
+      context: ../ # Project root for backend build
+      dockerfile: ./docker/nest.Dockerfile
     container_name: nestjs
     restart: always
     ports:
       - '3000:3000'
     env_file:
-      - ./apps/backend/.env  # Path to the environment file in the backend folder
+      - ./.env # .env file in the docker folder
+      - ../apps/backend/.env # Backend-specific env file (relative to project root)
     networks:
       - full-stack-network
     depends_on:
       postgres:
         condition: service_healthy
-    environment:
-      DATABASE_URL: '${DATABASE_URL_PROD}'
     command:
       [
         'sh',

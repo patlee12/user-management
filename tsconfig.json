@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "module": "NodeNext", 
+    "module": "NodeNext",
     "target": "ESNext",
     "moduleResolution": "node16",
     "esModuleInterop": true,
@@ -24,7 +24,8 @@
     "noFallthroughCasesInSwitch": false,
     "incremental": false,
     "paths": {
-      "src/*": ["apps/backend/src/*", "apps/frontend/src/*"]  
+      "src/*": ["apps/backend/src/*", "apps/frontend/src/*"],
+      "prisma/*": ["apps/backend/prisma/*"]
     }
   },
   "include": [
