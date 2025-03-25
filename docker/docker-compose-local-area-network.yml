@@ -1,7 +1,7 @@
 services:
   nginx:
     build:
-      context: ../ # Project root as build context
+      context: ..
       dockerfile: ./docker/nginx/nginx.localarea.Dockerfile
     container_name: nginx
     restart: always
@@ -9,15 +9,13 @@ services:
       - '80:80'
       - '443:443'
     volumes:
-      - ./nginx/certs:/etc/nginx/certs # Bind mount with './'
-      - ./nginx/nginx.localarea.conf:/etc/nginx/nginx.conf
-    networks:
-      full-stack-network:
-        aliases:
-          - adminer
-    command: ['nginx', '-g', 'daemon off;']
+      - ./nginx/certs:/etc/nginx/certs
+      - ./nginx/nginx.localarea.conf.template:/etc/nginx/nginx.localarea.conf.template
     env_file:
-      - ./.env # .env file in the docker folder
+      - .env
+    networks:
+      - full-stack-network
+    entrypoint: /etc/nginx/entrypoint.sh
 
   avahi:
     image: flungo/avahi
@@ -25,25 +23,25 @@ services:
     network_mode: host
     restart: always
     env_file:
-      - ./.env # .env file in the docker folder
+      - .env
     volumes:
-      - ./avahi-config:/etc/avahi # Bind mount with './'
+      - avahi-logs:/avahi
+      - ./avahi-config:/etc/avahi
     hostname: ${AVAHI_HOSTNAME}
-    command:
-      - /bin/sh
-      - -c
-      - |
-        rm -rf /var/run/avahi-daemon/*
-        /usr/sbin/avahi-daemon &
-        sleep 35
-        tail -f /dev/null
+    command: >
+      sh -c "apk add --no-cache gettext &&
+            envsubst < /etc/avahi/avahi-daemon.conf.template > /etc/avahi/avahi-daemon.conf &&
+            rm -rf /var/run/avahi-daemon/*;
+            echo 'Starting avahi-daemon and writing logs to /avahi/avahi.log...';
+            /usr/sbin/avahi-daemon > /avahi/avahi.log 2>&1;
+            tail -f /dev/null"
 
   postgres:
     image: postgres:13.5
     container_name: postgres
     restart: always
     env_file:
-      - ./.env # .env file in the docker folder
+      - .env
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -63,7 +61,7 @@ services:
     container_name: adminer
     restart: always
     env_file:
-      - ./.env # .env file in the docker folder
+      - .env
     ports:
       - '8080:8080'
     networks:
@@ -78,29 +76,69 @@ services:
 
   nestjs:
     build:
-      context: ../ # Project root for backend build
+      context: ..
       dockerfile: ./docker/nest.Dockerfile
     container_name: nestjs
     restart: always
-    ports:
-      - '3000:3000'
     env_file:
-      - ./.env # .env file in the docker folder
-      - ../apps/backend/.env # Backend-specific env file (relative to project root)
+      - .env
+      - ../apps/backend/.env
     networks:
       - full-stack-network
     depends_on:
       postgres:
         condition: service_healthy
+      hostname-printer:
+        condition: service_completed_successfully
+    volumes:
+      - avahi-logs:/avahi
+    entrypoint: /usr/local/bin/wait-and-start-nest.sh
+
+  homepage-app:
+    build:
+      context: ..
+      dockerfile: ./docker/homepage-app.Dockerfile
+    container_name: homepage-app
+    restart: always
+    ports:
+      - '3001:3000'
+    env_file:
+      - .env
+      - ../apps/frontend/homepage-app/.env
+    networks:
+      - full-stack-network
+    depends_on:
+      hostname-printer:
+        condition: service_completed_successfully
+    volumes:
+      - avahi-logs:/avahi
+    entrypoint: /usr/local/bin/wait-and-start-frontend.sh
+
+  hostname-printer:
+    image: ubuntu:22.04
+    container_name: hostname-printer
+    network_mode: host
+    restart: 'no'
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      avahi:
+        condition: service_started
+    volumes:
+      - ./scripts:/usr/local/bin
+      - avahi-logs:/avahi
     command:
-      [
-        'sh',
-        '-c',
-        '/wait-for-it.sh postgres:5432 --timeout=30 --strict -- yarn start:prod',
-      ]
+      - sh
+      - -c
+      - |
+        chmod +x /usr/local/bin/hostname-printer.sh
+        /usr/local/bin/hostname-printer.sh
 
 volumes:
   postgres:
+  avahi-logs:
 
 networks:
   full-stack-network:

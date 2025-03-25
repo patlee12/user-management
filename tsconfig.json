@@ -13,9 +13,9 @@
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
     "sourceMap": true,
-    "outDir": "./dist", 
-    "rootDir": "./",  
-    "baseUrl": ".",  
+    "outDir": "./dist",
+    "rootDir": "./",
+    "baseUrl": ".",
     "skipLibCheck": true,
     "strictNullChecks": false,
     "noImplicitAny": false,
@@ -24,15 +24,22 @@
     "noFallthroughCasesInSwitch": false,
     "incremental": false,
     "paths": {
-      "src/*": ["apps/backend/src/*", "apps/frontend/src/*"],
-      "prisma/*": ["apps/backend/prisma/*"]
+      "src/*": [
+        "apps/backend/src/*",
+        "apps/frontend/homepage-app/src/*"
+      ],
+      "prisma/*": [
+        "apps/backend/prisma/*"
+      ]
     }
   },
   "include": [
     "apps/backend/src/**/*",
-    "apps/frontend/src/**/*",
+    "apps/frontend/homepage-app/src/**/*",
     "apps/backend/prisma/**/*",
     "apps/backend/prisma/seed.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules"
+  ]
 }

@@ -1,5 +1,5 @@
 {
-  "name": "user-management",
+  "name": "user-management-backend",
   "version": "1.0.0",
   "description": "A nest.js application for backend user management related features.",
   "author": "Patrick Lee",
@@ -12,7 +12,8 @@
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/src/main",
+    "start:prod": "sh -c 'node dist/src/main'",
+    "localareanetwork:prod": "NODE_ENV=Production FRONTEND_URL=https://${AVAHI_HOSTNAME:-user-management}.local/ BACKEND_API_URL=https://${AVAHI_HOSTNAME:-user-management}.local/nestjs yarn start:prod",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",

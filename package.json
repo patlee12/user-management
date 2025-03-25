@@ -6,7 +6,7 @@
   "license": "MIT",
   "workspaces": [
     "apps/backend",
-    "apps/frontend"
+    "apps/frontend/*"
   ],
   "dependencies": {
     "axios": "^0.21.1",
@@ -17,11 +17,13 @@
     "concurrently": "^6.0.0"
   },
   "scripts": {
-    "dev": "concurrently \"yarn workspace frontend dev\" \"yarn workspace backend start\"",
-    "build": "concurrently \"yarn workspace frontend build\" \"yarn workspace backend build\"",
-    "dev:frontend": "yarn workspace frontend dev",
-    "dev:backend": "yarn workspace backend start",
-    "build:frontend": "yarn workspace frontend build",
-    "build:backend": "yarn workspace backend build"
+    "dev:docker": "docker compose -f docker/docker-compose-development.yml up -d --build",
+    "dev:frontend": "PORT=3001 yarn workspace homepage-app dev",
+    "dev:backend": "yarn workspace user-management-backend start",
+    "dev": "yarn dev:docker && concurrently \"yarn dev:frontend\" \"yarn dev:backend\"",
+    "build:frontend": "yarn workspace homepage-app build",
+    "build:backend": "yarn workspace user-management-backend build",
+    "build": "concurrently \"yarn build:frontend\" \"yarn build:backend\"",
+    "localareanetwork:prod": "docker compose -f docker/docker-compose-local-area-network.yml up --build"
   }
 }

@@ -12,26 +12,25 @@ import { runMigrations } from './run-migrations';
 import * as os from 'os';
 import * as dotenv from 'dotenv';
 
-// Perform substitutions for the database url in Development only.
+// Perform substitutions for the database URL in Development only.
 if (process.env.NODE_ENV === 'Development') {
-  // Load the root .env file
+  // Load the root .env file (from docker folder)
   dotenv.config({ path: '../../docker/.env' });
 
-  // Load the backend .env file
+  // Load the backend .env file (from the current directory)
   dotenv.config({ path: './.env' });
 
-  const databaseUrl = process.env.DATABASE_URL?.replace(
-    '${POSTGRES_USER}',
-    process.env.POSTGRES_USER || 'default_user',
-  )
+  let databaseUrl = process.env.DATABASE_URL || '';
+  databaseUrl = databaseUrl
+    .replace('${POSTGRES_USER}', process.env.POSTGRES_USER || 'default_user')
     .replace(
       '${POSTGRES_PASSWORD}',
       process.env.POSTGRES_PASSWORD || 'default_password',
     )
     .replace('${POSTGRES_DB}', process.env.POSTGRES_DB || 'default_db')
-    .replace('@postgres:', '@localhost:');
+    .replace('@postgres:', '@localhost:'); // Replace the "@postgres:" part with "@localhost:"
 
-  process.env.DATABASE_URL = databaseUrl || process.env.DATABASE_URL;
+  process.env.DATABASE_URL = databaseUrl;
 }
 
 async function bootstrap() {
