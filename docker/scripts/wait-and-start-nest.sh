@@ -10,10 +10,9 @@ done
 export FRONT_END_URL=$RESOLVED_HOST
 echo "[NestJS] FRONT_END_URL resolved to: $RESOLVED_HOST"
 
-# Start the NestJS application in the background.
+# Run the full production flow in one go (migrations, seed, start)
 yarn localareanetwork:prod &
 
-# Wait for a while to allow the app to load.
 sleep 8
 
 echo ""
@@ -25,5 +24,4 @@ echo "🚀 Adminer endpoint: ${RESOLVED_HOST}/adminer"
 echo "========================================"
 echo ""
 
-# Wait for the NestJS process to exit (keeps container running)
 wait

@@ -7,8 +7,6 @@ import {
   Logger,
 } from '@nestjs/common';
 import { PrismaClientExceptionFilter } from './prisma-client-exception/prisma-client-exception.filter';
-import { runAdminSeed } from './run-admin-seed';
-import { runMigrations } from './run-migrations';
 import * as os from 'os';
 import * as dotenv from 'dotenv';
 
@@ -79,16 +77,6 @@ async function bootstrap() {
 
   // Enable CORS so frontend requests aren't blocked
   userManagementApp.enableCors({ allowedHeaders: 'Authorization' });
-
-  // Run migrations and seed only in production mode
-  if (
-    process.env.STAGING_PRODUCTION === 'true' &&
-    process.env.NODE_ENV === 'Production'
-  ) {
-    logger.log('Running migrations and seed...');
-    await runMigrations();
-    await runAdminSeed();
-  }
 
   // Get the local IP address of the server (LAN IP, including Docker interfaces)
   const networkInterfaces = os.networkInterfaces();

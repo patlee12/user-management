@@ -14,6 +14,7 @@ import { UsersService } from 'src/user-management-app/users/users.service';
 import { JwtPayload } from './jwt.strategy';
 import { decryptSecret } from 'src/helpers/encryption-tools';
 import { MfaDto } from './dto/mfa.dto';
+import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
@@ -36,17 +37,18 @@ export class AuthService {
    * @throws {NotFoundException} - If no user is found for the provided email.
    * @throws {UnauthorizedException} - If the password is invalid, MFA is required but no token is provided, or if the provided MFA token is invalid.
    */
-  async login(
-    email: string,
-    password: string,
-    token?: string,
-  ): Promise<AuthResponseDto> {
-    const user = await this.prisma.user.findUnique({ where: { email: email } });
+  async login(loginDto: LoginDto): Promise<AuthResponseDto> {
+    const user = await this.prisma.user.findUnique({
+      where: { email: loginDto.email },
+    });
     if (!user) {
       throw new NotFoundException(`No user found for that email/password`);
     }
 
-    const isPasswordValid = await argon2.verify(user.password, password);
+    const isPasswordValid = await argon2.verify(
+      user.password,
+      loginDto.password,
+    );
 
     if (!isPasswordValid) {
       throw new UnauthorizedException('No user found for that email/password');
@@ -54,9 +56,12 @@ export class AuthService {
     let mfaVerified: boolean = false;
 
     if (user.mfaEnabled) {
-      if (token) {
+      if (loginDto.token) {
         const userMfa = await this.userService.findOneMfa(user.id);
-        const isMfaValid = await this.verifyTotp(userMfa.secret, token);
+        const isMfaValid = await this.verifyTotp(
+          userMfa.secret,
+          loginDto.token,
+        );
         if (isMfaValid) {
           mfaVerified = true;
         } else {

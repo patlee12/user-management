@@ -39,10 +39,8 @@ export class AuthController {
       "Copy access token and paste it in the Authorize value field (Click 'Authorize' button in top right corner of page). If you need an account use Admin Email and password from .env file.",
   })
   @ApiOkResponse({ type: AuthResponseDto })
-  async login(
-    @Body() { email, password, token }: LoginDto,
-  ): Promise<AuthResponseDto> {
-    return await this.authService.login(email, password, token);
+  async login(@Body() loginDto: LoginDto): Promise<AuthResponseDto> {
+    return await this.authService.login(loginDto);
   }
 
   @Post('setup-mfa')
