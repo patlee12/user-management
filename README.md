@@ -37,7 +37,7 @@ This project is structured as a **monorepo**, where both the frontend and backen
 
 ### Create `.env` Files
 
-This project uses **three `.env` files**:
+This project uses **three `.env` files** if you need a template look for the `.env.template` file in each of the three workspaces:
 
 1. **Docker `.env`**: Contains shared environment variables used across the entire monorepo.
 2. **Frontend `.env`**: Contains environment variables specific to the **frontend** (Next.js).
