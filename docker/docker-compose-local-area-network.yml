@@ -83,6 +83,7 @@ services:
     env_file:
       - .env
       - ../apps/backend/.env
+      - ../apps/backend/.env.localareanetwork
     networks:
       - full-stack-network
     depends_on:

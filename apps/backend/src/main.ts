@@ -43,6 +43,15 @@ async function bootstrap() {
     new ClassSerializerInterceptor(userManagementApp.get(Reflector)),
   );
 
+  const globalPrefix = process.env.GLOBAL_PREFIX;
+
+  if (globalPrefix) {
+    userManagementApp.setGlobalPrefix(globalPrefix);
+    logger.log(`Global prefix set to /${globalPrefix}`);
+  } else {
+    logger.warn('No global prefix set. Routes will be registered at root.');
+  }
+
   // Swagger configuration
   const config = new DocumentBuilder()
     .setTitle('User-Management')
@@ -57,8 +66,9 @@ async function bootstrap() {
 
   // Setup Swagger UI only if ENABLE_SWAGGER is true (recommended for development)
   if (process.env.ENABLE_SWAGGER === 'true') {
-    SwaggerModule.setup('api', userManagementApp, document);
-    logger.log('Swagger available at /api');
+    const swaggerPath = globalPrefix ? `${globalPrefix}/api` : 'api';
+    SwaggerModule.setup(swaggerPath, userManagementApp, document);
+    logger.log(`Swagger available at /${swaggerPath}`);
   }
 
   // Handle Prisma client exceptions globally

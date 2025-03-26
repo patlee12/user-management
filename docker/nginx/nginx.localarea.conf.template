@@ -7,6 +7,8 @@ events {
 }
 
 http {
+    resolver 127.0.0.11 valid=10s;
+
     include /etc/nginx/mime.types;
     default_type application/octet-stream;
 
@@ -51,14 +53,32 @@ http {
             proxy_set_header X-Forwarded-Proto $scheme;
         }
 
+        location /nestjs/admin/ {
+            rewrite ^/nestjs/admin(/.*)?$ /admin$1 break;
+            proxy_pass http://nestjs:3000;
+
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+
+            proxy_redirect /admin /nestjs/admin;
+
+            sub_filter_once off;
+            sub_filter 'href="/admin' 'href="/nestjs/admin';
+            sub_filter 'src="/admin' 'src="/nestjs/admin';
+            sub_filter 'action="/admin' 'action="/nestjs/admin';
+            sub_filter '"/admin' '"/nestjs/admin';
+        }
+        
         location /nestjs/ {
-            rewrite ^/nestjs/(.*)$ /$1 break;
             proxy_pass http://nestjs:3000;
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-Forwarded-Proto $scheme;
         }
+
 
         location /adminer/ {
             proxy_pass http://adminer:8080/;
