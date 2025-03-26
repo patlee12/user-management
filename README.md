@@ -1,6 +1,6 @@
 # User Management Monorepo
 
-This is a **monorepo** that provides a full-stack application boilerplate with separate applications for the backend and frontend. The backend is built using **Nest.js**, while the frontend is built using **Next.js**. This project also includes Docker configurations for local development and production environments, including Avahi for service discovery and Nginx as a reverse proxy.
+This is a **monorepo** that provides a full-stack application boilerplate with separate applications for the backend and frontend. The backend is built using **Nest.js**, while the frontend so far has a Homepage Application that is built using **Next.js**. This project also includes Docker configurations for local development and production environments, including Avahi for service discovery and Nginx as a reverse proxy.
 
 ## Goals of the Project
 
@@ -11,7 +11,7 @@ This monorepo is focused on providing boilerplate code for a full stack applicat
 - An **Admin Panel** powered by **Admin.js** for managing users and roles.
 - Integration with **Nginx** (as a reverse proxy) and **Avahi** (for mDNS-based service discovery) to enable seamless operation in local area network setups.
 
-The application is designed to be easily extendable and adaptable, allowing you to pivot to a microservices architecture if needed.
+The application is designed to be easily extendable and adaptable, as well as allowing you to pivot to a microservices architecture if needed.
 
 ---
 
@@ -47,27 +47,42 @@ Each file has a specific role in the project, and each should be placed in the a
 
 ---
 
+## Create SSL Certificates for Nginx (For Local Area Network Deployment)
+
+This project uses **Nginx** as a reverse proxy to handle all incoming connections. Before running Docker, you need to generate a valid SSL certificate for **Nginx**.
+
+```bash
+openssl req -x509 -nodes -days 365 -newkey rsa:2048   -keyout ./docker/nginx/certs/nginx-selfsigned.key   -out ./docker/nginx/certs/nginx-selfsigned.crt
+```
+
+Make sure the paths are correct in the Nginx Docker configuration.
+
+---
+
 #### 1. **Docker `.env` File** (Shared Variables)
 
 Create a `.env` file in the docker folder at root level of the project with the following content:
 
 ```bash
 # Make your own passwords!! Use open SSL to generate your own secret.
-# ie. open terminal and type: openssl rand -base64 32
+# ie. open terminal and type: openssl rand -base64 48 | tr -dc 'A-Za-z0-9!@#$%^&*()_+=' | head -c 32
 
 ## Postgres
 POSTGRES_USER="admin"
 POSTGRES_PASSWORD="mypassword"
 POSTGRES_DB="hive-db"
 
-## Production DATABASE_URL. Development version would need to use "..@localhost:5432.." .
-DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}"
-
 ## Avahi
 AVAHI_START_DAEMON="true"
 DISABLE_SYSTEMD="true"
 AVAHI_HOSTNAME="user-management"
+RESOLVED_HOST=""
 
+# Admin Email
+ADMIN_EMAIL = "admin@user-management.net"
+
+# openssl rand -base64 48 | tr -dc 'A-Za-z0-9!@#$%^&*()_+=' | head -c 32
+ADMIN_PASSWORD = ""
 ```
 
 #### 2. **Frontend `.env` File** (Frontend-Specific Variables)
@@ -86,43 +101,44 @@ Create a `.env` file in the **`apps/backend`** folder with the following content
 ```bash
 ## User-Management (Nest.js)
 
-# Make your own passwords!! Use open SSL to generate your own secret.
-# ie. open terminal and type: openssl rand -base64 32
 
-JWT_SECRET=""
+# Make your own passwords!! Use open SSL to generate your own secrets.
+# ie. For plain string passwords use open terminal and type: openssl rand -base64 48 | tr -dc 'A-Za-z0-9!@#$%^&*()_+=' | head -c 32
+
 
 # Development or Production
-NODE_ENV ="Production"
+NODE_ENV ="Development"
 
 # Turn on swagger module (For endpoint Testing) Recommend to disable this in a production deployment.
 ENABLE_SWAGGER ='true'
 
-# Stage Production Environment only set to true if you want the Nest.js app to deploy the database and admin seed file for you.
-STAGING_PRODUCTION="true"
+## Postgres
+POSTGRES_USER="admin"
+POSTGRES_PASSWORD="mypassword"
+POSTGRES_DB="hive-db"
 
-# Admin Email
-ADMIN_EMAIL = ""
+## DATABASE_URL
+DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:5432/${POSTGRES_DB}"
 
-# Admin password openssl rand -base64 32.
-ADMIN_PASSWORD = ""
+# JWT server secret. openssl rand -base64 256
+JWT_SECRET=""
 
-# Mfa Encryption Key openssl rand -hex 32.
+# Mfa Encryption Key openssl rand -hex 256.
 MFA_KEY=""
 
-# Email service account and password currently set to gmail but can be changed to others.
+# Email service account and password currently using google SMTP server.
 MAIL_SERVICE_PROVIDER="gmail"
-
-# Email account (must be email format)
 EMAIL_USER=""
-
-# Usually an api key (not your email accounts main password)
 EMAIL_PASS=""
 
 # Front End URL
 FRONTEND_URL=""
 
-# AdminJs openssl rand -base64 32
+# AdminJs cookie secret.  openssl rand -base64 256
 COOKIE_SECRET=""
+
+# Used if nginx needs to resolve the path (i.e. docker-compose-localareanetwork.yml needs /nestjs)
+GLOBAL_PREFIX=""
 ```
 
 ---
@@ -134,34 +150,17 @@ The following steps will deploy the project using docker and will be discoverabl
 To get started, you’ll need to build and run the Docker containers for the entire stack.
 
 ```bash
-# Install dependencies
+# Install dependencies top level repo
 yarn install
 
 # Start the application using Docker Compose (includes Avahi for mDNS and Nginx as reverse proxy)
-docker compose -f docker/docker-compose-local-area-network.yml up --build
+yarn localareanetwork:prod
 
-# Run the application in detached mode (background process will continuously run)
-docker compose -f docker/docker-compose-local-area-network.yml up -d
+# Reset if needed (Warning! database will reset)
+yarn reset:localareanetwork
 ```
 
-After a few moments, the application should be available at:
-
-- **Swagger API Docs**: [https://user-management.local/api](https://user-management.local/api)
-- **Admin Panel (Admin.js)**: [https://user-management.local/admin](https://user-management.local/admin)
-
----
-
-## Create SSL Certificates for Nginx
-
-This project uses **Nginx** as a reverse proxy to handle all incoming connections. Before running Docker, you need to generate a valid SSL certificate for **Nginx**.
-
-```bash
-openssl req -x509 -nodes -days 365 -newkey rsa:2048   -keyout ./docker/nginx/certs/nginx-selfsigned.key   -out ./docker/nginx/certs/nginx-selfsigned.crt
-```
-
-Make sure the paths are correct in the Nginx Docker configuration.
-
----
+After a minute or so, the application should be available. It may take a little while for Avahi to finish deploying. There will be printed statements in terminal giving you the links to each app.
 
 ## Docker Setup
 
@@ -187,19 +186,34 @@ docker compose down --volumes --remove-orphans
 To run the app in a development environment, change the `.env` file to set `NODE_ENV='Development'` and ensure that `ENABLE_SWAGGER='true'`.
 
 ```bash
-# Install dependencies
+# Install dependencies top level repo
 yarn install
 
-# Setup Prisma ORM
-yarn prisma generate
+# Start project in dev mode. This will also pull some .env variables from the project root .env in /docker/.env
+yarn dev
 
-# Run Docker Compose for development (includes Postgres and Adminer)
-docker compose -f docker/docker-compose-development.yml up --build
+# Stop and remove dev containers
+yarn dev:docker:down
+
+# Reset database (Warning! will lose data)
+yarn dev:database:reset
+
+```
+
+# More Development CLI commands
+
+The commands below are from the `package.json` file in the **`apps/backend`** folder. You must be in the backend directory to run them.
+
+```bash
+### Below are commands typically used while developing but not required #####
+
+# Generate Prisma models
+yarn prisma generate
 
 # Run migrations (Development)
 yarn prisma migrate dev
 
-# If you want to seed the database with dummy data
+# If you want to seed the database with admin seed data
 yarn prisma db seed
 
 # Run the application
@@ -207,9 +221,6 @@ yarn start
 
 # Build the application
 yarn build
-
-# Production mode
-yarn start:prod
 ```
 
 ---

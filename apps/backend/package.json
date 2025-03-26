@@ -6,14 +6,16 @@
   "private": true,
   "license": "MIT",
   "scripts": {
+    "generate:env": "ts-node -P tsconfig.json src/generate-backend-env.ts",
     "build": "nest build --path tsconfig.build.json && yarn copy-mailing-templates",
     "copy-mailing-templates": "mkdir -p dist/src/user-management-app/mailing/templates && cp -R src/user-management-app/mailing/templates/* dist/src/user-management-app/mailing/templates",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
-    "start:dev": "nest start --watch",
+    "start:dev": "yarn prisma generate && yarn prisma migrate dev && yarn prisma db seed && nest start",
     "start:debug": "nest start --debug --watch",
     "start:prod": "sh -c 'node dist/src/main'",
     "migrate": "yarn prisma migrate deploy",
+    "migrate:reset": "yarn prisma migrate reset --force --skip-seed",
     "seed:admin": "ts-node -P ./apps/backend/tsconfig.json src/run-admin-seed.ts",
     "bootstrap:prod": "yarn migrate && yarn seed:admin && yarn start:prod",
     "localareanetwork:prod": "ENV_FILE=.env.localareanetwork yarn bootstrap:prod",
@@ -24,7 +26,7 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand"
   },
   "prisma": {
-    "seed": "ts-node -P ./apps/backend/tsconfig.json prisma/seed.ts"
+    "seed": "ts-node -P tsconfig.json prisma/seed.ts"
   },
   "dependencies": {
     "@adminjs/express": "^6.1.1",

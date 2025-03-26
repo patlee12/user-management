@@ -2,8 +2,8 @@
 
 apk add --no-cache iputils
 
-echo "Waiting 10 seconds for Avahi logs to update..."
-sleep 10
+echo "Waiting 15 seconds for Avahi logs to update..."
+sleep 15
 
 echo "Extracting published hostname from /avahi/avahi.log:"
 host=$(grep -i "Host name is" /avahi/avahi.log | tail -n 1 | sed -E 's/.*Host name is ([^ ]+).*/\1/' | sed 's/\.$//')
