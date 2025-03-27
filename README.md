@@ -146,6 +146,7 @@ GLOBAL_PREFIX=""
 ### Running the App in a Local Area Network (Production Environment)
 
 The following steps will deploy the project using docker and will be discoverable on your local area network using the docker .env variable set earlier `AVAHI_HOSTNAME="user-management`.
+If host name remains same, the base url will be https://user-management.local/ .
 
 To get started, you’ll need to build and run the Docker containers for the entire stack.
 
