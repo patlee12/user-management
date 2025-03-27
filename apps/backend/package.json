@@ -6,6 +6,7 @@
   "private": true,
   "license": "MIT",
   "scripts": {
+    "generate:types": "npx openapi-typescript-codegen --input http://localhost:3000/api-json --output ../../libs/types/generated",
     "generate:env": "ts-node -P tsconfig.json src/generate-backend-env.ts",
     "build": "nest build --path tsconfig.build.json && yarn copy-mailing-templates",
     "copy-mailing-templates": "mkdir -p dist/src/user-management-app/mailing/templates && cp -R src/user-management-app/mailing/templates/* dist/src/user-management-app/mailing/templates",
@@ -81,5 +82,9 @@
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.1.3"
+  },
+  "devDependencies": {
+    "openapi-typescript": "^7.6.1",
+    "openapi-typescript-codegen": "^0.29.0"
   }
 }

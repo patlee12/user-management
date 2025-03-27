@@ -6,7 +6,8 @@
   "license": "MIT",
   "workspaces": [
     "apps/backend",
-    "apps/frontend/*"
+    "apps/frontend/*",
+    "libs/types"
   ],
   "dependencies": {
     "axios": "^0.21.1",
