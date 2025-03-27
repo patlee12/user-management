@@ -12,7 +12,7 @@
     "copy-mailing-templates": "mkdir -p dist/src/user-management-app/mailing/templates && cp -R src/user-management-app/mailing/templates/* dist/src/user-management-app/mailing/templates",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
-    "start:dev": "yarn prisma generate && yarn prisma migrate dev && yarn prisma db seed && nest start",
+    "start:dev": "yarn prisma generate && yarn prisma migrate dev && yarn prisma db seed && yarn build && nest start",
     "start:debug": "nest start --debug --watch",
     "start:prod": "sh -c 'node dist/src/main'",
     "migrate": "yarn prisma migrate deploy",

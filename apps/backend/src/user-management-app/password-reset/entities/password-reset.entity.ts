@@ -1,5 +1,5 @@
 import { PasswordReset } from '@prisma/client';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiHideProperty } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
 
 export class PasswordResetEntity implements PasswordReset {
@@ -10,7 +10,7 @@ export class PasswordResetEntity implements PasswordReset {
   userId: number;
 
   @Exclude()
-  @ApiProperty()
+  @ApiHideProperty()
   token: string;
 
   @ApiProperty()

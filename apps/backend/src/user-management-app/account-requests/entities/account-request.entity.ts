@@ -1,5 +1,5 @@
 import { AccountRequest } from '@prisma/client';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiHideProperty } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
 
 /**
@@ -19,12 +19,12 @@ export class AccountRequestEntity implements AccountRequest {
   @ApiProperty()
   email: string;
 
-  @ApiProperty()
   @Exclude()
+  @ApiHideProperty()
   password: string;
 
-  @ApiProperty()
   @Exclude()
+  @ApiHideProperty()
   token: string;
 
   @ApiProperty()

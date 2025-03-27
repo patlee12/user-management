@@ -1,5 +1,5 @@
 import { mfa_auth } from '@prisma/client';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiHideProperty } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
 
 /**
@@ -14,7 +14,7 @@ export class MfaAuthEntity implements mfa_auth {
   userId: number;
 
   @Exclude()
-  @ApiProperty()
+  @ApiHideProperty()
   secret: string;
 
   @ApiProperty()

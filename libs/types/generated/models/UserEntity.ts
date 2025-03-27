@@ -7,7 +7,6 @@ export type UserEntity = {
     username: string;
     name: string;
     email: string;
-    password: string;
     mfaEnabled: boolean;
     emailVerified: boolean;
     userRoles?: Array<string> | null;
