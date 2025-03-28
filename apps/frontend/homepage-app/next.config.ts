@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // output: 'standalone', // Optional for Docker
+  // output: 'standalone',
 };
 
-module.exports = nextConfig;
+export default nextConfig;
