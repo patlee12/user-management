@@ -61,10 +61,10 @@ To get started, you’ll need to build and run the Docker containers for the ent
 yarn install
 
 # Generate .env files. Then verify Admin email and password in docker .env file.
-yarn "env:generate:files"
+yarn env:generate:files
 
 # Generate nginx certs.
-yarn "certs:generate:nginx"
+yarn certs:generate:nginx
 
 # Run the local area network production deployment (includes Avahi for mDNS and Nginx as reverse proxy)
 yarn localareanetwork:prod
