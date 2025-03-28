@@ -21,9 +21,11 @@ This project is structured as a **monorepo**, where both the frontend and backen
 
 ### Workspaces
 
-- **`apps/backend`**: Designated for backend applications, currently just Nest.js.
-- **`apps/frontend`**: Designated for frontend applications, currently just one built with Next.js.
-- **`docker`**: Contains all Docker-related files and configurations.
+- [**`apps/backend`**](https://github.com/patlee12/user-management/tree/main/apps/backend): Designated for backend applications, currently just Nest.js.
+
+- [**`apps/frontend`**](https://github.com/patlee12/user-management/tree/main/apps/frontend): Designated for frontend applications, currently just one built with Next.js.
+
+- [**`docker`**](https://github.com/patlee12/user-management/tree/main/docker): Contains all Docker-related files and configurations.
 
 ---
 
@@ -39,9 +41,11 @@ This project is structured as a **monorepo**, where both the frontend and backen
 
 This project uses **three `.env` files** if you want to read them before generating passwords take a look at `.env.template` file in each of the three workspaces:
 
-1. **`docker/.env.template`**: Contains shared environment variables used across the entire monorepo.
-2. **`apps/frontend/homepage-app/.env.template`**: Contains environment variables specific to the homepage application built with Next.js.
-3. **`apps/backend/.env.template`**: Contains environment variables specific to the user-management **backend** application built with Nest.js.
+1. [**`docker/.env.template`**](https://github.com/patlee12/user-management/blob/main/docker/.env.template): Contains shared environment variables used across the entire monorepo.
+
+2. [**`apps/frontend/homepage-app/.env.template`**](https://github.com/patlee12/user-management/blob/main/apps/frontend/homepage-app/.env.template): Contains environment variables specific to the homepage application built with Next.js.
+
+3. [**`apps/backend/.env.template`**](https://github.com/patlee12/user-management/blob/main/apps/backend/.env.template): Contains environment variables specific to the user-management **backend** application built with Nest.js.
 
 Each file has a specific role in the project, and each needs to have passwords generated before the project can run. One thing to note, you will need to manually setup email api keys with an email service provider if you want to use the email service and then populate these env variables: `MAIL_SERVICE_PROVIDER="gmail"` `EMAIL_USER=""` `EMAIL_PASS=""`
 
