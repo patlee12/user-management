@@ -10,8 +10,8 @@ host=$(grep -i "Host name is" /avahi/avahi.log | tail -n 1 | sed -E 's/.*Host na
 
 if [ -z "$host" ]; then
   if [ -n "$AVAHI_HOSTNAME" ]; then
-    echo "No hostname found in logs, using env-provided value: ${AVAHI_HOSTNAME}.local"
-    host="${AVAHI_HOSTNAME}.local"
+    echo "No hostname found in logs, using env-provided value: ${AVAHI_HOSTNAME}.localhost"
+    host="${AVAHI_HOSTNAME}.localhost"
   else
     echo "No hostname found in logs and no environment variable set. Exiting."
     exit 1

@@ -26,13 +26,13 @@ http {
 
     server {
         listen 80;
-        server_name ${AVAHI_HOSTNAME}.local;
+        server_name ${AVAHI_HOSTNAME}.localhost;
         return 301 https://$host$request_uri;
     }
 
     server {
         listen 443 ssl;
-        server_name ${AVAHI_HOSTNAME}.local;
+        server_name ${AVAHI_HOSTNAME}.localhost;
 
         ssl_certificate /etc/nginx/certs/nginx-selfsigned.crt;
         ssl_certificate_key /etc/nginx/certs/nginx-selfsigned.key;
