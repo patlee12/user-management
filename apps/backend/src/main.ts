@@ -77,16 +77,17 @@ async function bootstrap() {
   }
 
   // Start the app and log the server information
-  await userManagementApp.listen(3000);
+  const port = process.env.PORT;
+  await userManagementApp.listen(port);
 
   // Log both LAN and Docker IP addresses, if available
-  logger.log(`🚀 Server running at http://${localIpAddress}:3000 (LAN IP)`);
-  logger.log(`🚀 AdminJS running at http://${localIpAddress}:3000/admin`);
+  logger.log(`🚀 Server running at http://${localIpAddress}:${port} (LAN IP)`);
+  logger.log(`🚀 AdminJS running at http://${localIpAddress}:${port}/admin`);
 
   if (dockerIpAddress) {
-    logger.log(`🚀 Docker running at http://${dockerIpAddress}:3000`);
+    logger.log(`🚀 Docker running at http://${dockerIpAddress}:${port}`);
     logger.log(
-      `🚀 AdminJS Docker running at http://${dockerIpAddress}:3000/admin`,
+      `🚀 AdminJS Docker running at http://${dockerIpAddress}:${port}/admin`,
     );
   }
 }

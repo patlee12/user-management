@@ -3,21 +3,29 @@ FROM node:22.13.1-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files and tsconfig.json from the homepage app
-COPY apps/frontend/homepage-app/package*.json ./
-COPY apps/frontend/homepage-app/tsconfig.json ./
+# Copy monorepo-level package files and lockfile
+COPY package.json yarn.lock ./
 
-# Install dependencies (including devDependencies)
+# Copy workspace-level package.json files
+COPY apps/frontend/homepage-app/package.json ./apps/frontend/homepage-app/package.json
+COPY libs/types/package.json ./libs/types/package.json
+
+# Install dependencies using Yarn Workspaces
 RUN yarn install --frozen-lockfile
 
-# Copy the entire homepage app source code
-COPY apps/frontend/homepage-app/ ./
-COPY apps/frontend/homepage-app/app ./app
+# Copy source files for homepage-app and shared libs
+COPY apps/frontend/homepage-app ./apps/frontend/homepage-app
+COPY libs ./libs
 
-# Diagnostic step: list all files to verify the "app" folder exists
-RUN ls -R /app
+# Copy tsconfig files
+COPY tsconfig.json ./
+COPY apps/frontend/homepage-app/tsconfig.json ./apps/frontend/homepage-app/tsconfig.json
 
-# Build the Next.js application
+# Also flatten next.config.ts so it's available in production image
+COPY apps/frontend/homepage-app/next.config.ts ./next.config.ts
+
+# Build the homepage-app
+WORKDIR /app/apps/frontend/homepage-app
 RUN yarn build
 
 
@@ -26,28 +34,17 @@ FROM node:22.13.1-alpine
 
 WORKDIR /app
 
-# Copy package files and tsconfig.json for production
-COPY apps/frontend/homepage-app/package*.json ./
-COPY apps/frontend/homepage-app/tsconfig.json ./
-
-# Install only production dependencies
+# Copy homepage-only package.json and install prod deps
+COPY apps/frontend/homepage-app/package.json ./
 RUN yarn install --frozen-lockfile --production
 
-# Ensure node_modules/.bin is in the PATH
-ENV PATH="/app/node_modules/.bin:${PATH}"
+# Copy built assets and static files
+COPY --from=builder /app/apps/frontend/homepage-app/.next ./.next
+COPY --from=builder /app/apps/frontend/homepage-app/public ./public
+COPY --from=builder /app/next.config.ts ./next.config.ts
 
-# Copy built assets and static files from the builder stage
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
-# Optionally copy next.config.js if you have one:
-# COPY --from=builder /app/next.config.js ./
-
-# ✅ Copy the wait-and-start script from docker/scripts/ (relative to project root)
+# Copy the wait-and-start script
 COPY ./docker/scripts/wait-and-start-frontend.sh /usr/local/bin/wait-and-start-frontend.sh
-
-# ✅ Mark it executable
 RUN chmod +x /usr/local/bin/wait-and-start-frontend.sh
 
-# ✅ Use it as the entrypoint
 ENTRYPOINT ["/usr/local/bin/wait-and-start-frontend.sh"]
-

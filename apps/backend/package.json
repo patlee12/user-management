@@ -27,7 +27,7 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand"
   },
   "prisma": {
-    "seed": "ts-node -P tsconfig.json prisma/seed.ts"
+    "seed": "ts-node -P ./apps/backend/tsconfig.json prisma/seed.ts"
   },
   "dependencies": {
     "@adminjs/express": "^6.1.1",

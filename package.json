@@ -19,6 +19,8 @@
     "concurrently": "^6.0.0"
   },
   "scripts": {
+    "env:generate:files": "ts-node scripts/generate-env-files.ts",
+    "certs:generate:nginx": "ts-node scripts/generate-nginx-certs.ts",
     "env:backend": "yarn workspace user-management-backend generate:env",
     "dev:docker": "docker compose -f docker/docker-compose-development.yml up -d --build",
     "dev:docker:down": "docker compose -f docker/docker-compose-development.yml down",
