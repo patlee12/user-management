@@ -1,30 +1,29 @@
 {
-    "extends": "../../tsconfig.json",  // Inherit from the root-level tsconfig
-    "compilerOptions": {
-      "rootDir": "./", // Backend-specific root
-      "baseUrl": "./", // Base directory for backend imports
-      "outDir": "./dist", // Build output directory for the backend app
-      "skipLibCheck": true, // Skip library type checking for better performance
-      "incremental": true, // Enable incremental compilation
-      "strictNullChecks": false, // Disable strict null checks
-      "noImplicitAny": false, // Allow implicit any types
-      "strictBindCallApply": false, // Disable strict checking for bind/call/apply methods
-      "experimentalDecorators": true,
-      "emitDecoratorMetadata": true,
-      "esModuleInterop": true,
-      "paths": {
-        "src/*": ["./src/*"] // Alias 'src' to point to the backend src folder
-      }
-    },
-    "include": [
-      "src/**/*",  // Include all backend source files
-      "prisma/**/*",  // Include Prisma-related files
-      "prisma/seed.ts"  // Include the Prisma seed script
-    ],
-    "exclude": [
-      "node_modules", // Exclude node_modules directory
-      "test", // Exclude test directory (if applicable)
-      "**/*spec.ts" // Exclude test spec files
-    ]
-  }
-  
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "./",
+    "baseUrl": "./",
+    "outDir": "./dist",
+    "skipLibCheck": true,
+    "incremental": true,
+    "strictNullChecks": false,
+    "noImplicitAny": false,
+    "strictBindCallApply": false,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "esModuleInterop": true,
+    "paths": {
+      "src/*": ["./src/*"]
+    }
+  },
+  "include": [
+    "src/**/*",
+    "prisma/**/*",
+    "scripts/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "test",
+    "**/*spec.ts"
+  ]
+}

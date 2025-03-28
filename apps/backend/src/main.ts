@@ -19,11 +19,16 @@ async function bootstrap() {
     new ClassSerializerInterceptor(userManagementApp.get(Reflector)),
   );
 
-  const globalPrefix = process.env.GLOBAL_PREFIX;
+  const port = process.env.PORT;
+
+  // Normalize global prefix by stripping leading/trailing slashes
+  const rawPrefix = process.env.GLOBAL_PREFIX || '';
+  const globalPrefix = rawPrefix.replace(/^\/+/, '').replace(/\/+$/, '');
+  const prefix = globalPrefix ? `/${globalPrefix}` : '';
 
   if (globalPrefix) {
     userManagementApp.setGlobalPrefix(globalPrefix);
-    logger.log(`Global prefix set to /${globalPrefix}`);
+    logger.log(`Global prefix set to ${prefix}`);
   } else {
     logger.warn('No global prefix set. Routes will be registered at root.');
   }
@@ -63,33 +68,68 @@ async function bootstrap() {
 
   for (const interfaceName in networkInterfaces) {
     for (const interfaceInfo of networkInterfaces[interfaceName]) {
-      // Check for non-internal IPv4 addresses
       if (interfaceInfo.family === 'IPv4' && !interfaceInfo.internal) {
         if (interfaceName.startsWith('docker')) {
-          // Store Docker IP
           dockerIpAddress = interfaceInfo.address;
         } else {
-          // Use the first LAN address found
           localIpAddress = interfaceInfo.address;
         }
       }
     }
   }
 
-  // Start the app and log the server information
-  const port = process.env.PORT;
-  await userManagementApp.listen(port);
+  // Determine environment and frontend hostname
+  const isProduction = process.env.NODE_ENV?.toLowerCase() === 'production';
+  const frontendUrl = process.env.FRONTEND_URL?.replace(/^http(s)?:\/\//, '');
+  const host =
+    isProduction && frontendUrl ? frontendUrl : `${localIpAddress}:3000`;
 
-  // Log both LAN and Docker IP addresses, if available
-  logger.log(`🚀 Server running at http://${localIpAddress}:${port} (LAN IP)`);
-  logger.log(`🚀 AdminJS running at http://${localIpAddress}:${port}/admin`);
+  // Start the app
+  await userManagementApp.listen(port || 3001);
 
-  if (dockerIpAddress) {
-    logger.log(`🚀 Docker running at http://${dockerIpAddress}:${port}`);
+  if (isProduction) {
+    logger.log(`🚀 [Production] Homepage Application:     http://${host}`);
     logger.log(
-      `🚀 AdminJS Docker running at http://${dockerIpAddress}:${port}/admin`,
+      `🚀 [Production] API Server:               http://${host}${prefix}`,
     );
+    logger.log(
+      `🚀 [Production] Swagger Docs:             http://${host}${prefix}/api`,
+    );
+    logger.log(
+      `🚀 [Production] AdminJS Panel:            http://${host}${prefix}/admin`,
+    );
+  } else {
+    logger.log(
+      `🚀 [Development] Homepage Application:    http://${localIpAddress}:3000`,
+    );
+    logger.log(
+      `🚀 [Development] API Server:              http://${localIpAddress}:${port}${prefix}`,
+    );
+    logger.log(
+      `🚀 [Development] Swagger Docs:            http://${localIpAddress}:${port}${prefix}/api`,
+    );
+    logger.log(
+      `🚀 [Development] AdminJS Panel:           http://${localIpAddress}:${port}${prefix}/admin`,
+    );
+    if (dockerIpAddress) {
+      logger.log('');
+      logger.log(
+        `🚀 Docker: Homepage Application:          http://${dockerIpAddress}:3000`,
+      );
+      logger.log(
+        `🚀 Docker: API Server:                    http://${dockerIpAddress}:${port}${prefix}`,
+      );
+      logger.log(
+        `🚀 Docker: Swagger Docs:                  http://${dockerIpAddress}:${port}${prefix}/api`,
+      );
+      logger.log(
+        `🚀 Docker: AdminJS Panel:                 http://${dockerIpAddress}:${port}${prefix}/admin`,
+      );
+    }
   }
+
+  logger.log('========================================');
+  logger.log('');
 }
 
 bootstrap();

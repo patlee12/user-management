@@ -38,7 +38,7 @@
     "apps/frontend/homepage-app/src/**/*",
     "apps/backend/prisma/**/*",
     "apps/backend/prisma/seed.ts"
-  ],
+, "apps/backend/scripts/run-admin-seed.ts"  ],
   "exclude": [
     "node_modules"
   ]

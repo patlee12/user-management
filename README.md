@@ -138,6 +138,9 @@ sudo kill -9 <PID>
 
 # Remove volumes and rebuild
 docker compose down --volumes --remove-orphans
+
+# Clean Docker
+docker system prune -af --volumes
 ```
 
 ## Adminer DB Tool

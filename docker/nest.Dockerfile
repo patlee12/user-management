@@ -13,10 +13,15 @@ WORKDIR /src/app
 COPY apps/backend/package*.json ./
 
 # Copy backend source files **before** install so Prisma schema exists
-COPY apps/backend ./         
+COPY apps/backend ./
+COPY apps/backend/scripts ./apps/backend/scripts
+
+# Copy environment files
 COPY docker/.env ./
 COPY apps/backend/.env ./apps/backend/.env
 COPY apps/backend/.env.localareanetwork ./apps/backend/.env.localareanetwork
+
+# Copy tsconfig for ts-node usage
 COPY tsconfig.json ./apps/backend/tsconfig.json
 
 # Install dependencies

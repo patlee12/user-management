@@ -1,22 +1,12 @@
 import { PrismaClient } from '@prisma/client';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import * as dotenv from 'dotenv';
-
-// Load the root .env file (from docker folder)
-dotenv.config({ path: '../../docker/.env' });
-
-// Load the backend .env file (from the current directory)
-dotenv.config({ path: './.env' });
-
-console.log('ADMIN EMAIL:', process.env.ADMIN_EMAIL);
 
 const execPromise = promisify(exec);
 
-/**
- * This will run only if admin account doesn't already exist.
- */
-export async function runAdminSeed() {
+console.log('ADMIN EMAIL:', process.env.ADMIN_EMAIL);
+
+async function runAdminSeed() {
   const prisma = new PrismaClient();
 
   console.log('Checking if admin user exists...');

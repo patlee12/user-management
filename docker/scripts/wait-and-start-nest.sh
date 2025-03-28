@@ -7,8 +7,8 @@ done
 
 . /avahi/resolved-hostname.env
 
-export FRONT_END_URL=$RESOLVED_HOST
-echo "[NestJS] FRONT_END_URL resolved to: $RESOLVED_HOST"
+export FRONTEND_URL=$RESOLVED_HOST
+echo "[NestJS] FRONTEND_URL resolved to: $RESOLVED_HOST"
 
 # Run the full production flow in one go (migrations, seed, start)
 yarn localareanetwork:prod &
