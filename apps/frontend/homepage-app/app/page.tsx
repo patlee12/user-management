@@ -1,126 +1,88 @@
-// frontend/homepage-app/app/page.tsx
-
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { ArrowRight } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { useEffect, useState, useRef } from 'react';
+
+const apps = [
+  {
+    title: 'Swagger API Docs',
+    description: 'Explore the full API documentation via Swagger UI.',
+    icon: '📘',
+    devPath: (host: string) => `http://${host}:3000/api`,
+    prodPath: (host: string) => `http://${host}/nestjs/api`,
+  },
+  {
+    title: 'Admin Dashboard',
+    description: 'Manage users and roles via AdminJS panel.',
+    icon: '🛠️',
+    devPath: (host: string) => `http://${host}:3000/admin`,
+    prodPath: (host: string) => `http://${host}/nestjs/admin`,
+  },
+  {
+    title: 'Adminer Database Tool',
+    description: 'Lightweight database management interface for PostgreSQL.',
+    icon: '🗃️',
+    devPath: (host: string) => `http://${host}:8081`,
+    prodPath: (host: string) => `http://${host}/adminer`,
+  },
+];
 
 export default function HomePage() {
+  const [host, setHost] = useState('localhost');
+  const [isDev, setIsDev] = useState(true);
+  const cardRefs = useRef<(HTMLAnchorElement | null)[]>([]);
+
+  useEffect(() => {
+    const hostname = window.location.hostname;
+    setHost(hostname);
+    setIsDev(hostname === 'localhost' || /^\d+\.\d+\.\d+\.\d+$/.test(hostname));
+  }, []);
+
+  const setCardRef =
+    (idx: number) =>
+    (el: HTMLAnchorElement | null): void => {
+      cardRefs.current[idx] = el;
+    };
+
   return (
     <ScrollArea className="h-full">
-      <div className="max-w-4xl mx-auto px-6 py-12 text-gray-900 dark:text-gray-100">
-        <Card className="bg-background border-border shadow-md">
-          <CardHeader>
-            <CardTitle className="text-4xl font-bold">
-              User Management Monorepo
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <Separator />
-
-            <section>
-              <h2 className="text-2xl font-semibold mb-2">
-                Goals of the Project
-              </h2>
-              <p className="mb-4">
-                This monorepo is focused on providing boilerplate code for a
-                full stack application that requires having a user management
-                system with features such as:
-              </p>
-              <ul className="list-disc list-inside space-y-2">
-                <li>
-                  User login, account creation requests, email verification, and
-                  password recovery.
-                </li>
-                <li>
-                  JWT-based authentication, multi-factor authentication (MFA),
-                  and role-based authorization.
-                </li>
-                <li>
-                  An Admin Panel powered by Admin.js for managing users and
-                  roles.
-                </li>
-                <li>
-                  Integration with Nginx (as a reverse proxy) and Avahi (for
-                  mDNS-based service discovery) to enable seamless operation in
-                  local area network setups.
-                </li>
-              </ul>
-              <p className="mt-4">
-                The application is designed to be easily extendable and
-                adaptable, as well as allowing you to pivot to a microservices
-                architecture if needed.
-              </p>
-            </section>
-
-            <Separator />
-
-            <section>
-              <h2 className="text-2xl font-semibold mb-2">
-                Monorepo Structure
-              </h2>
-              <p className="mb-4">
-                This project is structured as a monorepo, where both the
-                frontend and backend applications and services live in separate
-                folders, but share dependencies and configurations.
-              </p>
-              <h3 className="text-xl font-medium mb-1">Workspaces:</h3>
-              <ul className="list-disc list-inside space-y-2">
-                <li>
-                  <code>apps/backend</code>: Contains the backend application,
-                  built with Nest.js.
-                </li>
-                <li>
-                  <code>apps/frontend</code>: Contains the frontend application,
-                  built with Next.js.
-                </li>
-                <li>
-                  <code>docker</code>: Contains all Docker-related files and
-                  configurations.
-                </li>
-              </ul>
-            </section>
-
-            <Separator />
-
-            <section>
-              <h2 className="text-2xl font-semibold mb-2">Setup</h2>
-              <h3 className="text-xl font-medium mb-1">Prerequisites</h3>
-              <ul className="list-disc list-inside space-y-2">
-                <li>Node v22.13.1</li>
-                <li>Yarn v1.22.22</li>
-                <li>Docker</li>
-              </ul>
-              <h3 className="text-xl font-medium mt-4 mb-1">
-                Create .env Files
-              </h3>
-              <p className="mb-4">
-                This project uses three <code>.env</code> files. If you need a
-                template, look for the <code>.env.template</code> file in each
-                of the three workspaces:
-              </p>
-              <ul className="list-disc list-inside space-y-2">
-                <li>
-                  <strong>Docker .env</strong>: Contains shared environment
-                  variables used across the entire monorepo.
-                </li>
-                <li>
-                  <strong>Frontend .env</strong>: Contains environment variables
-                  specific to the frontend (Next.js).
-                </li>
-                <li>
-                  <strong>Backend .env</strong>: Contains environment variables
-                  specific to the backend (Nest.js).
-                </li>
-              </ul>
-              <p className="mt-4">
-                Each file has a specific role in the project, and each should be
-                placed in the appropriate directory.
-              </p>
-            </section>
-          </CardContent>
-        </Card>
+      <div className="max-w-5xl mx-auto px-6 py-16 grid gap-8 sm:grid-cols-2 md:grid-cols-3">
+        {apps.map((app, idx) => {
+          const href = isDev ? app.devPath(host) : app.prodPath(host);
+          return (
+            <motion.a
+              key={idx}
+              ref={setCardRef(idx)}
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.98 }}
+              className="relative rounded-2xl shadow-lg border border-border bg-background p-6 flex flex-col justify-between hover:shadow-xl transition-all overflow-hidden"
+            >
+              <div>
+                <div className="text-5xl mb-4">{app.icon}</div>
+                <h3 className="text-2xl font-semibold mb-2">{app.title}</h3>
+                <p className="text-muted-foreground text-sm leading-relaxed">
+                  {app.description}
+                </p>
+              </div>
+              <motion.button
+                whileHover={{
+                  scale: 1.05,
+                  backgroundColor: 'hsl(var(--accent))',
+                  color: 'hsl(var(--accent-foreground))',
+                }}
+                transition={{ type: 'spring', stiffness: 300 }}
+                className="mt-6 w-fit self-end gap-1 inline-flex items-center border rounded-md px-4 py-2 text-sm font-medium transition-colors"
+              >
+                Open <ArrowRight className="ml-2 w-4 h-4" />
+              </motion.button>
+            </motion.a>
+          );
+        })}
       </div>
     </ScrollArea>
   );

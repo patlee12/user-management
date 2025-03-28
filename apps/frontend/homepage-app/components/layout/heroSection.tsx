@@ -42,7 +42,7 @@ export default function HeroSection() {
           reverse proxy.
         </p>
         <div className="mt-10 flex justify-center gap-x-6 animate-fade-in-up">
-          <Link href="/register">
+          <Link href="/login">
             <Button className="text-base px-6 py-3 font-medium rounded-xl shadow hover:shadow-xl">
               Get Started
             </Button>
