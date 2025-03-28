@@ -1,0 +1,7 @@
+{
+  "name": "@user-management/utils",
+  "version": "1.0.0",
+  "main": "generated/index.ts",
+  "types": "generated/index.ts",
+  "private": true
+}

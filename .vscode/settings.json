@@ -1,5 +1,11 @@
 {
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "cSpell.blockCheckingWhenTextChunkSizeGreaterThan": 1000
+  "cSpell.blockCheckingWhenTextChunkSizeGreaterThan": 2000,
+  "editor.quickSuggestions": {
+    "strings": true
+  },
+  "files.associations": {
+    "*.css": "tailwindcss"
+  }
 }
