@@ -11,7 +11,7 @@ export const Button = ({
   ...props
 }: ButtonProps) => {
   const baseStyles =
-    'inline-flex items-center justify-center font-medium transition rounded-lg px-5 py-2.5 shadow-sm';
+    'inline-flex items-center justify-center font-medium transition rounded-lg px-5 py-2.5 shadow-sm transform hover:-translate-y-1 hover:shadow-md';
 
   const variants = {
     primary:

@@ -5,8 +5,10 @@ import { Button } from '@/components/ui/button';
 // import ThemeToggle from '@/components/ui/themeToggle';
 import { ShieldCheck } from 'lucide-react';
 // import { motion } from 'framer-motion';
+import { usePathname } from 'next/navigation';
 
 export default function Header() {
+  const pathname = usePathname();
   return (
     <header className="sticky top-0 z-50 w-full min-h-[64px] border-b border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-lg shadow-md">
       {/* <div className="absolute inset-0 -z-10 overflow-hidden">
@@ -50,11 +52,13 @@ export default function Header() {
             <ThemeToggle />
           </motion.div> */}
 
-          <Link href="/login">
-            <Button className="px-6 py-2.5 text-base font-semibold rounded-lg shadow-md hover:shadow-lg transition duration-200 bg-zinc-700 text-white hover:bg-zinc-600">
-              Login
-            </Button>
-          </Link>
+          {pathname != '/login' && (
+            <Link href="/login">
+              <Button className="px-6 py-2.5 text-base font-semibold rounded-lg shadow-md hover:shadow-lg transition duration-200 bg-zinc-700 text-white hover:bg-zinc-600">
+                Login
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
     </header>
