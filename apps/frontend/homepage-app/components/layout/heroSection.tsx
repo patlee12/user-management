@@ -1,7 +1,13 @@
+'use client';
+
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export default function HeroSection() {
+  const pathname = usePathname();
+
+  if (pathname === '/login') return null;
   return (
     <section className="relative isolate overflow-hidden bg-zinc-950 text-white py-24 sm:py-32">
       <div className="absolute inset-0 -z-10 overflow-hidden">

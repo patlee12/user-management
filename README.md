@@ -85,6 +85,9 @@ To run the app in a development environment, verify the `.env` file is set `NODE
 # Install dependencies top level repo
 yarn install
 
+# Setup env if you haven't
+yarn env:generate:files
+
 # Start project in dev mode. This will also pull some .env variables from the project root .env in /docker/.env
 yarn dev
 

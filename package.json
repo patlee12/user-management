@@ -25,6 +25,7 @@
     "env:backend": "yarn workspace user-management-backend generate:env",
     "dev:docker": "docker compose -f docker/docker-compose-development.yml up -d --build",
     "dev:docker:down": "docker compose -f docker/docker-compose-development.yml down",
+    "dev:docker:remove": "docker compose -f docker/docker-compose-development.yml down -v",
     "dev:database:reset": "yarn workspace user-management-backend migrate:reset",
     "dev:frontend": "PORT=3000 yarn workspace homepage-app dev",
     "dev:backend": "PORT=3001 yarn workspace user-management-backend start:dev",

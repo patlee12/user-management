@@ -10,14 +10,14 @@ const apps = [
     title: 'Swagger API Docs',
     description: 'Explore the full API documentation via Swagger UI.',
     icon: '📘',
-    devPath: (host: string) => `http://${host}:3000/api`,
+    devPath: (host: string) => `http://${host}:3001/api`,
     prodPath: (host: string) => `http://${host}/nestjs/api`,
   },
   {
     title: 'Admin Dashboard',
     description: 'Manage users and roles via AdminJS panel.',
     icon: '🛠️',
-    devPath: (host: string) => `http://${host}:3000/admin`,
+    devPath: (host: string) => `http://${host}:3001/admin`,
     prodPath: (host: string) => `http://${host}/nestjs/admin`,
   },
   {
@@ -31,13 +31,14 @@ const apps = [
 
 export default function HomePage() {
   const [host, setHost] = useState('localhost');
-  const [isDev, setIsDev] = useState(true);
+  const [env, setEnv] = useState<'development' | 'production'>('development');
   const cardRefs = useRef<(HTMLAnchorElement | null)[]>([]);
 
   useEffect(() => {
     const hostname = window.location.hostname;
     setHost(hostname);
-    setIsDev(hostname === 'localhost' || /^\d+\.\d+\.\d+\.\d+$/.test(hostname));
+    const nodeEnv = process.env.NODE_ENV?.toLowerCase();
+    setEnv(nodeEnv === 'production' ? 'production' : 'development');
   }, []);
 
   const setCardRef =
@@ -50,7 +51,8 @@ export default function HomePage() {
     <ScrollArea className="h-full">
       <div className="max-w-5xl mx-auto px-6 py-16 grid gap-8 sm:grid-cols-2 md:grid-cols-3">
         {apps.map((app, idx) => {
-          const href = isDev ? app.devPath(host) : app.prodPath(host);
+          const href =
+            env === 'production' ? app.prodPath(host) : app.devPath(host);
           return (
             <motion.a
               key={idx}

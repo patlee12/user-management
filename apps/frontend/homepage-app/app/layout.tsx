@@ -17,6 +17,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <div className="flex flex-col min-h-screen">
             <Header />
+
             <HeroSection />
             {/* Center page content with padding */}
             <main className="flex-1 px-6 py-8 flex flex-col items-center justify-center">
