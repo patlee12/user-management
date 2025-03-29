@@ -1,19 +1,24 @@
 import { Module } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service'; // Ensure correct import path
+import { PrismaService } from '../../prisma/prisma.service';
+import { join } from 'path';
 
 @Module({
   imports: [
-    // Dynamically import AdminModule and Prisma-related modules
     import('@adminjs/nestjs').then(({ AdminModule }) =>
       import('adminjs').then((AdminJSModule) => {
-        const AdminJS = AdminJSModule.default; // Access the default export of AdminJS
+        const AdminJS = AdminJSModule.default;
+        const { ComponentLoader } = AdminJSModule;
 
-        // Dynamically import @adminjs/prisma modules
         return import('@adminjs/prisma').then((prismaModule) => {
-          const { Database, Resource, getModelByName } = prismaModule; // Access necessary exports
+          const { Database, Resource, getModelByName } = prismaModule;
 
-          // Register the AdminJS adapter for Prisma
           AdminJS.registerAdapter({ Database, Resource });
+
+          const componentLoader = new ComponentLoader();
+          const customDashboard = componentLoader.add(
+            'CustomDashboard',
+            join(__dirname, 'components', 'Dashboard'),
+          );
 
           return AdminModule.createAdminAsync({
             useFactory: (prisma: PrismaService) => {
@@ -22,71 +27,41 @@ import { PrismaService } from '../../prisma/prisma.service'; // Ensure correct i
               return {
                 adminJsOptions: {
                   rootPath: '/admin',
+                  componentLoader,
+                  dashboard: {
+                    component: customDashboard,
+                  },
+                  branding: {
+                    companyName: 'User Management',
+                    softwareBrothers: false,
+                    logo: false,
+                    theme: {
+                      colors: {
+                        primary100: '#f7931a',
+                        primary80: '#fbbf24',
+                        primary60: '#facc15',
+                        primary40: '#fde68a',
+                        primary20: '#fef9c3',
+                      },
+                    },
+                  },
                   resources: [
-                    {
-                      resource: {
-                        model: getModelByName('AccountRequest'),
-                        client: prisma,
-                      },
-                      options: {},
+                    'AccountRequest',
+                    'User',
+                    'PasswordReset',
+                    'Role',
+                    'Resource',
+                    'Permission',
+                    'UserRoles',
+                    'Post',
+                    'mfa_auth',
+                  ].map((modelName) => ({
+                    resource: {
+                      model: getModelByName(modelName),
+                      client: prisma,
                     },
-                    {
-                      resource: {
-                        model: getModelByName('User'),
-                        client: prisma,
-                      },
-                      options: {},
-                    },
-                    {
-                      resource: {
-                        model: getModelByName('PasswordReset'),
-                        client: prisma,
-                      },
-                      options: {},
-                    },
-                    {
-                      resource: {
-                        model: getModelByName('Role'),
-                        client: prisma,
-                      },
-                      options: {},
-                    },
-                    {
-                      resource: {
-                        model: getModelByName('Resource'),
-                        client: prisma,
-                      },
-                      options: {},
-                    },
-                    {
-                      resource: {
-                        model: getModelByName('Permission'),
-                        client: prisma,
-                      },
-                      options: {},
-                    },
-                    {
-                      resource: {
-                        model: getModelByName('UserRoles'),
-                        client: prisma,
-                      },
-                      options: {},
-                    },
-                    {
-                      resource: {
-                        model: getModelByName('Post'),
-                        client: prisma,
-                      },
-                      options: {},
-                    },
-                    {
-                      resource: {
-                        model: getModelByName('mfa_auth'),
-                        client: prisma,
-                      },
-                      options: {},
-                    },
-                  ],
+                    options: {},
+                  })),
                 },
                 auth: {
                   authenticate: async (email: string, password: string) => {
@@ -108,13 +83,12 @@ import { PrismaService } from '../../prisma/prisma.service'; // Ensure correct i
                 },
               };
             },
-            inject: [PrismaService], // Inject PrismaService to access the prisma client
+            inject: [PrismaService],
           });
         });
       }),
     ),
   ],
-  controllers: [],
-  providers: [PrismaService], // Ensure PrismaService is provided here
+  providers: [PrismaService],
 })
 export class AdminModule {}

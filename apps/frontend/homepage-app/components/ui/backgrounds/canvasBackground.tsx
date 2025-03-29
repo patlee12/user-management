@@ -47,7 +47,7 @@ export default function CanvasBackground() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
 
-      for (let dot of dots) {
+      for (const dot of dots) {
         ctx.beginPath();
         ctx.arc(dot.x, dot.y, dot.radius, 0, Math.PI * 2);
         ctx.fill();

@@ -3,6 +3,7 @@
   "compilerOptions": {
     "module": "Node16",
     "moduleResolution": "node16",
+    "jsx": "react-jsx",
     "rootDir": "./",
     "baseUrl": "./",
     "outDir": "./dist",
