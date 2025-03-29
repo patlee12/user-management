@@ -91,11 +91,15 @@ yarn env:generate:files
 # Start project in dev mode. This will also pull some .env variables from the project root .env in /docker/.env
 yarn dev
 
+# Reset database (Warning! will lose data)
+yarn dev:database:reset
+
 # Stop and remove dev containers
 yarn dev:docker:down
 
-# Reset database (Warning! will lose data)
-yarn dev:database:reset
+# Stop and remove dev containers and volumes
+yarn dev:docker:remove
+
 
 ```
 
