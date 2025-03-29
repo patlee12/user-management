@@ -1,6 +1,6 @@
 [server]
 host-name=${AVAHI_HOSTNAME}
-domain-name=localhost
+domain-name=local
 use-ipv4=yes
 
 enable-dbus=no

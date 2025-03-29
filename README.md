@@ -52,7 +52,7 @@ Each file has a specific role in the project, and each needs to have passwords g
 ### Running the App in a Local Area Network (Production Environment)
 
 The following steps will deploy the project using docker and will be discoverable on your local area network using the docker .env variable `AVAHI_HOSTNAME="user-management"`.
-If host name remains same, the base url will be <https://user-management.localhost/> .
+If host name remains same, the base url will be <https://user-management.local/> .
 
 To get started, you’ll need to build and run the Docker containers for the entire stack.
 
@@ -70,7 +70,7 @@ yarn certs:generate:nginx
 yarn localareanetwork:prod
 ```
 
-After a minute or so, the applications should all be available. It may take a little while for Avahi to finish deploying while it resolves .localhost domain. There will be printed statements in terminal giving you the links to each app.
+After a minute or so, the applications should all be available. It may take a little while for Avahi to finish deploying while it resolves .local domain. There will be printed statements in terminal giving you the links to each app.
 
 ```bash
 # Reset if needed (Warning! database will reset)
@@ -155,7 +155,7 @@ docker system prune -af --volumes
 To interact with the PostgreSQL database via **Adminer**:
 
 1. Go to **[http://localhost:8081](http://localhost:8081)** in development.
-2. For local area network deployment with **production**, access **Adminer** at [https://user-management.localhost/adminer](https://user-management.localhost/adminer).
+2. For local area network deployment with **production**, access **Adminer** at [https://user-management.local/adminer](https://user-management.local/adminer).
 3. Use the following credentials (from your `.env` file):
    - **Username**: `admin`
    - **Password**: `<your-password>`
