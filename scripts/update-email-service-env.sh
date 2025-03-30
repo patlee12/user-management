@@ -31,14 +31,26 @@ echo "🔧 Updating .env file with email service credentials..."
 
 if [ -n "$MAIL_SERVICE_PROVIDER" ]; then
   sed -i "s/^MAIL_SERVICE_PROVIDER=.*/MAIL_SERVICE_PROVIDER=\"$MAIL_SERVICE_PROVIDER\"/" "$ENV_FILE" || echo "MAIL_SERVICE_PROVIDER=\"$MAIL_SERVICE_PROVIDER\"" >> "$ENV_FILE"
+else
+  # If blank, ensure the key is added with an empty value
+  sed -i "/^MAIL_SERVICE_PROVIDER=/d" "$ENV_FILE"  # Remove any existing entry first
+  echo "MAIL_SERVICE_PROVIDER=" >> "$ENV_FILE"  # Add the key with an empty value
 fi
 
 if [ -n "$EMAIL_USER" ]; then
   sed -i "s/^EMAIL_USER=.*/EMAIL_USER=\"$EMAIL_USER\"/" "$ENV_FILE" || echo "EMAIL_USER=\"$EMAIL_USER\"" >> "$ENV_FILE"
+else
+  # If blank, ensure the key is added with an empty value
+  sed -i "/^EMAIL_USER=/d" "$ENV_FILE"  # Remove any existing entry first
+  echo "EMAIL_USER=" >> "$ENV_FILE"  # Add the key with an empty value
 fi
 
 if [ -n "$EMAIL_PASS" ]; then
   sed -i "s/^EMAIL_PASS=.*/EMAIL_PASS=\"$EMAIL_PASS\"/" "$ENV_FILE" || echo "EMAIL_PASS=\"$EMAIL_PASS\"" >> "$ENV_FILE"
+else
+  # If blank, ensure the key is added with an empty value
+  sed -i "/^EMAIL_PASS=/d" "$ENV_FILE"  # Remove any existing entry first
+  echo "EMAIL_PASS=" >> "$ENV_FILE"  # Add the key with an empty value
 fi
 
 echo "✅ .env file updated successfully with email service credentials."
@@ -48,12 +60,18 @@ echo ""
 echo "Updated Email Service Credentials in .env file:"
 if [ -n "$MAIL_SERVICE_PROVIDER" ]; then
   echo "MAIL_SERVICE_PROVIDER=$MAIL_SERVICE_PROVIDER"
+else
+  echo "MAIL_SERVICE_PROVIDER= (blank)"
 fi
 
 if [ -n "$EMAIL_USER" ]; then
   echo "EMAIL_USER=$EMAIL_USER"
+else
+  echo "EMAIL_USER= (blank)"
 fi
 
 if [ -n "$EMAIL_PASS" ]; then
   echo "EMAIL_PASS=***"  # Hiding password for security
+else
+  echo "EMAIL_PASS= (blank)"
 fi
