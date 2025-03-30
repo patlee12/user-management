@@ -30,17 +30,11 @@ export class AccountRequestsService {
   async create(
     createAccountRequestDto: CreateAccountRequestDto,
   ): Promise<AccountRequestEntity> {
-    // Hash the password
     const hashedPassword = await argon2.hash(createAccountRequestDto.password);
     createAccountRequestDto.password = hashedPassword;
-
-    // Generate a raw token
     const rawRandomToken = await generateToken();
 
-    // Construct the verification link using the raw token
     const verificationLink = `${process.env.FRONTEND_URL}/verify-email?token=${rawRandomToken}`;
-
-    // Send verification email BEFORE hashing the token
     const emailVerificationDto: EmailVerificationDto = {
       email: createAccountRequestDto.email,
       verifyLink: verificationLink,

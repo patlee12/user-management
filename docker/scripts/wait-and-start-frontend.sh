@@ -8,7 +8,7 @@ done
 . /avahi/resolved-hostname.env
 
 # Append /nestjs to the resolved host
-export BACKEND_URL="${RESOLVED_HOST}/nestjs"
-echo "[Homepage] BACKEND_URL resolved to: $BACKEND_URL"
+export NEXT_PUBLIC_BACKEND_URL="${RESOLVED_HOST}/nestjs"
+echo "[Homepage] NEXT_PUBLIC_BACKEND_URL resolved to: $NEXT_PUBLIC_BACKEND_URL"
 
 exec yarn start
