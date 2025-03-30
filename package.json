@@ -16,12 +16,11 @@
   },
   "devDependencies": {
     "concurrently": "^6.0.0",
-    "prompts": "^2.4.2",
-    "ts-node": "^10.0.0"
+    "prompts": "^2.4.2"
   },
   "scripts": {
-    "env:generate:files": "ts-node scripts/generate-env-files.ts",
-    "certs:generate:nginx": "ts-node scripts/generate-nginx-certs.ts",
+    "env:generate:files": "./scripts/generate-env-files.sh",
+    "certs:generate:nginx": "./scripts/generate-nginx-certs.sh",
     "env:backend": "yarn workspace user-management-backend generate:env",
     "dev:docker": "docker compose -f docker/docker-compose-development.yml up -d --build",
     "dev:docker:down": "docker compose -f docker/docker-compose-development.yml down",
@@ -29,7 +28,7 @@
     "dev:database:reset": "yarn workspace user-management-backend migrate:reset",
     "dev:frontend": "PORT=3000 yarn workspace homepage-app dev",
     "dev:backend": "PORT=3001 yarn workspace user-management-backend start:dev",
-    "dev": "ts-node scripts/check-watch-limit.ts && yarn env:backend && yarn dev:docker && concurrently \"yarn dev:backend\" \"yarn dev:frontend\"",
+    "dev": "bash -c './scripts/check-prerequisites.sh && yarn dev:docker && yarn env:backend && concurrently \"yarn dev:backend\" \"yarn dev:frontend\"'",
     "build:frontend": "yarn workspace homepage-app build",
     "build:backend": "yarn workspace user-management-backend build",
     "build": "concurrently \"yarn build:frontend\" \"yarn build:backend\"",

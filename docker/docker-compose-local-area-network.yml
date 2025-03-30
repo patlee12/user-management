@@ -11,11 +11,15 @@ services:
     volumes:
       - ./nginx/certs:/etc/nginx/certs
       - ./nginx/nginx.localarea.conf.template:/etc/nginx/nginx.localarea.conf.template
+      - avahi-logs:/avahi
     env_file:
       - .env
     networks:
       - full-stack-network
     entrypoint: /etc/nginx/entrypoint.sh
+    depends_on:
+      - avahi
+      - homepage-app
 
   avahi:
     image: flungo/avahi

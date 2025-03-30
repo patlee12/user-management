@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev -p 3000",
     "build": "next build",
+    "build:docker": "NEXT_DISABLE_ESLINT=true next build",
     "start": "next start",
     "start:localareanetwork:prod": "dotenv -e .env.localareanetwork -- next start -p 3000",
     "lint": "next lint"

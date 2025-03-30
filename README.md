@@ -57,50 +57,19 @@ If host name remains same, the base url will be <https://user-management.local/>
 To get started, you’ll need to build and run the Docker containers for the entire stack.
 
 ```bash
-# Install dependencies top level repo
-yarn install
-
-# Generate .env files. Then verify Admin email and password in docker .env file.
-yarn env:generate:files
-
-# Generate nginx certs.
-yarn certs:generate:nginx
-
-# Run the local area network production deployment (includes Avahi for mDNS and Nginx as reverse proxy)
-yarn localareanetwork:prod
+# From top level of the repository choose "production" when prompted.
+./run-local-build.sh
 ```
 
 After a minute or so, the applications should all be available. It may take a little while for Avahi to finish deploying while it resolves .local domain. There will be printed statements in terminal giving you the links to each app.
-
-```bash
-# Reset if needed (Warning! database will reset)
-yarn reset:localareanetwork
-```
 
 ### Running the App in Development Environment
 
 To run the app in a development environment, verify the `.env` file is set `NODE_ENV='Development'` and ensure that `ENABLE_SWAGGER='true'`.
 
 ```bash
-# Install dependencies top level repo
-yarn install
-
-# Setup env if you haven't
-yarn env:generate:files
-
-# Start project in dev mode. This will also pull some .env variables from the project root .env in /docker/.env
-yarn dev
-
-# Reset database (Warning! will lose data)
-yarn dev:database:reset
-
-# Stop and remove dev containers
-yarn dev:docker:down
-
-# Stop and remove dev containers and volumes
-yarn dev:docker:remove
-
-
+# From top level of the repository choose "dev" when prompted.
+./run-local-build.sh
 ```
 
 ## More Development CLI commands

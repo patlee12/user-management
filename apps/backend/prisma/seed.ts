@@ -1,13 +1,22 @@
 import { PrismaClient } from '@prisma/client';
 import * as argon2 from 'argon2';
+import * as dotenv from 'dotenv';
 
-//This file is db seed file. It creates the admin account on the database and any other associated resources.
+dotenv.config(); // Load variables from .env
 
-// initialize Prisma Client
 const prisma = new PrismaClient();
 
 async function main() {
-  const passwordAdmin = await argon2.hash(process.env.ADMIN_PASSWORD);
+  const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+  const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@example.com';
+
+  if (!ADMIN_PASSWORD) {
+    throw new Error(
+      '❌ ADMIN_PASSWORD is not defined in the environment variables.',
+    );
+  }
+
+  const passwordAdmin = await argon2.hash(ADMIN_PASSWORD);
 
   const user = await prisma.user.upsert({
     where: { username: 'Admin' },
@@ -16,7 +25,7 @@ async function main() {
       username: 'Admin',
       name: 'Admin',
       password: passwordAdmin,
-      email: process.env.ADMIN_EMAIL,
+      email: ADMIN_EMAIL,
     },
   });
 
@@ -96,23 +105,21 @@ async function main() {
     },
   });
 
-  console.log(
-    { user },
-    { createResource },
-    { createAdminRole },
-    { createUserRole },
-    { updateUserRoles },
-    { post },
-  );
+  console.log('\n✅ Seed completed:', {
+    user,
+    createResource,
+    createAdminRole,
+    createUserRole,
+    updateUserRoles,
+    post,
+  });
 }
 
-// execute the main function
 main()
   .catch((e) => {
-    console.error(e);
+    console.error('❌ Seed failed:', e);
     process.exit(1);
   })
   .finally(async () => {
-    // close Prisma Client at the end
     await prisma.$disconnect();
   });

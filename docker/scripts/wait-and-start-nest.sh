@@ -10,10 +10,8 @@ done
 export FRONTEND_URL=$RESOLVED_HOST
 echo "[NestJS] FRONTEND_URL resolved to: $RESOLVED_HOST"
 
-# Run the full production flow in one go (migrations, seed, start)
-yarn localareanetwork:prod &
-
-sleep 8
+# Run the backend normally — don't call docker compose inside Docker!
+yarn workspace user-management-backend start:prod
 
 echo ""
 echo "========================================"
