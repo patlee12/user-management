@@ -18,21 +18,34 @@ fi
 echo "🔧 Running setup tasks..."
 ./setup.sh
 
-# Ask the user to select the build type (Dev or Production)
+# Ask the user to select the build type (Dev or Production) using select
 echo ""
-read -p "⚙️ Do you want to run the Dev build (dev mode) or the Production build (local area network)? (dev/production): " BUILD_TYPE
-
-if [[ "$BUILD_TYPE" == "dev" || "$BUILD_TYPE" == "Dev" ]]; then
-  echo ""
-  echo "🚀 Running development build (yarn dev)..."
-  yarn dev
-elif [[ "$BUILD_TYPE" == "production" || "$BUILD_TYPE" == "Production" ]]; then
-  echo ""
-  echo "🚀 Running email service configuration..."
-  ./scripts/update-email-service-env.sh # Update to the correct script name
-  echo "🚀 Starting Docker stack for production (local area network)..."
-  docker compose -f docker/docker-compose-local-area-network.yml up --build
-else
-  echo "❌ Invalid input. Please choose either 'dev' or 'production'."
-  exit 1
-fi
+echo "🔧 Please choose the build type:"
+PS3="Select an option (1/2): "
+options=("Dev (dev mode)" "Production (local area network)" "Exit")
+select BUILD_TYPE in "${options[@]}"
+do
+    case $BUILD_TYPE in
+        "Dev (dev mode)")
+            echo ""
+            echo "🚀 Running development build (yarn dev)..."
+            yarn dev
+            break
+            ;;
+        "Production (local area network)")
+            echo ""
+            echo "🚀 Running email service configuration..."
+            ./scripts/update-email-service-env.sh # Update to the correct script name
+            echo "🚀 Starting Docker stack for production (local area network)..."
+            docker compose -f docker/docker-compose-local-area-network.yml up --build
+            break
+            ;;
+        "Exit")
+            echo "Exiting the setup."
+            exit 0
+            ;;
+        *)
+            echo "❌ Invalid option. Please select a valid option (1/2)."
+            ;;
+    esac
+done

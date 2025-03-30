@@ -57,7 +57,7 @@ If host name remains same, the base url will be <https://user-management.local/>
 To get started, you’ll need to build and run the Docker containers for the entire stack.
 
 ```bash
-# From top level of the repository choose "production" when prompted.
+# From top level of the repository choose "Production" when prompted.
 ./run-local-build.sh
 ```
 
@@ -68,7 +68,7 @@ After a minute or so, the applications should all be available. It may take a li
 To run the app in a development environment, verify the `.env` file is set `NODE_ENV='Development'` and ensure that `ENABLE_SWAGGER='true'`.
 
 ```bash
-# From top level of the repository choose "dev" when prompted.
+# From top level of the repository choose "Dev" when prompted.
 ./run-local-build.sh
 ```
 
