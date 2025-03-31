@@ -24,17 +24,25 @@ fi
 
 # Step 3: Make sure the necessary shell scripts are executable
 echo "🔐 Ensuring all shell scripts are executable..."
-SCRIPTS=("scripts/generate-env-files.sh" "scripts/generate-nginx-certs.sh" "scripts/check-prerequisites.sh" "scripts/update-email-service-env.sh")
+SCRIPTS=(
+  "scripts/generate-env-files.sh"
+  "scripts/generate-nginx-certs.sh"
+  "scripts/check-prerequisites.sh"
+  "scripts/update-email-service-env.sh"
+  "docker/scripts/hostname-printer.sh"
+  "docker/scripts/wait-for-containers.sh"
+)
 
 for script in "${SCRIPTS[@]}"; do
   if [ ! -x "$script" ]; then
     echo "🔐 Fixing permission for $script"
     chmod +x "$script" 2>/dev/null || {
-      echo "❌ Permission denied. Please run 'chmod +x $script' manually to proceed."
+      echo "❌ Permission denied. Please run: chmod +x $script"
       exit 1
     }
   fi
 done
+
 
 # Step 4: Prompt if any .env files already exist
 ENV_FILES_EXIST=false

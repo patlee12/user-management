@@ -1,8 +1,6 @@
 #!/bin/sh
 
 apk add --no-cache iputils
-
-echo "Waiting 15 seconds for Avahi logs to update..."
 sleep 15
 
 echo "Extracting published hostname from /avahi/avahi.log:"
@@ -19,15 +17,5 @@ if [ -z "$host" ]; then
 fi
 
 echo "RESOLVED_HOST=https://${host}" > /avahi/resolved-hostname.env
-
-echo ""
-echo "========================================"
-echo "🚀 Homepage Application (homepage-app): https://$host"
-echo "🚀 Swagger endpoint: https://$host/nestjs/api"
-echo "🚀 Admin Panel endpoint: https://$host/nestjs/admin"
-echo "🚀 Adminer endpoint: https://$host/adminer"
-echo "========================================"
-echo ""
-
 
 exit 0

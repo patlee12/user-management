@@ -33,12 +33,15 @@ services:
       - ./avahi-config:/etc/avahi
     hostname: ${AVAHI_HOSTNAME}
     command: >
-      sh -c "apk add --no-cache gettext &&
-            envsubst < /etc/avahi/avahi-daemon.conf.template > /etc/avahi/avahi-daemon.conf &&
-            rm -rf /var/run/avahi-daemon/*;
-            echo 'Starting avahi-daemon and writing logs to /avahi/avahi.log...';
-            /usr/sbin/avahi-daemon > /avahi/avahi.log 2>&1;
-            tail -f /dev/null"
+      sh -c "
+        apk add --no-cache gettext &&
+        echo '🧹 Clearing previous Avahi logs...' &&
+        rm -rf /avahi/* &&
+        echo '📄 Resetting Avahi config...' &&
+        envsubst < /etc/avahi/avahi-daemon.conf.template > /etc/avahi/avahi-daemon.conf &&
+        echo '🚀 Starting avahi-daemon and writing logs to /avahi/avahi.log...' &&
+        /usr/sbin/avahi-daemon > /avahi/avahi.log 2>&1 &&
+        tail -f /dev/null"
 
   postgres:
     image: postgres:13.5
@@ -122,8 +125,9 @@ services:
   hostname-printer:
     image: ubuntu:22.04
     container_name: hostname-printer
-    network_mode: host
     restart: 'no'
+    networks:
+      - full-stack-network
     env_file:
       - .env
     depends_on:
@@ -140,6 +144,23 @@ services:
       - |
         chmod +x /usr/local/bin/hostname-printer.sh
         /usr/local/bin/hostname-printer.sh
+  service-watcher:
+    build:
+      context: ..
+      dockerfile: ./docker/service-watcher.Dockerfile
+    container_name: service-watcher
+    restart: on-failure
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      avahi:
+        condition: service_started
+    networks:
+      - full-stack-network
+    volumes:
+      - avahi-logs:/avahi
 
 volumes:
   postgres:
