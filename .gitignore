@@ -42,3 +42,5 @@ lerna-debug.log*
 .adminjs
 
 .next
+yarn.lock
+**/yarn.lock
