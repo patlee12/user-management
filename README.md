@@ -56,6 +56,8 @@ If host name remains same, the base url will be <https://user-management.local/>
 
 To get started, you’ll need to build and run the Docker containers for the entire stack.
 
+> **Note:** If you're on a non-Ubuntu OS (like macOS), the [`run-in-vm.sh`](scripts/internal/run-in-vm.sh) script will automatically launch a lightweight Ubuntu VM using Multipass to replicate a local Ubuntu environment. This is required for Avahi-based mDNS broadcasting (`*.local` domains), enabling you to run the full production Docker stack inside the VM and access the app over the local network via `http://user-management.local`.
+
 ```bash
 # From top level of the repository choose "Production" when prompted.
 ./run-local-build.sh
