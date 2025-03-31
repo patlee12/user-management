@@ -29,14 +29,6 @@ This project is structured as a **monorepo**, where both the frontend and backen
 
 ---
 
-## Setup
-
-### Prerequisites
-
-1. **Node v22.13.1**
-2. **Yarn v1.22.22**
-3. **Docker**
-
 ### Environment `.env` Files
 
 This project uses **three `.env` files** if you want to read them before generating passwords take a look at `.env.template` file in each of the three workspaces:
