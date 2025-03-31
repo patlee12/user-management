@@ -4,34 +4,39 @@ import { promisify } from 'util';
 
 const execPromise = promisify(exec);
 
-console.log('ADMIN EMAIL:', process.env.ADMIN_EMAIL);
+const prisma = new PrismaClient();
 
 async function runAdminSeed() {
-  const prisma = new PrismaClient();
+  console.log('✅ Admin Seed Script Started');
 
-  console.log('Checking if admin user exists...');
-  const adminExists = await prisma.user.findFirst({
-    where: { email: process.env.ADMIN_EMAIL },
-  });
+  const email = process.env.ADMIN_EMAIL;
+  if (!email) {
+    console.error('❌ ADMIN_EMAIL is not defined in the environment');
+    process.exit(1);
+  }
 
-  if (!adminExists) {
-    console.log("Admin account doesn't exist. Running Admin seed.");
+  console.log('🔍 Looking for existing admin with email:', email);
+
+  const adminExists = await prisma.user.findFirst({ where: { email } });
+
+  if (adminExists) {
+    console.log('ℹ️ Admin user already exists. Skipping seed.');
+  } else {
+    console.log('⚙️ Admin user not found. Running seed...');
 
     try {
       await execPromise('yarn prisma generate');
-      console.log('Prisma Client generated successfully.');
+      console.log('✅ Prisma client generated');
 
-      console.log('Running Prisma Seed...');
       await execPromise('yarn prisma db seed');
-      console.log('Admin Seed Completed Successfully.');
-    } catch (error) {
-      console.error('Error during seed process:', error);
+      console.log('✅ Admin seed ran successfully');
+    } catch (err) {
+      console.error('❌ Error running seed:', err);
     }
-  } else {
-    console.log('Skipping Admin Seed. Admin already exists.');
   }
 
   await prisma.$disconnect();
+  console.log('👋 Seed script finished');
 }
 
 runAdminSeed();

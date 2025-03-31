@@ -11,7 +11,7 @@
     "build": "yarn prisma generate && nest build --path tsconfig.build.json && yarn copy-mailing-templates",
     "copy-mailing-templates": "mkdir -p dist/src/user-management-app/mailing/templates && cp -R src/user-management-app/mailing/templates/* dist/src/user-management-app/mailing/templates",
     "start": "nest start",
-    "start:dev": "yarn prisma generate && yarn prisma migrate dev && ts-node -P tsconfig.json ./scripts/run-seed.ts && yarn build && nest start",
+    "start:dev": "yarn prisma generate && yarn prisma migrate dev && yarn seed:admin && yarn build && nest start",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/src/main",
     "start:prod:env": "dotenv -e .env -- node dist/src/main",
@@ -19,7 +19,7 @@
     "bootstrap:prod": "yarn migrate && yarn seed:admin && yarn start:prod",
     "migrate": "yarn prisma migrate deploy",
     "migrate:reset": "yarn prisma migrate reset --force --skip-seed",
-    "seed:admin": "NODE_ENV=Production ts-node -P apps/backend/tsconfig.json ./scripts/run-admin-seed.ts",
+    "seed:admin": "ts-node -r tsconfig-paths/register scripts/run-admin-seed.ts",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -27,7 +27,7 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand"
   },
   "prisma": {
-    "seed": "ts-node -P ./apps/backend/tsconfig.json ./scripts/run-seed.ts"
+    "seed": "ts-node -r tsconfig-paths/register prisma/seed.ts"
   },
   "dependencies": {
     "@adminjs/express": "^6.1.1",

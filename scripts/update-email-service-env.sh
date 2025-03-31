@@ -5,73 +5,77 @@ set -e
 echo ""
 echo "🔧 Updating email service environment variables in .env file..."
 
-# Define the path to your backend's .env file
 ENV_FILE="./apps/backend/.env"
 
-# Check if the .env file exists
 if [ ! -f "$ENV_FILE" ]; then
   echo "❌ .env file not found at $ENV_FILE. Please ensure the backend .env file exists."
   exit 1
 fi
 
-# Inform the user that they can leave fields blank if they don't have values
-echo "⚠️ If you don't have these values, you can leave them blank."
+# Load existing values
+CURRENT_MAIL_SERVICE_PROVIDER=$(grep "^MAIL_SERVICE_PROVIDER=" "$ENV_FILE" | cut -d '=' -f2- | tr -d '"')
+CURRENT_EMAIL_USER=$(grep "^EMAIL_USER=" "$ENV_FILE" | cut -d '=' -f2- | tr -d '"')
+CURRENT_EMAIL_PASS=$(grep "^EMAIL_PASS=" "$ENV_FILE" | cut -d '=' -f2- | tr -d '"')
 
-# Read the user's input for the email service environment variables
-read -p "Enter your mail service provider (e.g., smtp.example.com) [Leave blank if none]: " MAIL_SERVICE_PROVIDER
-read -p "Enter your email user (e.g., user@example.com) [Leave blank if none]: " EMAIL_USER
-read -p "Enter your email password [Leave blank if none]: " EMAIL_PASS
+# Warn if values already exist
+if [[ -n "$CURRENT_MAIL_SERVICE_PROVIDER" || -n "$CURRENT_EMAIL_USER" || -n "$CURRENT_EMAIL_PASS" ]]; then
+  echo "⚠️ We detected existing email service credentials in your .env file:"
+  echo "  MAIL_SERVICE_PROVIDER=${CURRENT_MAIL_SERVICE_PROVIDER:-<empty>}"
+  echo "  EMAIL_USER=${CURRENT_EMAIL_USER:-<empty>}"
+  echo "  EMAIL_PASS=${CURRENT_EMAIL_PASS:+***}"
 
-# Update the .env file with the provided values
+  read -p "🔁 Do you want to update these values? (y/N): " CONFIRM_UPDATE
+  if [[ ! "$CONFIRM_UPDATE" =~ ^[Yy]$ ]]; then
+    echo "🚫 Aborting update. No changes made."
+    exit 0
+  fi
+fi
+
+# Prompt until all values are provided
+while [[ -z "$MAIL_SERVICE_PROVIDER" ]]; do
+  read -p "Enter your mail service provider (e.g., smtp.example.com): " MAIL_SERVICE_PROVIDER
+done
+
+while [[ -z "$EMAIL_USER" ]]; do
+  read -p "Enter your email user (e.g., user@example.com): " EMAIL_USER
+done
+
+while [[ -z "$EMAIL_PASS" ]]; do
+  read -s -p "Enter your email password: " EMAIL_PASS
+  echo
+done
+
 echo ""
-echo "🔧 Updating .env file with email service credentials..."
+echo "🔧 Updating .env file with new email service credentials..."
 
-# Use `sed` to update or add the required variables in the .env file
-# If the variable exists, it will be updated. If not, it will be added.
+# Cross-platform helper to update or insert key-value pairs in .env
+update_env_var() {
+  VAR_NAME=$1
+  VAR_VALUE=$2
 
-if [ -n "$MAIL_SERVICE_PROVIDER" ]; then
-  sed -i "s/^MAIL_SERVICE_PROVIDER=.*/MAIL_SERVICE_PROVIDER=\"$MAIL_SERVICE_PROVIDER\"/" "$ENV_FILE" || echo "MAIL_SERVICE_PROVIDER=\"$MAIL_SERVICE_PROVIDER\"" >> "$ENV_FILE"
-else
-  # If blank, ensure the key is added with an empty value
-  sed -i "/^MAIL_SERVICE_PROVIDER=/d" "$ENV_FILE"  # Remove any existing entry first
-  echo "MAIL_SERVICE_PROVIDER=" >> "$ENV_FILE"  # Add the key with an empty value
-fi
+  if grep -q "^$VAR_NAME=" "$ENV_FILE"; then
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+      # macOS
+      sed -i '' "s|^$VAR_NAME=.*|$VAR_NAME=\"$VAR_VALUE\"|" "$ENV_FILE"
+    else
+      # Linux / Docker
+      sed -i "s|^$VAR_NAME=.*|$VAR_NAME=\"$VAR_VALUE\"|" "$ENV_FILE"
+    fi
+  else
+    echo "$VAR_NAME=\"$VAR_VALUE\"" >> "$ENV_FILE"
+  fi
+}
 
-if [ -n "$EMAIL_USER" ]; then
-  sed -i "s/^EMAIL_USER=.*/EMAIL_USER=\"$EMAIL_USER\"/" "$ENV_FILE" || echo "EMAIL_USER=\"$EMAIL_USER\"" >> "$ENV_FILE"
-else
-  # If blank, ensure the key is added with an empty value
-  sed -i "/^EMAIL_USER=/d" "$ENV_FILE"  # Remove any existing entry first
-  echo "EMAIL_USER=" >> "$ENV_FILE"  # Add the key with an empty value
-fi
-
-if [ -n "$EMAIL_PASS" ]; then
-  sed -i "s/^EMAIL_PASS=.*/EMAIL_PASS=\"$EMAIL_PASS\"/" "$ENV_FILE" || echo "EMAIL_PASS=\"$EMAIL_PASS\"" >> "$ENV_FILE"
-else
-  # If blank, ensure the key is added with an empty value
-  sed -i "/^EMAIL_PASS=/d" "$ENV_FILE"  # Remove any existing entry first
-  echo "EMAIL_PASS=" >> "$ENV_FILE"  # Add the key with an empty value
-fi
+# Apply updates
+update_env_var "MAIL_SERVICE_PROVIDER" "$MAIL_SERVICE_PROVIDER"
+update_env_var "EMAIL_USER" "$EMAIL_USER"
+update_env_var "EMAIL_PASS" "$EMAIL_PASS"
 
 echo "✅ .env file updated successfully with email service credentials."
 
-# Provide a summary of the updated environment variables
+# Summary
 echo ""
 echo "Updated Email Service Credentials in .env file:"
-if [ -n "$MAIL_SERVICE_PROVIDER" ]; then
-  echo "MAIL_SERVICE_PROVIDER=$MAIL_SERVICE_PROVIDER"
-else
-  echo "MAIL_SERVICE_PROVIDER= (blank)"
-fi
-
-if [ -n "$EMAIL_USER" ]; then
-  echo "EMAIL_USER=$EMAIL_USER"
-else
-  echo "EMAIL_USER= (blank)"
-fi
-
-if [ -n "$EMAIL_PASS" ]; then
-  echo "EMAIL_PASS=***"  # Hiding password for security
-else
-  echo "EMAIL_PASS= (blank)"
-fi
+echo "MAIL_SERVICE_PROVIDER=$MAIL_SERVICE_PROVIDER"
+echo "EMAIL_USER=$EMAIL_USER"
+echo "EMAIL_PASS=***"

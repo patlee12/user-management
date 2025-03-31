@@ -6,20 +6,31 @@ while [ ! -f /avahi/resolved-hostname.env ]; do
 done
 
 . /avahi/resolved-hostname.env
-
 export FRONTEND_URL=$RESOLVED_HOST
 echo "[NestJS] FRONTEND_URL resolved to: $RESOLVED_HOST"
 
-# Run the backend normally — don't call docker compose inside Docker!
-yarn workspace user-management-backend start:prod
+echo ""
+echo "📦 Sourcing .env and .env.localareanetwork for NestJS..."
+
+cd /src/app/apps/backend || {
+  echo "❌ Failed to cd into /src/app/apps/backend"
+  exit 1
+}
+
+# echo ""
+# echo "📁 Now inside: $(pwd)"
+# echo "📂 Directory contents:"
+# ls -alh
 
 echo ""
-echo "========================================"
-echo "🚀 Homepage Application (homepage-app): $RESOLVED_HOST"
-echo "🚀 Swagger endpoint: ${RESOLVED_HOST}/nestjs/api"
-echo "🚀 Admin Panel endpoint: ${RESOLVED_HOST}/nestjs/admin"
-echo "🚀 Adminer endpoint: ${RESOLVED_HOST}/adminer"
-echo "========================================"
-echo ""
+echo "🧬 Running Prisma Migrate Deploy..."
+yarn prisma migrate deploy
 
-wait
+echo ""
+echo "🌱 Running run-admin-seed.ts..."
+yarn seed:admin
+
+
+echo ""
+echo "🚀 Starting Backend..."
+yarn start:prod

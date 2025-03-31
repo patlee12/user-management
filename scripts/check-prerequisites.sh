@@ -4,23 +4,28 @@ set -e
 
 echo "🔧 Checking prerequisites..."
 
-# Check Node version
-REQUIRED_NODE_VERSION="v22.13.1"
-NODE_VERSION=$(node -v)
-if [ "$NODE_VERSION" != "$REQUIRED_NODE_VERSION" ]; then
-  echo "❌ You need Node.js $REQUIRED_NODE_VERSION. Current version is $NODE_VERSION."
-  exit 1
-fi
-echo "✅ Node.js version is correct: $NODE_VERSION"
+# Required version ranges
+MIN_NODE_VERSION="22"
+MAX_NODE_VERSION="23"
+MIN_YARN_VERSION="1.22.0"
 
-# Check Yarn version
-REQUIRED_YARN_VERSION="1.22.22"
-YARN_VERSION=$(yarn -v)
-if [ "$YARN_VERSION" != "$REQUIRED_YARN_VERSION" ]; then
-  echo "❌ You need Yarn $REQUIRED_YARN_VERSION. Current version is $YARN_VERSION."
+# Check Node.js version (major only)
+NODE_VERSION=$(node -v | sed 's/v//')
+NODE_MAJOR=$(echo "$NODE_VERSION" | cut -d. -f1)
+if [ "$NODE_MAJOR" -lt "$MIN_NODE_VERSION" ] || [ "$NODE_MAJOR" -ge "$MAX_NODE_VERSION" ]; then
+  echo "❌ Node.js version must be >= $MIN_NODE_VERSION and < $MAX_NODE_VERSION. Current: $NODE_VERSION"
   exit 1
 fi
-echo "✅ Yarn version is correct: $YARN_VERSION"
+echo "✅ Node.js version is acceptable: v$NODE_VERSION"
+
+# Check Yarn version (>= 1.22.0, < 2)
+YARN_VERSION=$(yarn -v)
+YARN_MAJOR=$(echo "$YARN_VERSION" | cut -d. -f1)
+if [ "$YARN_MAJOR" -ge 2 ]; then
+  echo "❌ Yarn version must be < 2. Current: $YARN_VERSION"
+  exit 1
+fi
+echo "✅ Yarn version is acceptable: $YARN_VERSION"
 
 # Check if Docker is installed
 if ! command -v docker &> /dev/null; then
@@ -36,4 +41,4 @@ if ! docker info &> /dev/null; then
 fi
 echo "✅ Docker is running."
 
-echo "All prerequisites are met! Proceeding with the development build."
+echo "✅ All prerequisites are met!"

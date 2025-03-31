@@ -2,23 +2,45 @@
 
 set -e
 
-echo ""
-echo "🔧 Preparing your local environment..."
+# --- Shared Setup ---
+if [[ "$1" != "--vm-mode" ]]; then
+  echo ""
+  echo "🔧 Preparing your local environment..."
 
-# Ensure setup.sh is executable
-if [ ! -x "./setup.sh" ]; then
-  echo "🔐 Fixing permission for setup.sh"
-  chmod +x ./setup.sh 2>/dev/null || {
-    echo "🔐 Permission denied. Trying with sudo..."
-    sudo chmod +x ./setup.sh
-  }
+  # Ensure setup.sh is executable
+  if [ ! -x "./setup.sh" ]; then
+    echo "🔐 Fixing permission for setup.sh"
+    chmod +x ./setup.sh 2>/dev/null || {
+      echo "🔐 Permission denied. Trying with sudo..."
+      sudo chmod +x ./setup.sh
+    }
+  fi
+
+  # Run environment setup tasks
+  echo "🔧 Running setup tasks..."
+  ./setup.sh
 fi
 
-# Run environment setup tasks (call setup.sh)
-echo "🔧 Running setup tasks..."
-./setup.sh
+# Skip prompt if running inside VM
+if [[ "$1" == "--vm-mode" ]]; then
+  echo ""
+  echo "🚀 Running production Docker stack inside VM (local area network)..."
+  
+  export NODE_ENV=production
+  export VM_MODE=true
 
-# Ask the user to select the build type (Dev or Production) using select
+  echo "📦 Sourcing .env and .env.localareanetwork..."
+  set -a
+  [ -f ./docker/.env ] && source ./docker/.env
+  [ -f ./apps/backend/.env.localareanetwork ] && source ./apps/backend/.env.localareanetwork
+  set +a
+
+  echo "🚀 Starting Docker Compose for VM/production..."
+  docker compose -f docker-compose.yml -f docker/docker-compose.production.yml up --build
+  exit 0
+fi
+
+# --- Prompt for build type ---
 echo ""
 echo "🔧 Please choose the build type:"
 PS3="Select an option (1/2): "
@@ -34,10 +56,27 @@ do
             ;;
         "Production (local area network)")
             echo ""
-            echo "🚀 Running email service configuration..."
-            ./scripts/update-email-service-env.sh # Update to the correct script name
-            echo "🚀 Starting Docker stack for production (local area network)..."
-            docker compose -f docker/docker-compose-local-area-network.yml up --build
+
+            # OS detection
+            OS_NAME=$(uname -s)
+            IS_UBUNTU=false
+            if [ "$OS_NAME" == "Linux" ]; then
+              DISTRO_ID=$(grep '^ID=' /etc/os-release | cut -d'=' -f2)
+              if [ "$DISTRO_ID" == "ubuntu" ]; then
+                IS_UBUNTU=true
+              fi
+            fi
+
+            if [ "$IS_UBUNTU" == "true" ]; then
+              echo "🚀 Running on Ubuntu. Proceeding with local production build..."
+              echo "🚀 Running email service configuration..."
+              ./scripts/update-email-service-env.sh
+              echo "🚀 Starting Docker stack for production (local area network)..."
+              docker compose -f docker/docker-compose-local-area-network.yml up --build
+            else
+              echo "🧠 Detected non-Ubuntu system ($OS_NAME). Running production build inside VM..."
+              ./scripts/internal/run-in-vm.sh
+            fi
             break
             ;;
         "Exit")

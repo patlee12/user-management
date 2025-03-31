@@ -117,6 +117,9 @@ docker compose down --volumes --remove-orphans
 
 # Clean Docker
 docker system prune -af --volumes
+
+# Clean all containers and volumes force  (Use this only if docker becomes unstable due to running out of space)
+docker system prune -a --volumes --force
 ```
 
 ## Adminer DB Tool
