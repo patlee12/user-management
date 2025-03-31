@@ -12,7 +12,7 @@ BACKEND_PORT=3001
 FRONTEND_PORT=3000
 
 echo ""
-echo "📡 Service Watcher started inside container"
+echo "📡 Service Watcher started"
 echo "🔍 Checking Docker services via TCP ports:"
 echo "   - Backend:  ${BACKEND_HOST}:${BACKEND_PORT}"
 echo "   - Frontend: ${FRONTEND_HOST}:${FRONTEND_PORT}"
