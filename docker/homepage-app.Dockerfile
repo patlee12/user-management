@@ -6,7 +6,7 @@
     WORKDIR /app
     
     # Copy monorepo root files
-    COPY package.json yarn.lock ./
+    COPY package.json ./
     
     # Copy relevant workspace package.json files
     COPY apps/frontend/homepage-app/package.json ./apps/frontend/homepage-app/package.json

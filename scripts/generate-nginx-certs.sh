@@ -19,6 +19,6 @@ openssl req -x509 -nodes -days 365 \
   -newkey rsa:2048 \
   -keyout "$KEY_PATH" \
   -out "$CERT_PATH" \
-  -subj "/C=US/ST=State/L=City/O=Company/CN=localhost"
+  -subj "//CN=localhost"
 
 echo "✅ Self-signed certs generated."

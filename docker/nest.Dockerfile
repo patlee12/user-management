@@ -8,7 +8,7 @@ RUN apk add --no-cache bash openssl libressl curl
 WORKDIR /src/app
 
 # Copy root package files
-COPY package.json yarn.lock ./
+COPY package.json ./
 
 # Copy workspace-level package.json files
 COPY apps/backend/package.json ./apps/backend/package.json
@@ -47,7 +47,6 @@ WORKDIR /src/app
 
 # Copy monorepo root so yarn can run from here
 COPY --from=builder /src/app/package.json ./package.json
-COPY --from=builder /src/app/yarn.lock ./yarn.lock
 
 # Copy backend app package.json for workspace context
 COPY --from=builder /src/app/apps/backend/package.json ./apps/backend/package.json

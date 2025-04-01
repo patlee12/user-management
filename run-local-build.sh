@@ -7,25 +7,20 @@ if [[ "$1" != "--vm-mode" ]]; then
   echo ""
   echo "🔧 Preparing your local environment..."
 
-  # Ensure setup.sh is executable
   if [ ! -x "./setup.sh" ]; then
     echo "🔐 Fixing permission for setup.sh"
-    chmod +x ./setup.sh 2>/dev/null || {
-      echo "🔐 Permission denied. Trying with sudo..."
-      sudo chmod +x ./setup.sh
-    }
+    chmod +x ./setup.sh 2>/dev/null || sudo chmod +x ./setup.sh
   fi
 
-  # Run environment setup tasks
   echo "🔧 Running setup tasks..."
   ./setup.sh
 fi
 
-# Skip prompt if running inside VM
+# --- VM Mode ---
 if [[ "$1" == "--vm-mode" ]]; then
   echo ""
   echo "🚀 Running production Docker stack inside VM (local area network)..."
-  
+
   export NODE_ENV=production
   export VM_MODE=true
 
@@ -36,7 +31,8 @@ if [[ "$1" == "--vm-mode" ]]; then
   set +a
 
   echo "🚀 Starting Docker Compose for VM/production..."
-  docker compose -f docker-compose.yml -f docker/docker-compose.production.yml up --build
+   ./scripts/update-email-service-env.sh
+  docker compose -f docker/docker-compose-local-area-network.yml up --build
   exit 0
 fi
 
@@ -57,7 +53,6 @@ do
         "Production (local area network)")
             echo ""
 
-            # OS detection
             OS_NAME=$(uname -s)
             IS_UBUNTU=false
             if [ "$OS_NAME" == "Linux" ]; then
@@ -69,9 +64,7 @@ do
 
             if [ "$IS_UBUNTU" == "true" ]; then
               echo "🚀 Running on Ubuntu. Proceeding with local production build..."
-              echo "🚀 Running email service configuration..."
               ./scripts/update-email-service-env.sh
-              echo "🚀 Starting Docker stack for production (local area network)..."
               docker compose -f docker/docker-compose-local-area-network.yml up --build
             else
               echo "🧠 Detected non-Ubuntu system ($OS_NAME). Running production build inside VM..."
