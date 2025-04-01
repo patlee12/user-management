@@ -63,7 +63,6 @@ do
 
             if [ "$IS_UBUNTU" == "true" ]; then
               echo "🚀 Running on Ubuntu. Proceeding with local production build..."
-              ./scripts/update-email-service-env.sh
               docker compose -f docker/docker-compose-local-area-network.yml up --build
             else
               echo "🧠 Detected non-Ubuntu system ($OS_NAME). Running production build inside VM..."
