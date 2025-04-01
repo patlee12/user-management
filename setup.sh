@@ -64,7 +64,7 @@ else
   echo "📄 No existing .env files found. Generating fresh ones..."
   ./scripts/generate-env-files.sh
 fi
-
+./scripts/update-email-service-env.sh
 # Step 5: Always run cert generation
 echo ""
 echo "🔒 Generating NGINX dev certificates (if missing)..."

@@ -31,7 +31,6 @@ if [[ "$1" == "--vm-mode" ]]; then
   set +a
 
   echo "🚀 Starting Docker Compose for VM/production..."
-   ./scripts/update-email-service-env.sh
   docker compose -f docker/docker-compose-local-area-network.yml up --build
   exit 0
 fi
