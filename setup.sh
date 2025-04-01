@@ -29,6 +29,7 @@ SCRIPTS=(
   "scripts/generate-nginx-certs.sh"
   "scripts/check-prerequisites.sh"
   "scripts/update-email-service-env.sh"
+  "scripts/internal/run-in-vm.sh"
   "docker/scripts/hostname-printer.sh"
   "docker/scripts/wait-for-containers.sh"
 )
