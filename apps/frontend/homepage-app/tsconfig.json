@@ -21,7 +21,6 @@
     "baseUrl": ".",                
     "paths": {
       "@/*": ["./*"],
-      "@user-management/types": ["../../../libs/types/src"]
     }
   },
   "include": [

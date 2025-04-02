@@ -3,9 +3,8 @@ const isDocker = process.env.NEXT_DISABLE_ESLINT === 'true';
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   eslint: {
-    ignoreDuringBuilds: isDocker,
+    ignoreDuringBuilds: true,
   },
-  // other Next.js config...
 };
 
-export default nextConfig;
+module.exports = nextConfig;

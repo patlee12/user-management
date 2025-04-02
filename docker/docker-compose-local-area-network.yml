@@ -118,9 +118,11 @@ services:
     depends_on:
       hostname-printer:
         condition: service_completed_successfully
+      nestjs:
+        condition: service_started
     volumes:
       - avahi-logs:/avahi
-    entrypoint: /usr/local/bin/wait-and-start-frontend.sh
+    entrypoint: /usr/local/bin/wait-and-build-frontend.sh
 
   hostname-printer:
     image: ubuntu:22.04

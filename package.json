@@ -9,10 +9,10 @@
     "yarn": ">=1.22.0 <2"
   },
   "workspaces": [
+    "apps/*",
     "apps/backend",
     "apps/frontend/*",
-    "libs/types",
-    "libs/utils"
+    "libs/*"
   ],
   "dependencies": {
     "axios": "^0.21.1",
@@ -23,6 +23,7 @@
     "prompts": "^2.4.2"
   },
   "scripts": {
+    "build:types": "yarn workspace @user-management/types build",
     "env:generate:files": "./scripts/generate-env-files.sh",
     "certs:generate:nginx": "./scripts/generate-nginx-certs.sh",
     "env:backend": "yarn workspace user-management-backend generate:env",
@@ -30,12 +31,12 @@
     "dev:docker:down": "docker compose -f docker/docker-compose-development.yml down",
     "dev:docker:remove": "docker compose -f docker/docker-compose-development.yml down -v",
     "dev:database:reset": "yarn workspace user-management-backend migrate:reset",
-    "dev:frontend": "PORT=3000 yarn workspace homepage-app dev",
+    "dev:frontend": "yarn build:types && PORT=3000 yarn workspace homepage-app dev",
     "dev:backend": "PORT=3001 yarn workspace user-management-backend start:dev",
     "dev": "bash -c './scripts/check-prerequisites.sh && yarn dev:docker && yarn env:backend && concurrently \"yarn dev:backend\" \"yarn dev:frontend\"'",
-    "build:frontend": "yarn workspace homepage-app build",
+    "build:frontend": "yarn build:types && yarn workspace homepage-app build",
     "build:backend": "yarn workspace user-management-backend build",
-    "build": "concurrently \"yarn build:frontend\" \"yarn build:backend\"",
+    "build": "yarn build:types && concurrently \"yarn build:frontend\" \"yarn build:backend\"",
     "localareanetwork:prod": "docker compose -f docker/docker-compose-local-area-network.yml up --build",
     "reset:localareanetwork": "docker compose -f docker/docker-compose-local-area-network.yml down --volumes --remove-orphans"
   }

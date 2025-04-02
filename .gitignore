@@ -44,3 +44,6 @@ lerna-debug.log*
 .next
 yarn.lock
 **/yarn.lock
+
+# TypeScript build cache
+**/tsconfig.tsbuildinfo

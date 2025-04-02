@@ -102,6 +102,9 @@ docker stop <container-name>
 # Remove the container
 docker rm <container-name>
 
+# Stop all containers
+docker stop $(docker ps -q)
+
 # Kill process inside container if needed
 docker inspect --format '{{.State.Pid}}' <container-name>
 sudo kill -9 <PID>
