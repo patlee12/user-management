@@ -1,53 +1,56 @@
 # ----------------------------
-# Build Stage
+# Base Stage for Dependencies
 # ----------------------------
-    FROM node:22.13.1-alpine AS builder
+    FROM node:22.13.1-alpine AS base
 
     WORKDIR /app
     
-    # Copy monorepo root files
+    # Copy root and package files for workspace dependency resolution
     COPY package.json ./
-    
-    # Copy relevant workspace package.json files
+    COPY yarn.lock ./
     COPY apps/frontend/homepage-app/package.json ./apps/frontend/homepage-app/package.json
     COPY libs/types/package.json ./libs/types/package.json
     
-    # Install deps with workspace support
+    # Install all dependencies using Yarn workspaces
     RUN yarn install --frozen-lockfile
-    
-    # Copy app source and shared code
-    COPY apps/frontend/homepage-app ./apps/frontend/homepage-app
-    COPY libs ./libs
-    
-    # Copy tsconfig and config files
-    COPY tsconfig.json ./
-    COPY apps/frontend/homepage-app/tsconfig.json ./apps/frontend/homepage-app/tsconfig.json
-    COPY apps/frontend/homepage-app/next.config.ts ./next.config.ts
-    
-    # Build the frontend using script that disables ESLint
-    WORKDIR /app/apps/frontend/homepage-app
-    RUN yarn build:docker
     
     # ----------------------------
     # Runtime Stage
     # ----------------------------
     FROM node:22.13.1-alpine
     
-    WORKDIR /app
+    # Set WORKDIR to homepage-app so Yarn finds scripts in its package.json
+    WORKDIR /app/apps/frontend/homepage-app
     
-    # Copy homepage package.json and install only production deps
-    COPY apps/frontend/homepage-app/package.json ./
-    ENV NODE_ENV=production
+    # Copy homepage-app package.json and monorepo root for yarn context
+    COPY apps/frontend/homepage-app/package.json ./package.json
+    COPY package.json /app/package.json
+    COPY yarn.lock /app/yarn.lock
+    
+    # Reinstall only production deps scoped to this workspace
     RUN yarn install --frozen-lockfile --production
     
-    # Copy compiled app + static assets
-    COPY --from=builder /app/apps/frontend/homepage-app/.next ./.next
-    COPY --from=builder /app/apps/frontend/homepage-app/public ./public
-    COPY --from=builder /app/next.config.ts ./next.config.ts
+    # Copy frontend app source code
+    COPY apps/frontend/homepage-app/ ./
+    
+    # Copy shared libs
+    COPY libs /app/libs
+    
+    # Copy config files
+    COPY tsconfig.json /app/tsconfig.json
+    COPY apps/frontend/homepage-app/tsconfig.json ./tsconfig.json
+    COPY apps/frontend/homepage-app/next.config.ts /app/next.config.ts
+    
+    # Copy environment files
+    COPY apps/frontend/homepage-app/.env .env
+    COPY apps/frontend/homepage-app/.env.localareanetwork .env.localareanetwork
     
     # Copy startup script
     COPY ./docker/scripts/wait-and-start-frontend.sh /usr/local/bin/wait-and-start-frontend.sh
     RUN chmod +x /usr/local/bin/wait-and-start-frontend.sh
+    
+    # Set production environment
+    ENV NODE_ENV=production
     
     EXPOSE 3000
     

@@ -1,5 +1,4 @@
 {
-  // "extends": "../../../tsconfig.json",  // Optional if using a shared config
   "compilerOptions": {
     "target": "ES2017",
     "lib": ["dom", "dom.iterable", "esnext"],
@@ -19,11 +18,18 @@
         "name": "next"
       }
     ],
-    "baseUrl": ".",                // <-- Needed for aliasing
+    "baseUrl": ".",                
     "paths": {
-      "@/*": ["./*"]               // <-- Use @/ to refer to root
+      "@/*": ["./*"],
+      "@user-management/types": ["../../../libs/types/src"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "tailwind.config.js"],
+  "include": [
+    "next-env.d.ts", 
+    "**/*.ts", 
+    "**/*.tsx", 
+    ".next/types/**/*.ts", 
+    "tailwind.config.js"
+  ],
   "exclude": ["node_modules"]
 }

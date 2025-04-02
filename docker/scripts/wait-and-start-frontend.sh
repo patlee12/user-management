@@ -8,9 +8,11 @@ done
 # Source the resolved hostname file (sets RESOLVED_HOST)
 . /avahi/resolved-hostname.env
 
-# Export the full backend URL (used by Next.js at runtime)
 export NEXT_PUBLIC_BACKEND_URL="${RESOLVED_HOST}/nestjs"
 echo "[Homepage] NEXT_PUBLIC_BACKEND_URL resolved to: $NEXT_PUBLIC_BACKEND_URL"
 
-# Start Next.js server
-exec yarn start
+echo "[Homepage] Building Next.js frontend..."
+yarn build:docker
+
+echo "[Homepage] Starting Next.js app..."
+exec yarn start:localareanetwork:prod

@@ -7,9 +7,9 @@
   "license": "MIT",
   "scripts": {
     "generate:env": "ts-node -P tsconfig.json src/generate-backend-env.ts",
-    "generate:types": "npx openapi-typescript-codegen --input http://localhost:3001/api-json --output ../../libs/types/generated",
-    "build": "yarn prisma generate && nest build --path tsconfig.build.json && yarn copy-mailing-templates",
-    "copy-mailing-templates": "mkdir -p dist/src/user-management-app/mailing/templates && cp -R src/user-management-app/mailing/templates/* dist/src/user-management-app/mailing/templates",
+    "generate:types": "npx openapi-typescript-codegen --input http://localhost:3001/api-json --output ../../libs/types/src/generated",
+    "build": "yarn prisma generate && nest build --path tsconfig.build.json",
+    "copy-mailing-templates": "mkdir -p dist/src/user-management-app/mailing/templates && cp -R src/user-management-app/mailing/templates/. dist/src/user-management-app/mailing/templates",
     "start": "nest start",
     "start:dev": "yarn prisma generate && yarn prisma migrate dev && yarn seed:admin && yarn build && nest start",
     "start:debug": "nest start --debug --watch",
