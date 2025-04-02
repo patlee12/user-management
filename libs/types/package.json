@@ -1,9 +1,8 @@
 {
   "name": "@user-management/types",
   "version": "1.0.0",
-  "main": "generated/index.ts",
-  "types": "generated/index.ts",
-  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc -p ."
   }
