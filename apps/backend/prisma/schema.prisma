@@ -109,7 +109,7 @@ model Permission {
 
 model UserRoles {
   id          Int      @id @default(autoincrement()) // New auto-incrementing id
-  user        User     @relation(fields: [userId], references: [id])
+  user        User     @relation(fields: [userId], references: [id],onDelete: Cascade)
   userId      Int
   role        Role     @relation(fields: [roleId], references: [id])
   roleId      Int

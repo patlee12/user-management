@@ -2,6 +2,8 @@ import axiosInstance from '@/lib/axiosInstance';
 import {
   AccountRequestEntity,
   CreateAccountRequestDto,
+  UserEntity,
+  VerifyAccountRequestDto,
 } from '@user-management/types';
 
 /**
@@ -22,4 +24,18 @@ export async function submitAccountRequest(
     console.error('Error submitting account request:', error);
     throw error;
   }
+}
+
+/**
+ * Verifys there provided token and then if valid creates a new user account.
+ * @param verifyAccountRequestDto - The verify account request payload.
+ * @returns {UserEntity}
+ */
+export async function verifyEmailToken(
+  verifyAccountRequestDto: VerifyAccountRequestDto,
+): Promise<UserEntity> {
+  return await axiosInstance.post(
+    '/account-requests/verify',
+    verifyAccountRequestDto,
+  );
 }

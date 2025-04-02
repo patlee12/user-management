@@ -14,7 +14,6 @@ export class MailingService {
   constructor() {
     this.transporter = nodemailer.createTransport(mailConfig);
   }
-
   /**
    * Loads an HTML email template and dynamically replaces placeholders with actual values.
    * @param templateName - The name of the template file (e.g., 'password-reset.html').
@@ -27,9 +26,11 @@ export class MailingService {
     replacements: Record<string, string>,
   ): string {
     try {
-      const filePath = path.resolve(__dirname, './templates', templateName);
+      // path relative to current file in both dev and prod
+      const filePath = path.join(__dirname, 'templates', templateName);
 
       if (!fs.existsSync(filePath)) {
+        console.error('❌ Template missing:', filePath);
         throw new Error(`Template not found at path: ${filePath}`);
       }
 

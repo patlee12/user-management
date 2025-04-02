@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { CreateAccountRequestDto } from './dto/create-account-request.dto';
 import { UpdateAccountRequestDto } from './dto/update-account-request.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -30,21 +30,37 @@ export class AccountRequestsService {
   async create(
     createAccountRequestDto: CreateAccountRequestDto,
   ): Promise<AccountRequestEntity> {
+    const [
+      existingUserByEmail,
+      existingUserByUsername,
+      existingAccountRequestEmail,
+      existingAccountRequestUsername,
+    ] = await Promise.all([
+      this.prisma.user.findUnique({
+        where: { email: createAccountRequestDto.email },
+      }),
+      this.prisma.user.findUnique({
+        where: { username: createAccountRequestDto.username },
+      }),
+      this.prisma.accountRequest.findUnique({
+        where: { email: createAccountRequestDto.email },
+      }),
+      this.prisma.accountRequest.findUnique({
+        where: { username: createAccountRequestDto.username },
+      }),
+    ]);
+
+    if (existingUserByEmail || existingAccountRequestEmail) {
+      throw new ConflictException('Email is already in use');
+    }
+
+    if (existingUserByUsername || existingAccountRequestUsername) {
+      throw new ConflictException('Username is already in use');
+    }
+
     const hashedPassword = await argon2.hash(createAccountRequestDto.password);
     createAccountRequestDto.password = hashedPassword;
     const rawRandomToken = await generateToken();
-
-    const verificationLink = `${process.env.FRONTEND_URL}/verify-email?token=${rawRandomToken}`;
-    const emailVerificationDto: EmailVerificationDto = {
-      email: createAccountRequestDto.email,
-      verifyLink: verificationLink,
-    };
-
-    try {
-      await this.mailingService.sendVerificationEmail(emailVerificationDto);
-    } catch (error) {
-      throw new VerificationEmailFailed();
-    }
 
     // Hash the token AFTER sending the email
     const hashedToken = await argon2.hash(rawRandomToken);
@@ -63,6 +79,17 @@ export class AccountRequestsService {
     const newAccountRequest = await this.prisma.accountRequest.create({
       data: accountRequestData,
     });
+
+    const verificationLink = `${process.env.FRONTEND_URL}/auth/verify-email?token=${rawRandomToken}&email=${encodeURIComponent(createAccountRequestDto.email)}`;
+    const emailVerificationDto: EmailVerificationDto = {
+      email: createAccountRequestDto.email,
+      verifyLink: verificationLink,
+    };
+    try {
+      await this.mailingService.sendVerificationEmail(emailVerificationDto);
+    } catch (error) {
+      throw new VerificationEmailFailed();
+    }
 
     return newAccountRequest;
   }

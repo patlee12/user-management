@@ -58,9 +58,6 @@ async function bootstrap() {
     new PrismaClientExceptionFilter(httpAdapter),
   );
 
-  // Enable CORS so frontend requests aren't blocked
-  userManagementApp.enableCors({ allowedHeaders: 'Authorization' });
-
   // Get the local IP address of the server (LAN IP, including Docker interfaces)
   const networkInterfaces = os.networkInterfaces();
   let localIpAddress = 'localhost'; // Default to localhost
@@ -78,13 +75,36 @@ async function bootstrap() {
     }
   }
 
-  // Determine environment and frontend hostname
+  // Determine environment
   const isProduction = process.env.NODE_ENV?.toLowerCase() === 'production';
-  const frontendUrl = process.env.FRONTEND_URL?.replace(/^http(s)?:\/\//, '');
+
+  // Strip any protocol from the FRONTEND_URL just in case
+  const frontendUrl = process.env.FRONTEND_URL?.replace(/^https?:\/\//, '');
+
+  // Determine host
   const host =
     isProduction && frontendUrl ? frontendUrl : `${localIpAddress}:3000`;
 
-  // Start the app
+  // Ensure FRONTEND_URL is updated in dev
+  if (!isProduction) {
+    process.env.FRONTEND_URL = `http://${localIpAddress}:3000`;
+  }
+
+  // Final origin string
+  const corsOrigin = isProduction ? `https://${host}` : `http://${host}`;
+
+  // Debugging tip (optional)
+  console.log('🔐 CORS Origin:', corsOrigin);
+
+  // CORS setup
+  userManagementApp.enableCors({
+    origin: corsOrigin,
+    credentials: true,
+    allowedHeaders: ['Authorization', 'Content-Type'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  });
+
+  // Start app
   await userManagementApp.listen(port || 3001);
 
   if (isProduction) {

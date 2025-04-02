@@ -6,8 +6,10 @@ import CanvasBackground from '@/components/ui/backgrounds/canvasBackground';
 import { useState } from 'react';
 import { CreateAccountRequestDto } from '@user-management/types';
 import { submitAccountRequest } from '@/app/services/accountRequestService';
+import { useRouter } from 'next/navigation';
 
 export default function AccountRequestsPage() {
+  const router = useRouter();
   const [formData, setFormData] = useState<CreateAccountRequestDto>({
     name: '',
     username: '',
@@ -60,11 +62,26 @@ export default function AccountRequestsPage() {
 
     try {
       await submitAccountRequest(formData);
-      setSuccess(true);
-    } catch (error) {
-      setErrors({
-        server: 'Something went wrong. Please try again later.',
-      });
+      router.push('/account-requests/success');
+    } catch (error: any) {
+      if (error?.response?.status === 409) {
+        const message = error.response.data?.message || '';
+
+        const conflictErrors: { [key: string]: string } = {};
+        if (message.toLowerCase().includes('email')) {
+          conflictErrors.email = message;
+        } else if (message.toLowerCase().includes('username')) {
+          conflictErrors.username = message;
+        } else {
+          conflictErrors.server = message || 'A conflict occurred';
+        }
+
+        setErrors(conflictErrors);
+      } else {
+        setErrors({
+          server: 'Something went wrong. Please try again later.',
+        });
+      }
     }
   };
 

@@ -1,4 +1,6 @@
-export const mailConfig = {
+import { debug } from 'console';
+
+export const mailConfig: any = {
   service: process.env.MAIL_SERVICE_PROVIDER,
   auth: {
     user: process.env.EMAIL_USER,
