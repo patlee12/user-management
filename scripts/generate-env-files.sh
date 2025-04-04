@@ -6,7 +6,8 @@ set -e
 POSTGRES_PASSWORD=$(openssl rand -base64 48 | tr -dc 'A-Za-z0-9!@#$%^&*()_+=' | head -c 32)
 ADMIN_PASSWORD=$(openssl rand -base64 48 | tr -dc 'A-Za-z0-9!@#$%^&*()_+=' | head -c 32)
 JWT_SECRET=$(openssl rand -base64 256)
-MFA_KEY=$(openssl rand -hex 256)
+PUBLIC_SESSION_SECRET=$(openssl rand -base64 256)
+MFA_KEY=$(openssl rand -hex 32)
 COOKIE_SECRET=$(openssl rand -base64 256)
 
 # File paths
@@ -60,9 +61,10 @@ generate_env_file "$BACKEND_TEMPLATE" "$BACKEND_ENV" \
   POSTGRES_PASSWORD="$POSTGRES_PASSWORD" \
   ADMIN_PASSWORD="$ADMIN_PASSWORD" \
   JWT_SECRET="$JWT_SECRET" \
+  PUBLIC_SESSION_SECRET="$PUBLIC_SESSION_SECRET" \
   MFA_KEY="$MFA_KEY" \
   COOKIE_SECRET="$COOKIE_SECRET"
 
-# Copy frontend env as-is
-cp "$FRONTEND_TEMPLATE" "$FRONTEND_ENV"
-echo "✅ Copied: $FRONTEND_TEMPLATE -> $FRONTEND_ENV"
+# Generate frontend/homepage-app/.env
+generate_env_file "$FRONTEND_TEMPLATE" "$FRONTEND_ENV" \
+  PUBLIC_SESSION_SECRET="$PUBLIC_SESSION_SECRET"

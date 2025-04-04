@@ -3,6 +3,17 @@
 /* tslint:disable */
 /* eslint-disable */
 export type AuthResponseDto = {
-    accessToken: string;
+    /**
+     * JWT access token for authenticated session
+     */
+    accessToken?: string;
+    /**
+     * Whether MFA is required
+     */
+    mfaRequired?: boolean;
+    /**
+     * Temporary JWT ticket used for MFA verification
+     */
+    ticket?: string;
 };
 

@@ -3,6 +3,13 @@
 /* tslint:disable */
 /* eslint-disable */
 export type MfaDto = {
+    /**
+     * 6-digit token from authenticator app
+     */
     token: string;
+    /**
+     * MFA ticket received from /auth/login
+     */
+    ticket: string;
 };
 

@@ -5,6 +5,7 @@ import { jwtSecret } from './auth.module';
 import { UsersService } from 'src/user-management-app/users/users.service';
 import { plainToInstance } from 'class-transformer';
 import { UserEntity } from '../users/entities/user.entity';
+import { Request } from 'express';
 
 export interface JwtPayload {
   userId: number;
@@ -17,17 +18,22 @@ export interface JwtPayload {
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor(private usersService: UsersService) {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        (req: Request) => {
+          return req?.cookies?.access_token || null;
+        },
+      ]),
       secretOrKey: jwtSecret,
+      passReqToCallback: true,
     });
   }
 
   /**
-   * Validate JwtPayload. If user is found and mfa (optional) has been verified return the UserEntity.
+   * Validate JwtPayload. If user is found and MFA (if enabled) is verified, return the UserEntity.
    * @param payload
    * @returns {UserEntity}
    */
-  async validate(payload: JwtPayload): Promise<UserEntity> {
+  async validate(req: Request, payload: JwtPayload): Promise<UserEntity> {
     const user = await this.usersService.findOne(payload.userId);
 
     if (!user) {

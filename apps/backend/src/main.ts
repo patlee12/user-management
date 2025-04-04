@@ -8,10 +8,12 @@ import {
 } from '@nestjs/common';
 import { PrismaClientExceptionFilter } from './prisma-client-exception/prisma-client-exception.filter';
 import * as os from 'os';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
   const userManagementApp = await NestFactory.create(UserManagementModule);
+  userManagementApp.use(cookieParser());
 
   // Global validation pipes and serialization interceptors
   userManagementApp.useGlobalPipes(new ValidationPipe({ whitelist: true }));

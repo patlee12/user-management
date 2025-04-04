@@ -15,6 +15,7 @@ import { JwtPayload } from './jwt.strategy';
 import { decryptSecret } from 'src/helpers/encryption-tools';
 import { MfaDto } from './dto/mfa.dto';
 import { LoginDto } from './dto/login.dto';
+import * as jwt from 'jsonwebtoken';
 
 @Injectable()
 export class AuthService {
@@ -25,22 +26,26 @@ export class AuthService {
   ) {}
 
   /**
-   * Authenticates a user with their email, password, and (if MFA is enabled) a multi-factor authentication (MFA) token.
-   * If successful, a JWT access token is returned.
-   * If any of the validation steps fail, an appropriate exception is thrown:
-   * - `NotFoundException` if the email does not match any user in the database.
-   * - `UnauthorizedException` if the password or MFA token is invalid, or if MFA is enabled but the token is not provided.
-   * @param email - The user's email address.
-   * @param password - The user's password.
-   * @param token - The optional MFA token (only required if MFA is enabled).
-   * @returns {AuthResponseDto} - The JWT access token.
+   * Authenticates a user with their email and password.
+   *
+   * - If the user does **not** have MFA enabled, returns a JWT access token.
+   * - If the user **has MFA enabled**:
+   *   - and provides a valid MFA token, returns a JWT access token.
+   *   - and does **not** provide an MFA token, returns an MFA challenge response containing a short-lived ticket.
+   *
+   * This supports a two-step MFA flow where the frontend receives a `ticket` from the login response and completes MFA verification via `/auth/verify-mfa`.
+   *
+   * @param loginDto - The login data containing email, password, and optionally an MFA token.
+   * @returns {AuthResponseDto} - Either an access token, or an MFA challenge ticket.
+   *
    * @throws {NotFoundException} - If no user is found for the provided email.
-   * @throws {UnauthorizedException} - If the password is invalid, MFA is required but no token is provided, or if the provided MFA token is invalid.
+   * @throws {UnauthorizedException} - If the password is invalid or if an invalid MFA token is provided.
    */
   async login(loginDto: LoginDto): Promise<AuthResponseDto> {
     const user = await this.prisma.user.findUnique({
       where: { email: loginDto.email },
     });
+
     if (!user) {
       throw new NotFoundException(`No user found for that email/password`);
     }
@@ -53,8 +58,8 @@ export class AuthService {
     if (!isPasswordValid) {
       throw new UnauthorizedException('No user found for that email/password');
     }
-    let mfaVerified: boolean = false;
 
+    // MFA handling
     if (user.mfaEnabled) {
       if (loginDto.token) {
         const userMfa = await this.userService.findOneMfa(user.id);
@@ -62,23 +67,60 @@ export class AuthService {
           userMfa.secret,
           loginDto.token,
         );
-        if (isMfaValid) {
-          mfaVerified = true;
-        } else {
+
+        if (!isMfaValid) {
           throw new UnauthorizedException('Invalid MFA token');
         }
-      } else {
-        throw new UnauthorizedException(
-          'MFA is enabled for this account. You must provide the MFA token with login.',
-        );
+
+        const jwtPayload: JwtPayload = {
+          userId: user.id,
+          mfaVerified: true,
+        };
+
+        return {
+          accessToken: this.jwtService.sign(jwtPayload),
+        };
       }
+
+      // No token provided — issue MFA challenge ticket
+      const ticket = this.jwtService.sign(
+        {
+          userId: user.id,
+          purpose: 'mfa-challenge',
+        },
+        { expiresIn: '5m' },
+      );
+
+      return {
+        mfaRequired: true,
+        ticket,
+      };
     }
 
+    // No MFA — proceed normally
     const jwtPayload: JwtPayload = {
       userId: user.id,
-      mfaVerified: mfaVerified,
+      mfaVerified: false,
     };
-    return { accessToken: this.jwtService.sign(jwtPayload) };
+
+    return {
+      accessToken: this.jwtService.sign(jwtPayload),
+    };
+  }
+
+  /**
+   * Generates a public session token (JWT) with minimal info.
+   * This token is used by Next.js middleware for route protection.
+   *
+   * @param userId - The authenticated user's ID.
+   * @returns A signed JWT string.
+   */
+  generatePublicSessionToken(userId: number): string {
+    const payload = { userId, publicSession: true };
+    return this.jwtService.sign(payload, {
+      secret: process.env.PUBLIC_SESSION_SECRET,
+      expiresIn: '30m',
+    });
   }
 
   /**
@@ -108,7 +150,7 @@ export class AuthService {
    * @param mfaDto - Mfa dto with 6 digit token.
    * @returns {boolean}
    */
-  async verifyMfa(user: UserEntity, mfaDto: MfaDto): Promise<boolean> {
+  async confirmMfa(user: UserEntity, mfaDto: MfaDto): Promise<boolean> {
     const userMfa = await this.userService.findOneMfaByEmail(user.email);
     if (!userMfa) {
       throw new NotFoundException('MFA configuration not found for user');
@@ -123,6 +165,54 @@ export class AuthService {
     await this.userService.update(user.id, { mfaEnabled: true });
 
     return true;
+  }
+
+  /**
+   * Verifies a user's MFA token using a short-lived ticket issued during login.
+   *
+   * This method is called after a successful email/password login when MFA is enabled,
+   * but no token was initially provided. The client submits the 6-digit MFA token along
+   * with the ticket received from the login response.
+   *
+   * If the ticket and token are valid, an access token is issued.
+   *
+   * @param mfaDto - Contains the MFA token and the temporary ticket from login.
+   * @returns {AuthResponseDto} - JWT access token if the MFA challenge is successful.
+   *
+   * @throws {UnauthorizedException} - If the ticket is invalid, expired, not for MFA,
+   *                                   the user is ineligible, or the MFA token is invalid.
+   */
+  async verifyMfaTicket(mfaDto: MfaDto): Promise<AuthResponseDto> {
+    const payload = await this.jwtService.verifyAsync<{
+      userId: number | string;
+      purpose: string;
+    }>(mfaDto.ticket);
+
+    if (payload.purpose !== 'mfa-challenge') {
+      throw new UnauthorizedException('Invalid MFA ticket');
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: Number(payload.userId) },
+    });
+
+    if (!user || !user.mfaEnabled) {
+      throw new UnauthorizedException('User not eligible for MFA challenge');
+    }
+
+    const userMfa = await this.userService.findOneMfa(user.id);
+    const isMfaValid = await this.verifyTotp(userMfa.secret, mfaDto.token);
+
+    if (!isMfaValid) {
+      throw new UnauthorizedException('Invalid MFA token');
+    }
+
+    const accessToken = this.jwtService.sign({
+      userId: user.id,
+      mfaVerified: true,
+    });
+
+    return { accessToken };
   }
 
   /**

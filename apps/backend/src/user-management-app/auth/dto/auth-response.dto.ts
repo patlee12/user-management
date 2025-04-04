@@ -1,9 +1,16 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 
-/**
- * Authorized JWT token hashed.
- */
 export class AuthResponseDto {
-  @ApiProperty()
-  accessToken: string;
+  @ApiPropertyOptional({
+    description: 'JWT access token for authenticated session',
+  })
+  accessToken?: string;
+
+  @ApiPropertyOptional({ description: 'Whether MFA is required' })
+  mfaRequired?: true;
+
+  @ApiPropertyOptional({
+    description: 'Temporary JWT ticket used for MFA verification',
+  })
+  ticket?: string;
 }
