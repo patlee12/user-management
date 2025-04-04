@@ -6,7 +6,7 @@
     WORKDIR /app
     
     # Copy root & workspace package files
-    COPY package.json yarn.lock ./
+    COPY package.json ./
     COPY apps/frontend/homepage-app/package.json ./apps/frontend/homepage-app/package.json
     COPY libs/types/package.json ./libs/types/package.json
     

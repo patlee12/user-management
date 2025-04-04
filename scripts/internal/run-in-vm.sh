@@ -50,8 +50,9 @@ multipass stop "$VM_NAME" 2>/dev/null || true
 multipass delete "$VM_NAME" 2>/dev/null || true
 multipass purge
 
-echo "▶ Launching Ubuntu VM '$VM_NAME'..."
-multipass launch --name "$VM_NAME" --mem 2G --disk 20G --cpus 2
+echo "▶ Launching Ubuntu VM '$VM_NAME' with Hyper-V bridge networking..."
+multipass launch --name "$VM_NAME" --mem 2G --disk 20G --cpus 2 --network name='Multipass Bridge'
+
 
 if mountpoint -q "$VM_REPO_PATH"; then
   echo "🧹 Unmounting existing mount..."

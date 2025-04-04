@@ -30,6 +30,9 @@ SCRIPTS=(
   "scripts/check-prerequisites.sh"
   "scripts/update-email-service-env.sh"
   "scripts/internal/run-in-vm.sh"
+  "scripts/internal/create-virtual-bridge.sh"
+  "scripts/internal/setup-hyperv/enable-hyperv-tools.ps1"
+  "scripts/internal/setup-hyperv/run-enable-hyperv.bat"
   "docker/scripts/hostname-printer.sh"
   "docker/scripts/wait-for-containers.sh"
 )
@@ -43,7 +46,6 @@ for script in "${SCRIPTS[@]}"; do
     }
   fi
 done
-
 
 # Step 4: Prompt if any .env files already exist
 ENV_FILES_EXIST=false
@@ -64,7 +66,10 @@ else
   echo "📄 No existing .env files found. Generating fresh ones..."
   ./scripts/generate-env-files.sh
 fi
+
+# Step 4.5: Update email service environment variables safely
 ./scripts/update-email-service-env.sh
+
 # Step 5: Always run cert generation
 echo ""
 echo "🔒 Generating NGINX dev certificates (if missing)..."

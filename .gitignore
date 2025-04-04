@@ -47,3 +47,5 @@ yarn.lock
 
 # TypeScript build cache
 **/tsconfig.tsbuildinfo
+
+*.vbs
