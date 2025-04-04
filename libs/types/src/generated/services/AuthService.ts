@@ -12,7 +12,7 @@ import { request as __request } from '../core/request';
 export class AuthService {
     /**
      * Login with email/password and optionally MFA token.
-     * Returns an access token if MFA is not enabled or the token is valid. If MFA is enabled and no token is provided, returns a temporary ticket for completing the MFA challenge. Copy access token and paste it in the Authorize value field (Click 'Authorize' button in top right corner of page). If you need an account use Admin Email and password from .env files.
+     * Returns an access token if MFA is not enabled or the token is valid. If MFA is enabled and no token is provided, returns a temporary ticket for completing the MFA challenge. Use Admin Email and password from .env files if you need an account.
      * @param requestBody
      * @returns AuthResponseDto
      * @throws ApiError
@@ -85,7 +85,7 @@ export class AuthService {
         });
     }
     /**
-     * Log out by clearing the auth cookie
+     * Log out by clearing the auth cookies
      * @returns any
      * @throws ApiError
      */

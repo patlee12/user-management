@@ -8,7 +8,7 @@ export type MfaDto = {
      */
     token: string;
     /**
-     * MFA ticket received from /auth/login
+     * MFA temp ticket
      */
     ticket: string;
 };
