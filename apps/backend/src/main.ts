@@ -9,6 +9,8 @@ import {
 import { PrismaClientExceptionFilter } from './prisma-client-exception/prisma-client-exception.filter';
 import * as os from 'os';
 import cookieParser from 'cookie-parser';
+import { updateFrontendEnv } from 'scripts/update-frontend-env';
+import { waitForPortOpen } from './helpers/network';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -87,9 +89,13 @@ async function bootstrap() {
   const host =
     isProduction && frontendUrl ? frontendUrl : `${localIpAddress}:3000`;
 
-  // Ensure FRONTEND_URL is updated in dev
+  // Ensure FRONTEND_URL and NEXT_PUBLIC_BACKEND_URL is updated in dev
   if (!isProduction) {
     process.env.FRONTEND_URL = `http://${localIpAddress}:3000`;
+    updateFrontendEnv(
+      'NEXT_PUBLIC_BACKEND_URL',
+      `http://${localIpAddress}:${port}`,
+    );
   }
 
   // Final origin string
@@ -121,18 +127,26 @@ async function bootstrap() {
       `🚀 [Production] AdminJS Panel:            http://${host}${prefix}/admin`,
     );
   } else {
-    logger.log(
-      `🚀 [Development] Homepage Application:    http://${localIpAddress}:3000`,
-    );
-    logger.log(
-      `🚀 [Development] API Server:              http://${localIpAddress}:${port}${prefix}`,
-    );
-    logger.log(
-      `🚀 [Development] Swagger Docs:            http://${localIpAddress}:${port}${prefix}/api`,
-    );
-    logger.log(
-      `🚀 [Development] AdminJS Panel:           http://${localIpAddress}:${port}${prefix}/admin`,
-    );
+    try {
+      await waitForPortOpen(+port);
+      setTimeout(() => {
+        logger.log(
+          `🚀 [Development] Homepage Application:    http://${localIpAddress}:3000`,
+        );
+        logger.log(
+          `🚀 [Development] API Server:              http://${localIpAddress}:${port}${prefix}`,
+        );
+        logger.log(
+          `🚀 [Development] Swagger Docs:            http://${localIpAddress}:${port}${prefix}/api`,
+        );
+        logger.log(
+          `🚀 [Development] AdminJS Panel:           http://${localIpAddress}:${port}${prefix}/admin`,
+        );
+      }, 2500);
+    } catch (err) {
+      console.error(`❌ ${err.message}`);
+      process.exit(1);
+    }
     if (dockerIpAddress) {
       logger.log('');
       logger.log(

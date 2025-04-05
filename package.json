@@ -16,7 +16,8 @@
   ],
   "dependencies": {
     "axios": "^0.21.1",
-    "typescript": "^5.1.3"
+    "typescript": "^5.1.3",
+    "wait-on": "^8.0.3"
   },
   "devDependencies": {
     "concurrently": "^6.0.0",
@@ -33,7 +34,7 @@
     "dev:database:reset": "yarn workspace user-management-backend migrate:reset",
     "dev:frontend": "yarn build:types && PORT=3000 yarn workspace homepage-app dev",
     "dev:backend": "PORT=3001 yarn workspace user-management-backend start:dev",
-    "dev": "bash -c './scripts/check-prerequisites.sh && yarn dev:docker && yarn env:backend && concurrently \"yarn dev:backend\" \"yarn dev:frontend\"'",
+    "dev": "bash -c './scripts/check-prerequisites.sh && yarn dev:docker && yarn env:backend && concurrently \"yarn dev:backend\" \"wait-on http://localhost:3001/api && yarn dev:frontend\"'",
     "build:frontend": "yarn build:types && yarn workspace homepage-app build",
     "build:backend": "yarn workspace user-management-backend build",
     "build": "yarn build:types && concurrently \"yarn build:frontend\" \"yarn build:backend\"",

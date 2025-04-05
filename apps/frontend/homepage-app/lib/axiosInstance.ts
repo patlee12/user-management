@@ -7,4 +7,8 @@ const axiosInstance = axios.create({
     'Content-Type': 'application/json',
   },
 });
+console.log(
+  'NEXT_PUBLIC_BACKEND_URL:::::::::::',
+  process.env.NEXT_PUBLIC_BACKEND_URL,
+);
 export default axiosInstance;

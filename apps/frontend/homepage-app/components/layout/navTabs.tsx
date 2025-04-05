@@ -25,7 +25,7 @@ export default function NavTabs() {
               : 'text-muted-foreground border-transparent'
           }`}
         >
-          <Icon className="w-4 h-4" />
+          <Icon className="w-7 h-7" />
           {label}
         </Link>
       ))}

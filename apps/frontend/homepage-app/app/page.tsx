@@ -9,11 +9,9 @@ export default function HomePage() {
     <div>
       <CanvasBackground />
 
-      <section className="group relative isolate overflow-hidden bg-zinc-950 text-white py-24 sm:py-32 w-screen transition-transform duration-200">
-        {/* White border */}
-        <div className="absolute inset-0 rounded-2xl border-[3px] border-white/25 z-0 pointer-events-none" />
+      <section className="group relative isolate overflow-hidden text-white py-24 sm:py-32 w-screen transition-transform duration-200">
+        <div className="absolute inset-0 ml-3 mr-3 rounded-2xl border-[3px]  bg-zinc-950 border-white/25 z-0 pointer-events-none" />
 
-        {/* Shake animation on hover */}
         <style jsx>{`
           .group:hover .shake-wrapper {
             animation: shake 0.3s ease-in-out;
@@ -56,7 +54,7 @@ export default function HomePage() {
           </p>
 
           <div className="mt-10 flex justify-center gap-x-6">
-            <Link href="/login">
+            <Link href="/products">
               <Button className="text-base px-6 py-3 font-medium rounded-xl shadow hover:shadow-xl transition-all transform hover:-translate-y-1">
                 Get Started
               </Button>

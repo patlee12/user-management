@@ -52,7 +52,7 @@ export default function LoginComponent() {
 
       setTimeout(() => {
         window.location.href = redirectTo.startsWith('/') ? redirectTo : '/';
-      }, 100);
+      }, 50);
     } catch (err: any) {
       dispatch({
         type: 'LOGIN_ERROR',
