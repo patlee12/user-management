@@ -3,7 +3,13 @@
 /* tslint:disable */
 /* eslint-disable */
 export type VerifyAccountRequestDto = {
-    email: string;
+    /**
+     * The token ID used to find the account request in the database
+     */
+    tokenId: string;
+    /**
+     * The full raw token sent in the email, verified against the hashed token in the DB
+     */
     providedToken: string;
 };
 

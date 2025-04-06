@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   UnauthorizedException,
+  BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
@@ -42,18 +43,22 @@ export class AuthService {
    */
   async login(loginDto: LoginDto): Promise<AuthResponseDto> {
     let user = null;
-    if (loginDto.email) {
+    if (loginDto.email && loginDto.email.trim() !== '') {
       user = await this.prisma.user.findUnique({
         where: { email: loginDto.email },
       });
-    } else {
+    } else if (loginDto.username && loginDto.username.trim() !== '') {
       user = await this.prisma.user.findUnique({
         where: { username: loginDto.username },
       });
+    } else {
+      throw new BadRequestException(
+        'Either email or username must be provided',
+      );
     }
 
     if (!user) {
-      throw new NotFoundException(`No user found for that email/password`);
+      throw new UnauthorizedException('Invalid credentials');
     }
 
     const isPasswordValid = await argon2.verify(
@@ -142,12 +147,18 @@ export class AuthService {
   }
 
   /**
-   * Converts secret to a QR code string.
-   * @param secret base32 secret
-   * @returns {string}
+   * Converts a secret to a QR code string by generating a valid OTP Auth URL.
+   * The URL is formatted for TOTP with parameters expected by authenticator apps.
+   *
+   * @param secret Base32-encoded secret.
+   * @param userEmail The user's email address used to label the OTP entry.
+   * @returns {Promise<string>} A data URL containing the generated QR code.
    */
-  async generateQrCode(secret: string): Promise<string> {
-    return QRCode.toDataURL(secret);
+  async generateQrCode(user: UserEntity, secret: string): Promise<string> {
+    const issuer = process.env.AVAHI_HOSTNAME || 'User-Management'; // Replace with your actual issuer name
+    const label = `${issuer}:${user.email}`;
+    const otpAuthUrl = `otpauth://totp/${encodeURIComponent(label)}?secret=${secret}&issuer=${encodeURIComponent(issuer)}&algorithm=SHA1&digits=6&period=30`;
+    return await QRCode.toDataURL(otpAuthUrl);
   }
 
   /**

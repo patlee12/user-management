@@ -23,6 +23,9 @@ export class AccountRequestEntity implements AccountRequest {
   @ApiHideProperty()
   password: string;
 
+  @ApiProperty()
+  tokenId: string;
+
   @Exclude()
   @ApiHideProperty()
   token: string;

@@ -66,6 +66,15 @@ export class UsersService {
   }
 
   /**
+   * Find one User by Username.
+   * @param email
+   * @returns {UserEntity}
+   */
+  async findOneByUsername(username: string): Promise<UserEntity> {
+    return await this.prisma.user.findUnique({ where: { username: username } });
+  }
+
+  /**
    * Update User by id. Also re hash a new password if its provided.
    * @param id
    * @param updateUserDto

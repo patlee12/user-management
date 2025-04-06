@@ -20,6 +20,7 @@ export type { EmailPasswordResetDto } from './models/EmailPasswordResetDto';
 export type { EmailVerificationDto } from './models/EmailVerificationDto';
 export type { LoginDto } from './models/LoginDto';
 export type { MfaDto } from './models/MfaDto';
+export type { MfaResponseDto } from './models/MfaResponseDto';
 export type { PasswordResetEntity } from './models/PasswordResetEntity';
 export type { PermissionEntity } from './models/PermissionEntity';
 export type { PostEntity } from './models/PostEntity';

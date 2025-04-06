@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { verifyEmailToken } from '@/app/services/accountRequestService';
-import { VerifyAccountRequestDto } from '@user-management/types';
 import VerificationResultWrapper from '@/components/ui/wrappers/verification-result-wrapper';
+import { VerifyAccountRequestDto } from '@user-management/types';
 
 export default function VerifyEmailClient() {
   const [status, setStatus] = useState<'verifying' | 'success' | 'error'>(
@@ -12,28 +12,27 @@ export default function VerifyEmailClient() {
   );
   const searchParams = useSearchParams();
 
-  const token = searchParams.get('token') || '';
-  const email = searchParams.get('email') || '';
-
-  const verifyAccountRequestDto: VerifyAccountRequestDto = {
-    email,
-    providedToken: token,
-  };
+  const tokenId = searchParams.get('tokenId') || '';
+  const providedToken = searchParams.get('token') || '';
 
   useEffect(() => {
-    if (!token) {
+    if (!tokenId || !providedToken) {
       setStatus('error');
       return;
     }
 
+    const verifyAccountRequestDto: VerifyAccountRequestDto = {
+      tokenId,
+      providedToken,
+    };
+
     verifyEmailToken(verifyAccountRequestDto)
       .then(() => setStatus('success'))
       .catch(() => setStatus('error'));
-  }, [token]);
+  }, [tokenId, providedToken]);
 
   return (
     <VerificationResultWrapper
-      email={email}
       status={status}
       successTitle="Email Verified"
       successDescription="Your email has been verified."

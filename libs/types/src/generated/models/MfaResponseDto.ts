@@ -2,14 +2,14 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type MfaDto = {
+export type MfaResponseDto = {
     /**
-     * 6-digit token from authenticator app
+     * Qr Code encoding
      */
-    token: string;
+    qrCode: string;
     /**
-     * MFA temp ticket
+     * Secret to be stored on authenticator app
      */
-    ticket?: string;
+    secret: string;
 };
 

@@ -12,15 +12,18 @@ import { AtLeastOneField } from '@src/common/Decorators/atleast-one-field-constr
 /**
  * Data transfer object passed to server to log user in and provide access token JWT on successful login.
  */
+@AtLeastOneField(['email', 'username'], {
+  message: 'Either email or username must be provided',
+})
 export class LoginDto {
   @IsString()
-  @IsNotEmpty()
   @MinLength(3)
+  @IsOptional()
   @ApiPropertyOptional()
   username?: string;
 
   @IsEmail()
-  @IsNotEmpty()
+  @IsOptional()
   @ApiPropertyOptional()
   email?: string;
 
@@ -33,11 +36,6 @@ export class LoginDto {
   @IsString()
   @IsOptional()
   @Length(6, 6)
-  @ApiProperty({ required: false })
+  @ApiPropertyOptional()
   token?: string;
-
-  @AtLeastOneField(['email', 'username'], {
-    message: 'Either email or username must be provided',
-  })
-  _atLeastOneField!: string;
 }

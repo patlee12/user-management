@@ -1,13 +1,14 @@
 {
   "name": "@user-management/types",
   "version": "1.0.0",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/generated/index.js",
+  "types": "dist/generated/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
-    }
+      "import": "./dist/generated/index.js",
+      "types": "./dist/generated/index.d.ts"
+    },
+    "./*": "./dist/generated/*"
   },
   "scripts": {
     "build": "tsc --project ."

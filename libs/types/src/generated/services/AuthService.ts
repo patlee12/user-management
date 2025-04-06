@@ -5,13 +5,14 @@
 import type { AuthResponseDto } from '../models/AuthResponseDto';
 import type { LoginDto } from '../models/LoginDto';
 import type { MfaDto } from '../models/MfaDto';
+import type { MfaResponseDto } from '../models/MfaResponseDto';
 import type { UserEntity } from '../models/UserEntity';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class AuthService {
     /**
-     * Login with email/password and optionally MFA token.
+     * Login with email/username and password and optionally MFA token.
      * Returns an access token if MFA is not enabled or the token is valid. If MFA is enabled and no token is provided, returns a temporary ticket for completing the MFA challenge. Use Admin Email and password from .env files if you need an account.
      * @param requestBody
      * @returns AuthResponseDto
@@ -47,10 +48,10 @@ export class AuthService {
     /**
      * Generate MFA secret and QR code for user setup.
      * Returns the MFA secret and QR code image to register with an authenticator app. You must be logged in (JWT).
-     * @returns any
+     * @returns MfaResponseDto
      * @throws ApiError
      */
-    public static authControllerSetupMfa(): CancelablePromise<any> {
+    public static authControllerSetupMfa(): CancelablePromise<MfaResponseDto> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/auth/setup-mfa',

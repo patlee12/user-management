@@ -22,72 +22,87 @@ export class AccountRequestsService {
     private prisma: PrismaService,
     private readonly mailingService: MailingService,
   ) {}
+
   /**
-   * Creates a new account request and hashes the password and token securely.
-   * @param createAccountRequestDto
-   * @returns {AccountRequestEntity}
+   * Creates a new account request for user registration.
+   *
+   * This method performs the following:
+   * 1. Cleans up any expired account requests from the database.
+   * 2. Validates that the requested email and username are not already in use by a user or pending request.
+   * 3. Hashes the user's password and generates a secure verification token.
+   * 4. Stores the token (hashed) along with a short `tokenId` used for lookup.
+   * 5. Sends a verification email to the user with the raw token.
+   *
+   * @param createAccountRequestDto - The user's requested registration data (email, username, password, etc.)
+   * @returns The saved account request entity.
+   * @throws ConflictException if the email or username is already in use.
+   * @throws VerificationEmailFailed if sending the email fails.
    */
   async create(
     createAccountRequestDto: CreateAccountRequestDto,
   ): Promise<AccountRequestEntity> {
+    const { email, username } = createAccountRequestDto;
+
+    // Step 1: Cleanup expired requests
+    await this.prisma.accountRequest.deleteMany({
+      where: {
+        expiresAt: { lt: new Date() },
+      },
+    });
+
+    // Step 2: Check for existing users or pending requests
     const [
       existingUserByEmail,
       existingUserByUsername,
       existingAccountRequestEmail,
       existingAccountRequestUsername,
     ] = await Promise.all([
-      this.prisma.user.findUnique({
-        where: { email: createAccountRequestDto.email },
-      }),
-      this.prisma.user.findUnique({
-        where: { username: createAccountRequestDto.username },
-      }),
-      this.prisma.accountRequest.findUnique({
-        where: { email: createAccountRequestDto.email },
-      }),
-      this.prisma.accountRequest.findUnique({
-        where: { username: createAccountRequestDto.username },
-      }),
+      this.prisma.user.findUnique({ where: { email } }),
+      this.prisma.user.findUnique({ where: { username } }),
+      this.prisma.accountRequest.findUnique({ where: { email } }),
+      this.prisma.accountRequest.findUnique({ where: { username } }),
     ]);
 
     if (existingUserByEmail || existingAccountRequestEmail) {
+      console.warn('[create] Email already in use');
       throw new ConflictException('Email is already in use');
     }
 
     if (existingUserByUsername || existingAccountRequestUsername) {
+      console.warn('[create] Username already in use');
       throw new ConflictException('Username is already in use');
     }
 
+    // Step 3: Hash password and generate token
     const hashedPassword = await argon2.hash(createAccountRequestDto.password);
-    createAccountRequestDto.password = hashedPassword;
-    const rawRandomToken = await generateToken();
+    const rawToken = await generateToken();
+    const tokenId = rawToken.slice(0, 16);
+    const hashedToken = await argon2.hash(rawToken);
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour expiry
 
-    // Hash the token AFTER sending the email
-    const hashedToken = await argon2.hash(rawRandomToken);
-
-    // Set token and request expiration (1 hour)
-    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
-
-    // Save to the database
-    const accountRequestData = {
-      ...createAccountRequestDto,
-      password: hashedPassword,
-      token: hashedToken,
-      expiresAt: expiresAt,
-    };
-
+    // Step 4: Create DB record
     const newAccountRequest = await this.prisma.accountRequest.create({
-      data: accountRequestData,
+      data: {
+        ...createAccountRequestDto,
+        password: hashedPassword,
+        token: hashedToken,
+        tokenId,
+        expiresAt,
+      },
     });
 
-    const verificationLink = `${process.env.FRONTEND_URL}/auth/verify-email?token=${rawRandomToken}&email=${encodeURIComponent(createAccountRequestDto.email)}`;
+    // Step 5: Send verification email
+    const verificationLink = `${process.env.FRONTEND_URL}/auth/verify-email?tokenId=${tokenId}&token=${rawToken}`;
+
     const emailVerificationDto: EmailVerificationDto = {
-      email: createAccountRequestDto.email,
+      email,
       verifyLink: verificationLink,
     };
+
     try {
       await this.mailingService.sendVerificationEmail(emailVerificationDto);
     } catch (error) {
+      console.error('[create] Failed to send verification email:', error);
       throw new VerificationEmailFailed();
     }
 
@@ -95,41 +110,51 @@ export class AccountRequestsService {
   }
 
   /**
-   * Verify user's token that was provided by email verification service and create new User if token is successfully verified.
-   * Then remove Account Request and return new user entity.
-   * @param verifyAccountRequestDto
-   * @returns {UserEntity}
+   * Verifies a new account request using the tokenId and the provided token.
+   *
+   * ### Process:
+   * 1. Looks up the account request using the `tokenId`.
+   * 2. If not found, throws `AccountRequestNotFoundError`.
+   * 3. If the request is expired, deletes it and throws `TokenExpiredError`.
+   * 4. Verifies the provided token against the stored hashed token using Argon2.
+   *    - If invalid, throws `InvalidTokenError`.
+   * 5. Creates a new `User` with the verified request data.
+   * 6. Assigns the default "User" role to the new account via `UserRoles`.
+   * 7. Deletes the original `AccountRequest` after successful user creation.
+   *
+   * @param dto - Data Transfer Object containing `tokenId` and `providedToken`.
+   * @returns A newly created `UserEntity` if the token is valid.
+   * @throws `AccountRequestNotFoundError` if no matching request is found.
+   * @throws `TokenExpiredError` if the request has expired.
+   * @throws `InvalidTokenError` if the token hash comparison fails.
    */
   async verifyAccountRequest(
-    verifyAccountRequestDto: VerifyAccountRequestDto,
+    dto: VerifyAccountRequestDto,
   ): Promise<UserEntity> {
     const accountRequest = await this.prisma.accountRequest.findUnique({
-      where: { email: verifyAccountRequestDto.email },
+      where: { tokenId: dto.tokenId },
     });
 
     if (!accountRequest) {
       throw new AccountRequestNotFoundError();
     }
 
-    // Check if the token has expired
     if (new Date() > accountRequest.expiresAt) {
       await this.prisma.accountRequest.delete({
-        where: { email: verifyAccountRequestDto.email },
+        where: { id: accountRequest.id },
       });
       throw new TokenExpiredError();
     }
 
-    // Verify if the provided token matches the hashed token in the database
-    const isTokenValid = await argon2.verify(
+    const isValid = await argon2.verify(
       accountRequest.token,
-      verifyAccountRequestDto.providedToken,
+      dto.providedToken,
     );
 
-    if (!isTokenValid) {
+    if (!isValid) {
       throw new InvalidTokenError();
     }
 
-    // Create a new user using data from the account request
     const newUser = await this.prisma.user.create({
       data: {
         username: accountRequest.username,
@@ -142,67 +167,42 @@ export class AccountRequestsService {
       },
     });
 
-    // Look up User role
-    const userRole = await this.prisma.role.findUnique({
-      where: { name: 'User' },
-    });
+    const role = await this.prisma.role.findUnique({ where: { name: 'User' } });
 
-    // Assign new user with User Role.
-    await this.prisma.userRoles.create({
-      data: {
-        userId: newUser.id,
-        roleId: userRole.id, // Default to User role.
-        assignedBy: newUser.id,
-      },
-    });
+    if (role) {
+      await this.prisma.userRoles.create({
+        data: {
+          userId: newUser.id,
+          roleId: role.id,
+          assignedBy: newUser.id,
+        },
+      });
+    }
 
-    // Remove Account request
     await this.prisma.accountRequest.delete({
-      where: { email: verifyAccountRequestDto.email },
+      where: { id: accountRequest.id },
     });
 
     return newUser;
   }
 
-  /**
-   * Find all account requests.
-   * @returns {AccountRequestEntity[]}
-   */
   async findAll(): Promise<AccountRequestEntity[]> {
     const allAccountRequests = await this.prisma.accountRequest.findMany();
     return allAccountRequests;
   }
 
-  /**
-   * Find an account request by Id.
-   * @param id
-   * @returns {AccountRequestEntity}
-   */
   async findOne(id: number): Promise<AccountRequestEntity> {
-    const getAccountRequest = await this.prisma.accountRequest.findUnique({
-      where: { id: id },
+    return await this.prisma.accountRequest.findUnique({
+      where: { id },
     });
-    return getAccountRequest;
   }
 
-  /**
-   * Find an account request by email.
-   * @param email
-   * @returns {AccountRequestEntity}
-   */
   async findOneByEmail(email: string): Promise<AccountRequestEntity> {
-    const getAccountRequest = await this.prisma.accountRequest.findUnique({
-      where: { email: email },
+    return await this.prisma.accountRequest.findUnique({
+      where: { email },
     });
-    return getAccountRequest;
   }
 
-  /**
-   * Update account request by Id.
-   * @param id
-   * @param updateAccountRequestDto
-   * @returns {AccountRequestEntity}
-   */
   async update(
     id: number,
     updateAccountRequestDto: UpdateAccountRequestDto,
@@ -212,19 +212,14 @@ export class AccountRequestsService {
         updateAccountRequestDto.password,
       );
     }
-    const updateAccountRequest = await this.prisma.accountRequest.update({
-      where: { id: id },
+
+    return await this.prisma.accountRequest.update({
+      where: { id },
       data: updateAccountRequestDto,
     });
-    return updateAccountRequest;
   }
 
-  /**
-   * Remove account request by Id.
-   * @param id
-   * @returns {AccountRequestEntity}
-   */
   async remove(id: number): Promise<AccountRequestEntity> {
-    return await this.prisma.accountRequest.delete({ where: { id: id } });
+    return await this.prisma.accountRequest.delete({ where: { id } });
   }
 }

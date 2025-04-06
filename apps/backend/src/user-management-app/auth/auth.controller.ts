@@ -41,7 +41,7 @@ export class AuthController {
   @Post('login')
   @Throttle(LOGIN_THROTTLE)
   @ApiOperation({
-    summary: 'Login with email/password and optionally MFA token.',
+    summary: 'Login with email/username and password and optionally MFA token.',
     description:
       'Returns an access token if MFA is not enabled or the token is valid. If MFA is enabled and no token is provided, returns a temporary ticket for completing the MFA challenge. Use Admin Email and password from .env files if you need an account.',
   })
@@ -61,8 +61,12 @@ export class AuthController {
         path: '/',
         maxAge: 1000 * 60 * 30,
       });
-
-      const user = await this.userService.findOneByEmail(loginDto.email);
+      let user = null;
+      if (loginDto.email && loginDto.email.trim() !== '') {
+        user = await this.userService.findOneByEmail(loginDto.email);
+      } else {
+        user = await this.userService.findOneByUsername(loginDto.username);
+      }
       const publicToken = this.authService.generatePublicSessionToken(user.id);
 
       res.cookie('public_session', publicToken, {
@@ -129,6 +133,7 @@ export class AuthController {
     description:
       'Returns the MFA secret and QR code image to register with an authenticator app. You must be logged in (JWT).',
   })
+  @ApiOkResponse({ type: MfaResponseDto })
   @UseGuards(JwtAuthGuard)
   async setupMfa(@Request() req): Promise<MfaResponseDto> {
     const user: UserEntity = req.user;
@@ -139,8 +144,9 @@ export class AuthController {
         userId: user.id,
         email: user.email,
       });
-      const qrCode = await this.authService.generateQrCode(secret);
-      return { qrCode, secret };
+      const qrCode = await this.authService.generateQrCode(user, secret);
+      const mfaResponseDto: MfaResponseDto = { qrCode, secret };
+      return mfaResponseDto;
     } else {
       throw new UnauthorizedException('User account already has MFA enabled.');
     }
@@ -171,8 +177,18 @@ export class AuthController {
   @Throttle(LOGIN_THROTTLE)
   @ApiOperation({ summary: 'Log out by clearing the auth cookies' })
   async logout(@Res({ passthrough: true }) res: Response) {
-    res.clearCookie('access_token', { path: '/' });
-    res.clearCookie('public_session', { path: '/' });
+    const isProd = process.env.NODE_ENV?.toLowerCase() === 'production';
+    await res.clearCookie('access_token', {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? 'none' : 'lax',
+      path: '/',
+    });
+    await res.clearCookie('public_session', {
+      secure: isProd,
+      sameSite: isProd ? 'none' : 'lax',
+      path: '/',
+    });
     return { message: 'Logged out successfully' };
   }
 }

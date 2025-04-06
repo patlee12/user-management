@@ -1,17 +1,27 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, IsEmail } from 'class-validator';
+import { IsString, IsNotEmpty } from 'class-validator';
 
 /**
- * Data transfer object used to verify account request, consists of email and provided token from email service to verify a new account request.
+ * DTO used to verify an account request. It includes:
+ * - tokenId: a short ID used to locate the account request.
+ * - providedToken: the raw token the user received via email.
  */
 export class VerifyAccountRequestDto {
-  @IsEmail()
+  @IsString()
   @IsNotEmpty()
-  @ApiProperty()
-  email: string;
+  @ApiProperty({
+    description:
+      'The token ID used to find the account request in the database',
+    example: 'a1b2c3d4e5f6g7h8',
+  })
+  tokenId: string;
 
   @IsString()
   @IsNotEmpty()
-  @ApiProperty()
+  @ApiProperty({
+    description:
+      'The full raw token sent in the email, verified against the hashed token in the DB',
+    example: 'Xyz123...tokenValueHere...',
+  })
   providedToken: string;
 }

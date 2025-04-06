@@ -1,25 +1,63 @@
-export type AuthStatus = 'idle' | 'loading' | 'mfa' | 'error';
+/**
+ * AuthStatus defines the possible states for the authentication flow.
+ */
+export type AuthStatus =
+  | 'idle'
+  | 'loading'
+  | 'mfa'
+  | 'mfa-optional'
+  | 'mfa-setup'
+  | 'confirm-mfa'
+  | 'error';
 
+/**
+ * LoginState represents the state of the login component.
+ */
 export interface LoginState {
+  /** Current status of the authentication flow. */
   status: AuthStatus;
+  /** Error message in case of a failure. */
   errorMessage: string;
+  /** Temporary token used for MFA verification. */
   tempToken: string;
+  /** URL for the QR code image (if MFA setup is in progress). */
+  qrCodeUrl?: string;
+  /** Secret key for MFA setup. */
+  secret?: string;
 }
 
+/**
+ * LoginAction defines the actions that can be dispatched to the login reducer.
+ */
 export type LoginAction =
   | { type: 'START_LOGIN' }
   | { type: 'LOGIN_SUCCESS' }
   | { type: 'MFA_REQUIRED'; ticket: string }
+  | { type: 'OPTIONAL_MFA_PROMPT'; qrCodeUrl: string; secret: string }
+  | { type: 'BEGIN_MFA_SETUP' }
+  | { type: 'BEGIN_CONFIRM_MFA_SETUP' }
   | { type: 'LOGIN_ERROR'; message: string }
   | { type: 'CLEAR_ERROR' }
   | { type: 'RESET' };
 
+/**
+ * The initial state for the login flow.
+ */
 export const initialLoginState: LoginState = {
   status: 'idle',
   errorMessage: '',
   tempToken: '',
+  qrCodeUrl: '',
+  secret: '',
 };
 
+/**
+ * loginReducer is a state machine that handles transitions during the login and MFA process.
+ *
+ * @param {LoginState} state - The current login state.
+ * @param {LoginAction} action - The action to process.
+ * @returns {LoginState} The updated login state.
+ */
 export function loginReducer(
   state: LoginState,
   action: LoginAction,
@@ -31,6 +69,18 @@ export function loginReducer(
       return { ...initialLoginState };
     case 'MFA_REQUIRED':
       return { ...state, status: 'mfa', tempToken: action.ticket };
+    case 'OPTIONAL_MFA_PROMPT':
+      return {
+        ...state,
+        status: 'mfa-optional',
+        qrCodeUrl: action.qrCodeUrl,
+        secret: action.secret,
+        errorMessage: '',
+      };
+    case 'BEGIN_MFA_SETUP':
+      return { ...state, status: 'mfa-setup' };
+    case 'BEGIN_CONFIRM_MFA_SETUP':
+      return { ...state, status: 'confirm-mfa' };
     case 'LOGIN_ERROR':
       return { ...state, status: 'error', errorMessage: action.message };
     case 'CLEAR_ERROR':

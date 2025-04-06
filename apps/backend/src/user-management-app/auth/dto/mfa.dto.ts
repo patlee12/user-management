@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, Length } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsNotEmpty, IsOptional, IsString, Length } from 'class-validator';
 
 /**
  * DTO used to verify user MFA after login.
@@ -11,8 +11,8 @@ export class MfaDto {
   @ApiProperty({ description: '6-digit token from authenticator app' })
   token: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  @ApiProperty({ description: 'MFA temp ticket ' })
-  ticket: string;
+  @ApiPropertyOptional({ description: 'MFA temp ticket ' })
+  ticket?: string;
 }

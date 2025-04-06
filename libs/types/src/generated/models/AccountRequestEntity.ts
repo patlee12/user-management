@@ -7,6 +7,7 @@ export type AccountRequestEntity = {
     name: string;
     username: string;
     email: string;
+    tokenId: string;
     expiresAt: string;
     createdAt: string;
 };
