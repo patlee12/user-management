@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsString,
   IsNotEmpty,
@@ -16,7 +16,7 @@ export class CreateAccountRequestDto {
   @IsString()
   @IsOptional()
   @MinLength(3)
-  @ApiProperty({ required: false })
+  @ApiPropertyOptional()
   name?: string;
 
   @IsString()
