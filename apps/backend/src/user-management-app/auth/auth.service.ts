@@ -15,7 +15,6 @@ import { JwtPayload } from './jwt.strategy';
 import { decryptSecret } from 'src/helpers/encryption-tools';
 import { MfaDto } from './dto/mfa.dto';
 import { LoginDto } from './dto/login.dto';
-import * as jwt from 'jsonwebtoken';
 
 @Injectable()
 export class AuthService {
