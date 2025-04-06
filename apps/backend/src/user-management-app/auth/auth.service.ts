@@ -26,7 +26,7 @@ export class AuthService {
   ) {}
 
   /**
-   * Authenticates a user with their email and password.
+   * Authenticates a user with their provided email or username and password.
    *
    * - If the user does **not** have MFA enabled, returns a JWT access token.
    * - If the user **has MFA enabled**:
@@ -35,16 +35,23 @@ export class AuthService {
    *
    * This supports a two-step MFA flow where the frontend receives a `ticket` from the login response and completes MFA verification via `/auth/verify-mfa`.
    *
-   * @param loginDto - The login data containing email, password, and optionally an MFA token.
+   * @param loginDto - The login data containing email or username, password, and optionally an MFA token.
    * @returns {AuthResponseDto} - Either an access token, or an MFA challenge ticket.
    *
    * @throws {NotFoundException} - If no user is found for the provided email.
    * @throws {UnauthorizedException} - If the password is invalid or if an invalid MFA token is provided.
    */
   async login(loginDto: LoginDto): Promise<AuthResponseDto> {
-    const user = await this.prisma.user.findUnique({
-      where: { email: loginDto.email },
-    });
+    let user = null;
+    if (loginDto.email) {
+      user = await this.prisma.user.findUnique({
+        where: { email: loginDto.email },
+      });
+    } else {
+      user = await this.prisma.user.findUnique({
+        where: { username: loginDto.username },
+      });
+    }
 
     if (!user) {
       throw new NotFoundException(`No user found for that email/password`);

@@ -25,7 +25,11 @@ export default function LoginComponent() {
 
   const loadUser = useAuthStore((state) => state.loadUser);
 
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
+  const isEmail = (input: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input);
+  };
+
   const [password, setPassword] = useState('');
   const [mfaCode, setMfaCode] = useState('');
   const [state, dispatch] = useReducer(loginReducer, initialLoginState);
@@ -36,11 +40,17 @@ export default function LoginComponent() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     dispatch({ type: 'START_LOGIN' });
-
-    const loginDto: LoginDto = { email, password };
+    let buildLoginDto: LoginDto = {
+      password: password,
+    };
+    if (isEmail(identifier)) {
+      buildLoginDto.email = identifier;
+    } else {
+      buildLoginDto.username = identifier;
+    }
 
     try {
-      const response = await login(loginDto);
+      const response = await login(buildLoginDto);
 
       if (response.mfaRequired && response.ticket) {
         dispatch({ type: 'MFA_REQUIRED', ticket: response.ticket });
@@ -98,20 +108,21 @@ export default function LoginComponent() {
           <form onSubmit={handleLogin} className="space-y-6">
             <div>
               <label
-                htmlFor="email"
+                htmlFor="identifier"
                 className="block text-sm font-medium text-zinc-300 mb-1"
               >
-                Email address
+                Email or Username
               </label>
               <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
+                id="identifier"
+                name="identifier"
+                type="text"
+                autoComplete="username"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
                 onFocus={() => dispatch({ type: 'CLEAR_ERROR' })}
+                placeholder="Enter your email or username"
                 className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-4 py-2 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
               />
             </div>

@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsEmail,
   IsNotEmpty,
@@ -7,15 +7,22 @@ import {
   MinLength,
   Length,
 } from 'class-validator';
+import { AtLeastOneField } from '@src/common/Decorators/atleast-one-field-constraint';
 
 /**
  * Data transfer object passed to server to log user in and provide access token JWT on successful login.
  */
 export class LoginDto {
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(3)
+  @ApiPropertyOptional()
+  username?: string;
+
   @IsEmail()
   @IsNotEmpty()
-  @ApiProperty()
-  email: string;
+  @ApiPropertyOptional()
+  email?: string;
 
   @IsString()
   @IsNotEmpty()
@@ -28,4 +35,9 @@ export class LoginDto {
   @Length(6, 6)
   @ApiProperty({ required: false })
   token?: string;
+
+  @AtLeastOneField(['email', 'username'], {
+    message: 'Either email or username must be provided',
+  })
+  _atLeastOneField!: string;
 }

@@ -3,7 +3,8 @@
 /* tslint:disable */
 /* eslint-disable */
 export type LoginDto = {
-    email: string;
+    username?: string;
+    email?: string;
     password: string;
     token?: string;
 };
