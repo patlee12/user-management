@@ -17,6 +17,7 @@ import {
 } from './errors/password-reset-errors';
 import { MailingService } from '../mailing/mailing.service';
 import { EmailPasswordResetDto } from '../mailing/dto/email-password-reset.dto';
+import buildEncodedLink from '@src/helpers/build-encoded-link';
 
 @Injectable()
 export class PasswordResetService {
@@ -34,22 +35,36 @@ export class PasswordResetService {
   async create(
     createPasswordResetDto: CreatePasswordResetDto,
   ): Promise<PasswordResetEntity> {
-    const { userId } = createPasswordResetDto;
-
-    // Lookup user email using userId
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-    });
+    let user: UserEntity = null;
+    if (createPasswordResetDto.userId) {
+      const { userId } = createPasswordResetDto;
+      // Lookup user email using userId
+      user = await this.prisma.user.findUnique({
+        where: { id: userId },
+      });
+    } else {
+      const { email } = createPasswordResetDto;
+      // Lookup user email using email
+      user = await this.prisma.user.findUnique({
+        where: { email: email },
+      });
+    }
 
     if (!user) {
-      throw new UserNotFoundError(`User with ID ${userId} not found`);
+      throw new UserNotFoundError(`User not found`);
     }
 
     // Generate the raw token
     const rawRandomToken = await generateToken();
 
     // Construct the password reset link using the token
-    const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${rawRandomToken}`;
+    const resetLink = buildEncodedLink(
+      `${process.env.FRONTEND_URL}/forgot-password/reset`,
+      {
+        token: rawRandomToken,
+        userId: user.id,
+      },
+    );
 
     // Send password reset email BEFORE hashing the token
     const emailPasswordResetDto: EmailPasswordResetDto = {
@@ -73,7 +88,7 @@ export class PasswordResetService {
 
     // Save the hashed token and expiration to the database
     const passwordResetData = {
-      userId,
+      userId: user.id,
       token: hashedToken,
       expiresAt,
     };
@@ -126,12 +141,8 @@ export class PasswordResetService {
       throw new InvalidTokenError();
     }
 
-    const hashedNewPassword = await argon2.hash(
-      confirmPasswordResetDto.newPassword,
-    );
-
     await this.userService.update(confirmPasswordResetDto.userId, {
-      password: hashedNewPassword,
+      password: confirmPasswordResetDto.newPassword,
     });
 
     await this.prisma.passwordReset.delete({
@@ -160,6 +171,29 @@ export class PasswordResetService {
    */
   async findOne(id: number): Promise<PasswordResetEntity> {
     return await this.prisma.passwordReset.findUnique({ where: { id: id } });
+  }
+
+  /**
+   * Find one password reset by userId.
+   * @param userId
+   * @returns {Promise<PasswordResetEntity>}
+   */
+  async findOneByUserId(userId: number): Promise<PasswordResetEntity> {
+    return await this.prisma.passwordReset.findUnique({
+      where: { userId: userId },
+    });
+  }
+
+  /**
+   * Find a password reset by email.
+   * @param email
+   * @returns {Promise<PasswordResetEntity>
+   */
+  async findOneByEmail(email: string): Promise<PasswordResetEntity> {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+    return await this.prisma.passwordReset.findUnique({
+      where: { userId: user.id },
+    });
   }
 
   /**

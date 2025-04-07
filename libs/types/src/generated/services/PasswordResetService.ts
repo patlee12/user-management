@@ -103,4 +103,36 @@ export class PasswordResetService {
             },
         });
     }
+    /**
+     * @param userId
+     * @returns PasswordResetEntity
+     * @throws ApiError
+     */
+    public static passwordResetControllerFindOneByUserId(
+        userId: string,
+    ): CancelablePromise<PasswordResetEntity> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/password-reset/byUserId/{userId}',
+            path: {
+                'userId': userId,
+            },
+        });
+    }
+    /**
+     * @param email
+     * @returns PasswordResetEntity
+     * @throws ApiError
+     */
+    public static passwordResetControllerFindOneByEmail(
+        email: string,
+    ): CancelablePromise<PasswordResetEntity> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/password-reset/byEmail/{email}',
+            path: {
+                'email': email,
+            },
+        });
+    }
 }

@@ -4,5 +4,6 @@
 /* eslint-disable */
 export type UpdatePasswordResetDto = {
     userId?: number;
+    email?: string;
 };
 

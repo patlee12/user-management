@@ -3,6 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export type CreatePasswordResetDto = {
-    userId: number;
+    userId?: number;
+    email?: string;
 };
 
