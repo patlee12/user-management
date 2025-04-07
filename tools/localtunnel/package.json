@@ -1,0 +1,16 @@
+{
+  "name": "localtunnel",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "tunnel": "lt --port 80 --local-host localhost --https --subdomain user-management",
+    "tunnel-password": "curl https://loca.lt/mytunnelpassword",
+    "tunnel:with-password": "concurrently -n tunnel,wait,password -c cyan,gray,magenta \"yarn tunnel\" \"wait-on https://user-management.loca.lt --timeout 60000 --httpTimeout 5000 --https\" \"yarn tunnel-password\""
+  },
+  "dependencies": {
+    "concurrently": "^9.1.2",
+    "localtunnel": "localtunnel/localtunnel",
+    "wait-on": "^7.1.1"
+  }
+}
