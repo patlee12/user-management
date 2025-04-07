@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import CanvasBackground from '@/components/ui/backgrounds/canvasBackground';
 import { useAuthStore } from '@/stores/authStore';
-import { verifyMfa } from '@/app/services/authService';
+import { verifyMfa } from '@/app/services/auth-service';
 
 export default function VerifyMfaClient() {
   const router = useRouter();

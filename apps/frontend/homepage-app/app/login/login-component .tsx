@@ -8,7 +8,7 @@ import {
   verifyMfa,
   getMfaSetup,
   confirmMfaSetup,
-} from '@/app/services/authService';
+} from '@/app/services/auth-service';
 import { LoginDto, MfaDto } from '@user-management/types';
 import { useAuthStore } from '@/stores/authStore';
 import { Button } from '@/components/ui/button';

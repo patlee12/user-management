@@ -5,7 +5,7 @@ import Link from 'next/link';
 import CanvasBackground from '@/components/ui/backgrounds/canvasBackground';
 import { useState } from 'react';
 import { CreateAccountRequestDto } from '@user-management/types';
-import { submitAccountRequest } from '@/app/services/accountRequestService';
+import { submitAccountRequest } from '@/app/services/account-request-service';
 import { useRouter } from 'next/navigation';
 
 export default function AccountRequestsPage() {

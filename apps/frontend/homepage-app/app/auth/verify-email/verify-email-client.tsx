@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { verifyEmailToken } from '@/app/services/accountRequestService';
+import { verifyEmailToken } from '@/app/services/account-request-service';
 import VerificationResultWrapper from '@/components/ui/wrappers/verification-result-wrapper';
 import { VerifyAccountRequestDto } from '@user-management/types';
 
