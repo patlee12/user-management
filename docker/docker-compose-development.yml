@@ -4,13 +4,13 @@ services:
     container_name: postgres
     restart: always
     env_file:
-      - .env # .env file now in the docker folder
+      - .env
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
-      - postgres:/var/lib/postgresql/data
+      - dev_postgres_data:/var/lib/postgresql/data
     ports:
       - 5432:5432
     networks:
@@ -29,9 +29,9 @@ services:
       postgres:
         condition: service_healthy
     ports:
-      - '8081:8080' # Adminer web UI running on port 8080 inside the container
+      - '8081:8080'
     env_file:
-      - .env # .env file now in the docker folder
+      - .env
     environment:
       ADMINER_DEFAULT_SERVER: postgres
       ADMINER_DEFAULT_USER: ${POSTGRES_USER}
@@ -46,7 +46,7 @@ services:
       retries: 5
 
 volumes:
-  postgres:
+  dev_postgres_data:
 
 networks:
   full-stack-network:

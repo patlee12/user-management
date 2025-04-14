@@ -1,13 +1,12 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '../prisma/prisma.module';
-import { UsersModule } from 'src/user-management-app/users/users.module';
+import { UsersModule } from './users/users.module';
 import { PostsModule } from './posts/posts.module';
-import { AuthModule } from 'src/user-management-app/auth/auth.module';
+import { AuthModule } from './auth/auth.module';
 import { RolesPermissionsResourcesModule } from './roles-and-permissions-resources/roles-permissions-resources.module';
 import { AccountRequestsModule } from './account-requests/account-requests.module';
 import { PasswordResetModule } from './password-reset/password-reset.module';
 import { MailingModule } from './mailing/mailing.module';
-import { AdminModule } from './admin/admin.module'; // Import the AdminModule here
 
 @Module({
   imports: [
@@ -19,9 +18,6 @@ import { AdminModule } from './admin/admin.module'; // Import the AdminModule he
     UsersModule,
     PostsModule,
     RolesPermissionsResourcesModule,
-    AdminModule,
   ],
-  controllers: [],
-  providers: [],
 })
 export class UserManagementModule {}

@@ -49,3 +49,9 @@ yarn.lock
 **/tsconfig.tsbuildinfo
 
 *.vbs
+*env-logs
+*.env.production
+*certs
+*.csr
+csr.conf
+cert-CA-signed.zip

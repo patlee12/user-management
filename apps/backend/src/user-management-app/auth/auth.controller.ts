@@ -52,12 +52,15 @@ export class AuthController {
   ): Promise<AuthResponseDto> {
     const result = await this.authService.login(loginDto);
     const isProd = process.env.NODE_ENV?.toLowerCase() === 'production';
+    const domainHost = process.env.DOMAIN_HOST?.trim();
+    const cookieDomain = isProd && domainHost ? `.${domainHost}` : undefined;
 
     if ('accessToken' in result) {
       res.cookie('access_token', result.accessToken, {
         httpOnly: true,
         secure: isProd,
         sameSite: isProd ? 'none' : 'lax',
+        domain: cookieDomain,
         path: '/',
         maxAge: 1000 * 60 * 30,
       });
@@ -73,6 +76,7 @@ export class AuthController {
         httpOnly: false,
         secure: isProd,
         sameSite: isProd ? 'none' : 'lax',
+        domain: cookieDomain,
         path: '/',
         maxAge: 1000 * 60 * 30,
       });
@@ -95,12 +99,15 @@ export class AuthController {
   ): Promise<AuthResponseDto> {
     const result = await this.authService.verifyMfaTicket(mfaDto);
     const isProd = process.env.NODE_ENV?.toLowerCase() === 'production';
+    const domainHost = process.env.DOMAIN_HOST?.trim();
+    const cookieDomain = isProd && domainHost ? `.${domainHost}` : undefined;
 
     if ('accessToken' in result) {
       res.cookie('access_token', result.accessToken, {
         httpOnly: true,
         secure: isProd,
         sameSite: isProd ? 'none' : 'lax',
+        domain: cookieDomain,
         path: '/',
         maxAge: 1000 * 60 * 30,
       });
@@ -118,6 +125,7 @@ export class AuthController {
         httpOnly: false,
         secure: isProd,
         sameSite: isProd ? 'none' : 'lax',
+        domain: cookieDomain,
         path: '/',
         maxAge: 1000 * 60 * 30,
       });
@@ -178,15 +186,21 @@ export class AuthController {
   @ApiOperation({ summary: 'Log out by clearing the auth cookies' })
   async logout(@Res({ passthrough: true }) res: Response) {
     const isProd = process.env.NODE_ENV?.toLowerCase() === 'production';
+    const domainHost = process.env.DOMAIN_HOST?.trim();
+    const cookieDomain = isProd && domainHost ? `.${domainHost}` : undefined;
+
     await res.clearCookie('access_token', {
       httpOnly: true,
       secure: isProd,
       sameSite: isProd ? 'none' : 'lax',
+      domain: cookieDomain,
       path: '/',
     });
     await res.clearCookie('public_session', {
+      httpOnly: false,
       secure: isProd,
       sameSite: isProd ? 'none' : 'lax',
+      domain: cookieDomain,
       path: '/',
     });
     return { message: 'Logged out successfully' };

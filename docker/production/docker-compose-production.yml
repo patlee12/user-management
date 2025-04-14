@@ -1,0 +1,128 @@
+services:
+  nginx:
+    build:
+      context: ../..
+      dockerfile: ./docker/production/containers/nginx.production.Dockerfile
+    image: user-management-nginx
+    container_name: nginx
+    restart: always
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ../../docker/production/nginx/nginx.production.conf:/etc/nginx/nginx.conf:ro
+      - ../../docker/production/nginx/certs:/etc/nginx/certs
+      - ../../docker/production/nginx/www:/var/www/html
+      - ../../docker/production/nginx/logs:/var/log/nginx
+    networks:
+      - full-stack-network
+    depends_on:
+      - homepage-app
+      - nestjs
+
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+    restart: unless-stopped
+    volumes:
+      - ../../docker/production/nginx/certs:/etc/letsencrypt
+      - ../../docker/production/nginx/www:/var/www/html
+    entrypoint: ['sleep', 'infinity']
+
+  cert-renewer:
+    build:
+      context: ../..
+      dockerfile: ./docker/production/containers/cert-renewer.Dockerfile
+    container_name: cert-renewer
+    restart: unless-stopped
+    volumes:
+      - ../../docker/production/nginx/certs:/etc/letsencrypt
+      - ../../docker/production/nginx/www:/var/www/html
+      - ../../docker/production/.env.production:/etc/env.production:ro
+      - ../../docker/production/nginx/logs:/var/log
+    networks:
+      - full-stack-network
+
+  postgres:
+    image: postgres:13.5
+    container_name: postgres
+    restart: always
+    env_file:
+      - ../../docker/production/.env.production
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      DATABASE_URL: 'postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}'
+
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    networks:
+      - full-stack-network
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
+      interval: 20s
+      timeout: 5s
+      retries: 10
+
+  adminer:
+    image: adminer
+    container_name: adminer
+    restart: always
+    env_file:
+      - ../../docker/production/.env.production
+    ports:
+      - '8080:8080'
+    networks:
+      - full-stack-network
+    depends_on:
+      - postgres
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+      ADMINER_DEFAULT_DB: ${POSTGRES_DB}
+      ADMINER_DEFAULT_USER: ${POSTGRES_USER}
+      ADMINER_DEFAULT_PASSWORD: ${POSTGRES_PASSWORD}
+
+  nestjs:
+    build:
+      context: ../..
+      dockerfile: ./docker/production/containers/nest.production.Dockerfile
+    container_name: nestjs
+    restart: always
+    env_file:
+      - ../../docker/production/.env.production
+      - ../../apps/backend/.env
+    networks:
+      - full-stack-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  homepage-app:
+    build:
+      context: ../..
+      dockerfile: ./docker/production/containers/homepage-app.production.Dockerfile
+    container_name: homepage-app
+    restart: always
+    ports:
+      - '3001:3000'
+    env_file:
+      - ../../docker/production/.env.production
+      - ../../apps/frontend/homepage-app/.env
+    networks:
+      - full-stack-network
+    depends_on:
+      - nestjs
+    healthcheck:
+      test: ['CMD', 'wget', '--spider', '-q', 'http://localhost:3000']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  postgres:
+    name: user-management_postgres
+
+networks:
+  full-stack-network:
+    driver: bridge

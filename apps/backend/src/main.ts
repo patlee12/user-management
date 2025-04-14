@@ -11,161 +11,124 @@ import * as os from 'os';
 import cookieParser from 'cookie-parser';
 import { updateFrontendEnv } from 'scripts/update-frontend-env';
 import { waitForPortOpen } from './helpers/network';
+import { PrismaService } from './prisma/prisma.service';
+import { SwaggerAuthMiddleware } from './middleware/swagger-auth.middleware';
+import { AdminAuthMiddleware } from './middleware/admin-auth.middleware';
+import { setupAdminPanel } from './user-management-app/admin/setup-admin-panel';
+import type { RequestHandler } from 'express';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
-  const userManagementApp = await NestFactory.create(UserManagementModule);
-  userManagementApp.use(cookieParser());
+  const app = await NestFactory.create(UserManagementModule);
 
-  // Global validation pipes and serialization interceptors
-  userManagementApp.useGlobalPipes(new ValidationPipe({ whitelist: true }));
-  userManagementApp.useGlobalInterceptors(
-    new ClassSerializerInterceptor(userManagementApp.get(Reflector)),
-  );
+  app.use(cookieParser());
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
+  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
-  const port = process.env.PORT;
+  const port = process.env.PORT || 3001;
 
-  // Normalize global prefix by stripping leading/trailing slashes
-  const rawPrefix = process.env.GLOBAL_PREFIX || '';
-  const globalPrefix = rawPrefix.replace(/^\/+/, '').replace(/\/+$/, '');
-  const prefix = globalPrefix ? `/${globalPrefix}` : '';
+  const isProd = process.env.NODE_ENV?.toLowerCase() === 'production';
+  const domainHost = process.env.DOMAIN_HOST?.trim();
+  const frontendUrl = process.env.FRONTEND_URL?.replace(/^https?:\/\//, '');
+  const hostValue =
+    isProd && domainHost
+      ? domainHost
+      : frontendUrl
+        ? frontendUrl
+        : 'localhost:3000';
+  const corsOrigin = isProd ? `https://${hostValue}` : `http://${hostValue}`;
+  logger.log(`🔐 CORS Origin: ${corsOrigin}`);
 
-  if (globalPrefix) {
-    userManagementApp.setGlobalPrefix(globalPrefix);
-    logger.log(`Global prefix set to ${prefix}`);
-  } else {
-    logger.warn('No global prefix set. Routes will be registered at root.');
+  app.enableCors({
+    origin: corsOrigin,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Authorization', 'Content-Type'],
+  });
+
+  const prisma = app.get(PrismaService);
+
+  // Mount AdminJS
+  const { adminRootPath, adminRouter } = await setupAdminPanel(prisma);
+
+  if (isProd) {
+    const adminAuthMiddleware = new AdminAuthMiddleware(prisma);
+    app.use(adminRootPath, adminAuthMiddleware.use.bind(adminAuthMiddleware));
+    logger.log(`🔐 Admin middleware applied at ${adminRootPath}`);
   }
 
-  // Swagger configuration
-  const config = new DocumentBuilder()
-    .setTitle('User-Management')
-    .setDescription(
-      'A backend microservice architecture serving user management and authentication services.',
-    )
-    .setVersion('0.1')
-    .addBearerAuth()
-    .build();
+  app.use(adminRootPath, adminRouter as unknown as RequestHandler);
+  logger.log(`🛡️  Admin panel mounted at ${adminRootPath}`);
 
-  const document = SwaggerModule.createDocument(userManagementApp, config);
-
-  // Setup Swagger UI only if ENABLE_SWAGGER is true (recommended for development)
+  // Swagger setup
   if (process.env.ENABLE_SWAGGER === 'true') {
-    const swaggerPath = globalPrefix ? `${globalPrefix}/api` : 'api';
-    SwaggerModule.setup(swaggerPath, userManagementApp, document);
-    logger.log(`Swagger available at /${swaggerPath}`);
+    const swaggerPath = '/api';
+    if (isProd) {
+      const swaggerAuthMiddleware = new SwaggerAuthMiddleware(prisma);
+      app.use(
+        swaggerPath,
+        swaggerAuthMiddleware.use.bind(swaggerAuthMiddleware),
+      );
+      logger.log(`🔐 Swagger middleware bound on: ${swaggerPath}`);
+    }
+    const swaggerConfig = new DocumentBuilder()
+      .setTitle('User-Management')
+      .setDescription('User management & authentication microservice')
+      .setVersion('1.0')
+      .addBearerAuth()
+      .build();
+    const document = SwaggerModule.createDocument(app, swaggerConfig);
+    SwaggerModule.setup(swaggerPath, app, document);
   }
 
-  // Handle Prisma client exceptions globally
-  const { httpAdapter } = userManagementApp.get(HttpAdapterHost);
-  userManagementApp.useGlobalFilters(
-    new PrismaClientExceptionFilter(httpAdapter),
-  );
+  const { httpAdapter } = app.get(HttpAdapterHost);
+  app.useGlobalFilters(new PrismaClientExceptionFilter(httpAdapter));
 
-  // Get the local IP address of the server (LAN IP, including Docker interfaces)
+  // Network info logging
   const networkInterfaces = os.networkInterfaces();
-  let localIpAddress = 'localhost'; // Default to localhost
-  let dockerIpAddress = ''; // Store Docker IP
-
-  for (const interfaceName in networkInterfaces) {
-    for (const interfaceInfo of networkInterfaces[interfaceName]) {
-      if (interfaceInfo.family === 'IPv4' && !interfaceInfo.internal) {
-        if (interfaceName.startsWith('docker')) {
-          dockerIpAddress = interfaceInfo.address;
-        } else {
-          localIpAddress = interfaceInfo.address;
+  let localIpAddress = 'localhost';
+  let dockerIp = '';
+  for (const iface of Object.values(networkInterfaces)) {
+    for (const addr of iface || []) {
+      if (addr.family === 'IPv4' && !addr.internal) {
+        if (
+          addr.address.startsWith('172.') ||
+          addr.address.startsWith('10.') ||
+          addr.address.startsWith('192.168.')
+        ) {
+          localIpAddress = addr.address;
+        }
+        if (
+          addr.address.startsWith('172.') &&
+          iface.toString().includes('docker')
+        ) {
+          dockerIp = addr.address;
         }
       }
     }
   }
 
-  // Determine environment
-  const isProduction = process.env.NODE_ENV?.toLowerCase() === 'production';
-
-  // Strip any protocol from the FRONTEND_URL just in case
-  const frontendUrl = process.env.FRONTEND_URL?.replace(/^https?:\/\//, '');
-
-  // Determine host
-  const host =
-    isProduction && frontendUrl ? frontendUrl : `${localIpAddress}:3000`;
-
-  // Ensure FRONTEND_URL and NEXT_PUBLIC_BACKEND_URL is updated in dev
-  if (!isProduction) {
-    process.env.FRONTEND_URL = `http://${localIpAddress}:3000`;
-    updateFrontendEnv(
-      'NEXT_PUBLIC_BACKEND_URL',
-      `http://${localIpAddress}:${port}`,
-    );
+  if (!isProd) {
+    const backendUrl = `http://${localIpAddress}:${port}`;
+    updateFrontendEnv('NEXT_PUBLIC_BACKEND_URL', backendUrl);
   }
 
-  // Final origin string
-  const corsOrigin = isProduction ? `https://${host}` : `http://${host}`;
+  await app.listen(port);
+  logger.log(`🚀 Server listening on: http://localhost:${port}`);
 
-  // Debugging tip (optional)
-  console.log('🔐 CORS Origin:', corsOrigin);
-
-  // CORS setup
-  userManagementApp.enableCors({
-    origin: corsOrigin,
-    credentials: true,
-    allowedHeaders: ['Authorization', 'Content-Type'],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  });
-
-  // Start app
-  await userManagementApp.listen(port || 3001);
-
-  if (isProduction) {
-    logger.log(`🚀 [Production] Homepage Application:     http://${host}`);
-    logger.log(
-      `🚀 [Production] API Server:               http://${host}${prefix}`,
-    );
-    logger.log(
-      `🚀 [Production] Swagger Docs:             http://${host}${prefix}/api`,
-    );
-    logger.log(
-      `🚀 [Production] AdminJS Panel:            http://${host}${prefix}/admin`,
-    );
+  if (isProd) {
+    logger.log(`🌍 Production Domain: https://${domainHost}`);
+    logger.log(`📖  Swagger Docs:     https://${domainHost}/api`);
   } else {
-    try {
-      await waitForPortOpen(+port);
-      setTimeout(() => {
-        logger.log(
-          `🚀 [Development] Homepage Application:    http://${localIpAddress}:3000`,
-        );
-        logger.log(
-          `🚀 [Development] API Server:              http://${localIpAddress}:${port}${prefix}`,
-        );
-        logger.log(
-          `🚀 [Development] Swagger Docs:            http://${localIpAddress}:${port}${prefix}/api`,
-        );
-        logger.log(
-          `🚀 [Development] AdminJS Panel:           http://${localIpAddress}:${port}${prefix}/admin`,
-        );
-      }, 2500);
-    } catch (err) {
-      console.error(`❌ ${err.message}`);
-      process.exit(1);
-    }
-    if (dockerIpAddress) {
-      logger.log('');
-      logger.log(
-        `🚀 Docker: Homepage Application:          http://${dockerIpAddress}:3000`,
-      );
-      logger.log(
-        `🚀 Docker: API Server:                    http://${dockerIpAddress}:${port}${prefix}`,
-      );
-      logger.log(
-        `🚀 Docker: Swagger Docs:                  http://${dockerIpAddress}:${port}${prefix}/api`,
-      );
-      logger.log(
-        `🚀 Docker: AdminJS Panel:                 http://${dockerIpAddress}:${port}${prefix}/admin`,
-      );
+    await waitForPortOpen(+port);
+    logger.log(`🧪 Dev IP:           http://${localIpAddress}:${port}`);
+    logger.log(`📖 Swagger Docs:     http://${localIpAddress}:${port}/api`);
+    if (dockerIp) {
+      logger.log(`🐳 Docker IP:        http://${dockerIp}:${port}`);
     }
   }
 
-  logger.log('========================================');
-  logger.log('');
+  logger.log('✅ App bootstrap complete.');
 }
 
 bootstrap();

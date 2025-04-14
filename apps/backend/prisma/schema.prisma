@@ -136,7 +136,7 @@ model Post {
 model mfa_auth {
   id          Int      @id @default(autoincrement())
   secret      String
-  user        User     @relation(fields: [userId,email],references: [id,email])
+  user        User     @relation(fields: [userId,email],references: [id,email], onDelete: Cascade)
   userId      Int      @unique
   email       String   @unique   
   createdAt   DateTime @default(now())

@@ -19,7 +19,7 @@
     "bootstrap:prod": "yarn migrate && yarn seed:admin && yarn start:prod",
     "migrate": "yarn prisma migrate deploy",
     "migrate:reset": "yarn prisma migrate reset --force --skip-seed",
-    "seed:admin": "ts-node -r tsconfig-paths/register scripts/run-admin-seed.ts",
+    "seed:admin": "node dist/scripts/run-admin-seed.js",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -27,7 +27,7 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand"
   },
   "prisma": {
-    "seed": "ts-node -r tsconfig-paths/register prisma/seed.ts"
+    "seed": "node dist/prisma/seed.js"
   },
   "dependencies": {
     "@adminjs/express": "^6.1.1",

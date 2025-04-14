@@ -1,0 +1,58 @@
+worker_processes auto;
+
+events {
+  worker_connections 1024;
+}
+
+http {
+  include       mime.types;
+  default_type  application/octet-stream;
+  sendfile      on;
+  keepalive_timeout 65;
+
+  # ───────────── HTTP :80 ─────────────
+  server {
+    listen 80 default_server;
+    server_name ${DOMAIN_HOST};
+
+    # ACME challenge for Let's Encrypt
+    location ^~ /.well-known/acme-challenge/ {
+      root /var/www/html;
+      default_type "text/plain";
+      try_files $uri =404;
+    }
+
+    # Health check endpoint
+    location = /healthz {
+      return 200 "OK\n";
+    }
+
+    # Redirect all other HTTP traffic to HTTPS
+    location / {
+      return 301 https://$host$request_uri;
+    }
+  }
+
+  # ───────────── HTTPS :443 ─────────────
+  server {
+    listen 443 ssl;
+    server_name ${DOMAIN_HOST};
+
+    ssl_certificate     ${SSL_CERT_PATH};
+    ssl_certificate_key ${SSL_KEY_PATH};
+    ssl_protocols       TLSv1.2 TLSv1.3;
+    ssl_ciphers         HIGH:!aNULL:!MD5;
+
+    # ACME challenge redundancy (optional)
+    location ^~ /.well-known/acme-challenge/ {
+      root /var/www/html;
+      default_type "text/plain";
+      try_files $uri =404;
+    }
+
+    # For now, serve a simple static page or minimal response.
+    location / {
+      return 200 "ACME mode in effect";
+    }
+  }
+}
