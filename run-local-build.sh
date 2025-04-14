@@ -14,8 +14,13 @@ fi
 # --- Prompt for build type ---
 echo ""
 echo "🔧 Please choose the build type:"
-PS3="Select an option (1/2): "
-options=("Dev (dev mode)" "Production (local area network)" "Exit")
+PS3="Select an option (1/2/3): "
+options=(
+  "Dev (dev mode)"
+  "Production Local Area Network (.local) deployment"
+  "Production Build (With Domain and Subdomains)"
+  "Exit"
+)
 select BUILD_TYPE in "${options[@]}"; do
   case "$BUILD_TYPE" in
     "Dev (dev mode)")
@@ -24,20 +29,26 @@ select BUILD_TYPE in "${options[@]}"; do
       ./scripts/run-dev.sh
       exit 0
       ;;
-    "Production (local area network)")
+    "Production Local Area Network (.local) deployment")
       break
+      ;;
+    "Production Build (With Domain and Subdomains)")
+      echo ""
+      echo "🚀 Running full production build using ./docker/production/scripts/run-production-build.sh ..."
+      ./docker/production/scripts/run-production-build.sh
+      exit 0
       ;;
     "Exit")
       echo "Exiting the setup."
       exit 0
       ;;
     *)
-      echo "❌ Invalid option. Please select a valid option (1/2)."
+      echo "❌ Invalid option. Please select a valid option (1/2/3)."
       ;;
   esac
 done
 
-# --- Shared Setup (for Production only) ---
+# --- Shared Setup (for LAN Production only) ---
 if [[ "$1" != "--vm-mode" ]]; then
   echo ""
   echo "🔧 Preparing your local environment..."
@@ -94,7 +105,6 @@ if [ "$IS_UBUNTU" == "true" ]; then
   docker compose -f docker/docker-compose-local-area-network.yml up
 else
   echo "🧠 Detected non-Ubuntu system ($OS_NAME). Running production build inside VM..."
-  # Only run bridge script if not already in VM
   if [ "$IS_VM" != "true" ]; then
     ./scripts/internal/create-virtual-bridge.sh
   fi
