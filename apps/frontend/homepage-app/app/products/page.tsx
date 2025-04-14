@@ -15,7 +15,7 @@ const apps = [
     getPath: (env: string, host: string) => {
       if (env === 'lan-prod') return `http://${host}/nestjs/api`;
       if (env === 'production') return `https://swagger.${host}`;
-      return `http://${host}:3001/api`;
+      return `https://${host}:3001/api`;
     },
   },
   {
@@ -26,7 +26,7 @@ const apps = [
     getPath: (env: string, host: string) => {
       if (env === 'lan-prod') return `http://${host}/nestjs/admin`;
       if (env === 'production') return `https://admin.${host}`;
-      return `http://${host}:3001/admin`;
+      return `https://${host}:3001/admin`;
     },
   },
   {
@@ -74,7 +74,7 @@ export default function ProductsPage() {
     };
 
   const visibleApps =
-    env === 'production'
+    env === 'production' || env === 'lan-prod'
       ? apps.filter((app) => !hiddenAppsInProd.includes(app.key))
       : apps;
 

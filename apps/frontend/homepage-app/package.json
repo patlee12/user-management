@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3000",
+    "dev": "wait-on ../../../apps/backend/dist/certs/localhost.pem && ts-node server.ts",
     "build": "yarn workspace @user-management/types build && next build",
     "build:docker": "dotenv -e .env,.env.localareanetwork -- sh -c 'NEXT_DISABLE_ESLINT=true yarn workspace @user-management/types build && next build'",
     "start": "next start",
@@ -37,11 +37,14 @@
     "tailwindcss": "3.4.1",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^5",
+    "wait-on": "^8.0.3",
     "zustand": "^5.0.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "eslint": "^9",
-    "eslint-config-next": "15.2.3"
+    "eslint-config-next": "15.2.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
   }
 }
