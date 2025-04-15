@@ -1,6 +1,6 @@
 # User Management Monorepo
 
-This is a **monorepo** that provides a full-stack application boilerplate with separate applications for the backend and frontend. The backend is built using **Nest.js**, while the frontend includes a Homepage Application built using **Next.js**. This project also includes Docker configurations for three deployment environments—**local development**, **local area network deployment**, and **production deployment with a public domain**—as well as Avahi for service discovery and Nginx as a reverse proxy.
+This is a **monorepo** that provides a full-stack application boilerplate with separate applications for the backend and frontend. The backend is built using **Nest.js**, while the frontend includes a Homepage Application built using **Next.js**. This project also includes Docker configurations for three deployment environments—**local development**, **local area network deployment** using Avahi for service discovery, and **production deployment with a public domain**— both local area network and production deployments use Nginx as a reverse proxy.
 
 ---
 
