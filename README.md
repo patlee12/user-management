@@ -89,7 +89,7 @@ The project supports **three environments** that you can choose from when runnin
 ./run-local-build.sh
 ````
 
-### 1️⃣ Development Environment
+### 1️⃣ Development Environment (Dev mode)
 
 Use this mode for local development. It mounts files live, and runs HTTPS on `https://localhost:3000`.
 
@@ -105,7 +105,7 @@ Ensure these values are set in your `.env`:
 
 ---
 
-### 2️⃣ Local Area Network Deployment (Private HTTPS via `.local`)
+### 2️⃣ Production Deployment on Local Area Network (Private HTTPS via `.local`)
 
 This option deploys the full stack in Docker with `.local` mDNS resolution using Avahi.
 
