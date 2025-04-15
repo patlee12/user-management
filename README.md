@@ -49,7 +49,7 @@ Used when selecting **"Dev (dev mode)"** in `./run-local-build.sh`.
 
 ### 2. Local Area Network Deployment (`.local`)
 
-Used when selecting **"Production (local area network)"**.
+Used when selecting **"Production Local Area Network (.local) deployment"**.
 
 - [`docker/.env.template`](./docker/.env.template)
 - [`apps/backend/.env.localareanetwork`](./apps/backend/.env.localareanetwork)
@@ -61,7 +61,7 @@ Used when selecting **"Production (local area network)"**.
 
 ### 3. Production Deployment (Public HTTPS)
 
-Used when selecting **"Production (public domain)"**.
+Used when selecting **"Production Build (With Domain and Subdomains)"**.
 
 - [`docker/production/.env.production.template`](./docker/production/.env.production.template)
 - [`apps/backend/.env.production.template`](./apps/backend/.env.production.template)
