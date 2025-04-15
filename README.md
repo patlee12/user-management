@@ -75,11 +75,12 @@ Used when selecting **"Production Build (With Domain and Subdomains)"**.
 
 The following variables must be set with valid credentials for any environment that sends email:
 
-````env
+```env
 MAIL_SERVICE_PROVIDER="gmail"
 EMAIL_USER="your-email@gmail.com"
 EMAIL_PASS="your-app-password"    **(note: do not use your login password here it must be an api key password)**
 
+```
 
 ## Deployment Options
 
@@ -87,7 +88,7 @@ The project supports **three environments** that you can choose from when runnin
 
 ```bash
 ./run-local-build.sh
-````
+```
 
 ### 1️⃣ Development Environment (Dev mode)
 
