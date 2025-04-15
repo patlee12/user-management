@@ -99,7 +99,7 @@ Ensure these values are set in your `.env`:
 - `ENABLE_SWAGGER=true`
 
 ```bash
-# From repo root, choose "Dev" when prompted
+# From repo root, choose "Dev (dev mode)" when prompted
 ./run-local-build.sh
 ```
 
@@ -110,7 +110,7 @@ Ensure these values are set in your `.env`:
 This option deploys the full stack in Docker with `.local` mDNS resolution using Avahi.
 
 ```bash
-# From repo root, choose "Production (local area network)" when prompted
+# From repo root, choose "Production Local Area Network (.local) deployment" when prompted
 ./run-local-build.sh
 ```
 
@@ -127,7 +127,7 @@ On non Ubuntu OS like macOS or Windows, [`run-in-vm.sh`](./scripts/internal/run-
 This mode deploys the application to a real domain using HTTPS via Let's Encrypt or manually provided certs.
 
 ```bash
-# From repo root, choose "Production (public domain)" when prompted
+# From repo root, choose "Production Build (With Domain and Subdomains)" when prompted
 ./run-local-build.sh
 ```
 
