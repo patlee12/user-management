@@ -54,7 +54,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
-      - postgres:/var/lib/postgresql/data
+      - localareanetwork-production-postgres:/var/lib/postgresql/data
     networks:
       - full-stack-network
     healthcheck:
@@ -146,6 +146,7 @@ services:
       - |
         chmod +x /usr/local/bin/hostname-printer.sh
         /usr/local/bin/hostname-printer.sh
+
   service-watcher:
     build:
       context: ..
@@ -165,7 +166,7 @@ services:
       - avahi-logs:/avahi
 
 volumes:
-  postgres:
+  localareanetwork-production-postgres:
   avahi-logs:
 
 networks:

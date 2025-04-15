@@ -1,91 +1,198 @@
 # User Management Monorepo
 
-This is a **monorepo** that provides a full-stack application boilerplate with separate applications for the backend and frontend. The backend is built using **Nest.js**, while the frontend so far has a Homepage Application that is built using **Next.js**. This project also includes Docker configurations for local development and production environments, including Avahi for service discovery and Nginx as a reverse proxy.
+This is a **monorepo** that provides a full-stack application boilerplate with separate applications for the backend and frontend. The backend is built using **Nest.js**, while the frontend includes a Homepage Application built using **Next.js**. This project also includes Docker configurations for three deployment environments—**local development**, **local area network deployment**, and **production deployment with a public domain**—as well as Avahi for service discovery and Nginx as a reverse proxy.
+
+---
 
 ## Goals of the Project
 
-This monorepo is focused on providing boilerplate code for a full stack application that requires having a **user management system** with features such as:
+This monorepo is focused on providing boilerplate code for a full-stack application that includes a robust **user management system**, featuring:
 
-- **User login**, **account creation requests**, **email verification**, and **password recovery**.
-- **JWT-based authentication**, **multi-factor authentication (MFA)**, and **role-based authorization**.
-- An **Admin Panel** powered by **Admin.js** for managing users and roles.
-- Integration with **Nginx** (as a reverse proxy) and **Avahi** (for mDNS-based service discovery) to enable seamless operation in local area network setups.
-
-The application is designed to be easily extendable and adaptable, as well as allowing you to pivot to a microservices architecture if needed.
+- **User login**, **account creation requests**, **email verification**, and **password recovery**
+- **JWT-based authentication**, **multi-factor authentication (MFA)**, and **role-based authorization**
+- An **Admin Panel** powered by **AdminJS** for managing users and roles
+- Integration with **Nginx** as a reverse proxy, supporting both:
+  - **LAN-based deployments** with mDNS-based service discovery via **Avahi**
+  - **Domain-based deployments** using subdomains and automated HTTPS configuration
+- A modular, scalable architecture that can easily pivot to a **microservices** design
+- Built-in **deployment scripts** for all environments, making development, LAN, and production deployments **frictionless and automated**
 
 ---
 
 ## Monorepo Structure
 
-This project is structured as a **monorepo**, where both the frontend and backend applications and services live in separate folders, but share dependencies and configurations.
+This project is structured as a **monorepo**, where both frontend and backend applications live in separate folders but share dependencies and configurations.
 
 ### Workspaces
 
-- [**`apps/backend`**](https://github.com/patlee12/user-management/tree/main/apps/backend): Designated for backend applications, currently just Nest.js.
-
-- [**`apps/frontend`**](https://github.com/patlee12/user-management/tree/main/apps/frontend): Designated for frontend applications, currently just one built with Next.js.
-
-- [**`docker`**](https://github.com/patlee12/user-management/tree/main/docker): Contains all Docker-related files and configurations.
+- [`apps/backend`](./apps/backend): Nest.js-based backend
+- [`apps/frontend`](./apps/frontend): Frontend apps, currently includes a Next.js homepage
+- [`docker`](./docker): Contains all Docker-related files and deployment configs
 
 ---
 
-### Environment `.env` Files
+## Environment `.env` Files
 
-This project uses **three `.env` files** if you want to read them before generating passwords take a look at `.env.template` file in each of the three workspaces:
+This project uses **deployment-specific environment templates**. You must generate secure values from these templates before running the stack.
 
-1. [**`docker/.env.template`**](https://github.com/patlee12/user-management/blob/main/docker/.env.template): Contains shared environment variables used across the entire monorepo.
+---
 
-2. [**`apps/frontend/homepage-app/.env.template`**](https://github.com/patlee12/user-management/blob/main/apps/frontend/homepage-app/.env.template): Contains environment variables specific to the homepage application built with Next.js.
+### 1. Development Environment
 
-3. [**`apps/backend/.env.template`**](https://github.com/patlee12/user-management/blob/main/apps/backend/.env.template): Contains environment variables specific to the user-management **backend** application built with Nest.js.
+Used when selecting **"Dev (dev mode)"** in `./run-local-build.sh`.
 
-Each file has a specific role in the project, and each needs to have passwords generated before the project can run. One thing to note, you will need to manually setup email api keys with an email service provider if you want to use the email service and then populate these env variables: `MAIL_SERVICE_PROVIDER="gmail"` `EMAIL_USER=""` `EMAIL_PASS=""`
+- [`docker/.env.template`](./docker/.env.template)
+- [`apps/backend/.env.template`](./apps/backend/.env.template)
+- [`apps/frontend/homepage-app/.env.template`](./apps/frontend/homepage-app/.env.template)
 
-### Running the App in a Local Area Network (Production Environment)
+---
 
-The following steps will deploy the project using docker and will be discoverable on your local area network using the docker .env variable `AVAHI_HOSTNAME="user-management"`.
-If host name remains same, the base url will be <https://user-management.local/> .
+### 2. Local Area Network Deployment (`.local`)
 
-To get started, you’ll need to build and run the Docker containers for the entire stack.
+Used when selecting **"Production (local area network)"**.
 
-> **Note:** If you're on a non-Ubuntu OS (like macOS), the [`run-in-vm.sh`](scripts/internal/run-in-vm.sh) script will automatically launch a lightweight Ubuntu VM using Multipass to replicate a local Ubuntu environment. This is required for Avahi-based mDNS broadcasting (`*.local` domains), enabling you to run the full production Docker stack inside the VM and access the app over the local network via `http://user-management.local`.
+- [`docker/.env.template`](./docker/.env.template)
+- [`apps/backend/.env.localareanetwork`](./apps/backend/.env.localareanetwork)
+- [`apps/frontend/homepage-app/.env.localareanetwork`](./apps/frontend/homepage-app/.env.localareanetwork)
+
+> Note: Avahi is required for `.local` mDNS resolution across the LAN.
+
+---
+
+### 3. Production Deployment (Public HTTPS)
+
+Used when selecting **"Production (public domain)"**.
+
+- [`docker/production/.env.production.template`](./docker/production/.env.production.template)
+- [`apps/backend/.env.production.template`](./apps/backend/.env.production.template)
+- [`apps/frontend/homepage-app/.env.production.template`](./apps/frontend/homepage-app/.env.production.template)
+
+> Make sure you set real domain, email, and certificate values before deploying.
+
+---
+
+### Email Configuration
+
+The following variables must be set with valid credentials for any environment that sends email:
+
+````env
+MAIL_SERVICE_PROVIDER="gmail"
+EMAIL_USER="your-email@gmail.com"
+EMAIL_PASS="your-app-password"    **(note: do not use your login password here it must be an api key password)**
+
+
+## Deployment Options
+
+The project supports **three environments** that you can choose from when running:
 
 ```bash
-# From top level of the repository choose "Production" when prompted.
+./run-local-build.sh
+````
+
+### 1️⃣ Development Environment
+
+Use this mode for local development. It mounts files live, and runs HTTPS on `https://localhost:3000`.
+
+Ensure these values are set in your `.env`:
+
+- `NODE_ENV=Development`
+- `ENABLE_SWAGGER=true`
+
+```bash
+# From repo root, choose "Dev" when prompted
 ./run-local-build.sh
 ```
 
-After a minute or so, the applications should all be available. It may take a little while for Avahi to finish deploying while it resolves .local domain. There will be printed statements in terminal giving you the links to each app.
+---
 
-### Running the App in Development Environment
+### 2️⃣ Local Area Network Deployment (Private HTTPS via `.local`)
 
-To run the app in a development environment, verify the `.env` file is set `NODE_ENV='Development'` and ensure that `ENABLE_SWAGGER='true'`.
+This option deploys the full stack in Docker with `.local` mDNS resolution using Avahi.
 
 ```bash
-# From top level of the repository choose "Dev" when prompted.
+# From repo root, choose "Production (local area network)" when prompted
 ./run-local-build.sh
 ```
 
-## More Development CLI commands
+- Hostname becomes `https://user-management.local` by default
+- Requires Avahi on host or will launch a Multipass VM to provide `.local` support
+- Best for local testing across multiple machines
 
-The commands below are from the `package.json` file in the **`apps/backend`** folder. You must be in the backend directory to run them and they are not required to be run only informational.
+On non Ubuntu OS like macOS or Windows, [`run-in-vm.sh`](./scripts/internal/run-in-vm.sh) spins up a Multipass-based Ubuntu VM and runs Docker there with Avahi support.
+
+---
+
+### 3️⃣ Production Deployment (Public HTTPS with Real Domain)
+
+This mode deploys the application to a real domain using HTTPS via Let's Encrypt or manually provided certs.
 
 ```bash
-### Below are commands typically used while developing but not required #####
+# From repo root, choose "Production (public domain)" when prompted
+./run-local-build.sh
+```
 
+#### Features
+
+See the following example if you were using `DOMAIN_HOST=user-management.net`:
+
+- Real HTTPS via Let's Encrypt (auto)
+- Optional manual certificate support
+- Uses environment variable `DOMAIN_HOST` to configure all subdomains
+- Automatically sets up:
+
+  - `https://user-management.net` (Homepage)
+  - `https://api.user-management.net` (API)
+  - `https://admin.user-management.net` (Admin Panel)
+  - `https://swagger.user-management.net` (Swagger UI)
+
+#### DNS Configuration
+
+To ensure subdomains resolve correctly, you must configure DNS records with your domain registrar or DNS provider:
+
+- Create **A record** pointing to your server’s public IP:
+
+  - `@ → YOUR_SERVER_IP`
+
+- Create **CNAME records** that point to a root domain or DNS name (eg. user-management.net or your `DOMAIN_HOST`):
+  - `api → user-management.net`
+  - `admin → user-management.net`
+  - `swagger → user-management.net`
+
+Make sure these DNS records are publicly resolvable **before running Certbot**, or HTTPS certificate generation will fail.
+
+#### Manual Cert Support
+
+If you're providing your own SSL certificates, do the following:
+
+```env
+USE_MANUAL_CERTS=true
+```
+
+Place your cert files in:
+
+```bash
+docker/production/nginx/certs/live/user-management.net/fullchain.pem
+docker/production/nginx/certs/live/user-management.net/privkey.pem
+```
+
+## CLI Dev Commands (Backend)
+
+Inside `apps/backend`, you can run:
+
+```bash
 # Generate Prisma models
 yarn prisma generate
 
-# Run migrations (Development)
+# Run dev DB migrations
 yarn prisma migrate dev
 
-# If you want to seed the database with admin seed data
+# Seed admin data
 yarn prisma db seed
 
-# Run the application
+# Start the NestJS app
 yarn start
 
-# Build the application
+# Build the app
 yarn build
 ```
 
@@ -93,57 +200,55 @@ yarn build
 
 ## Docker Tips
 
-If a container gets stuck (e.g., the PostgreSQL container), here are some useful commands:
-
 ```bash
-# Stop the stuck container
-docker stop <container-name>
+# Stop a stuck container
+docker stop <container>
 
-# Remove the container
-docker rm <container-name>
+# Remove a container
+docker rm <container>
 
 # Stop all containers
 docker stop $(docker ps -q)
 
-# Kill process inside container if needed
-docker inspect --format '{{.State.Pid}}' <container-name>
-sudo kill -9 <PID>
+# Force kill a container process
+PID=$(docker inspect --format '{{.State.Pid}}' <container>)
+sudo kill -9 $PID
 
-# Remove volumes and rebuild
+# Tear down all containers and volumes
 docker compose down --volumes --remove-orphans
 
-# Clean Docker
-docker system prune -af --volumes
-
-# Clean all containers and volumes force  (Use this only if docker becomes unstable due to running out of space)
+# Full Docker clean-up
 docker system prune -a --volumes --force
 ```
 
+---
+
 ## Adminer DB Tool
 
-To interact with the PostgreSQL database via **Adminer**:
+Adminer is bundled to inspect PostgreSQL:
 
-1. Go to **[http://localhost:8081](http://localhost:8081)** in development.
-2. For local area network deployment with **production**, access **Adminer** at [https://user-management.local/adminer](https://user-management.local/adminer).
-3. Use the following credentials (from your `.env` file):
-   - **Username**: `admin`
-   - **Password**: `<your-password>`
-   - **Database**: `hive-db`
+- Dev: http://localhost:8081
+- LAN: https://user-management.local/adminer
+- Production: same as dev its not public but it can be configured to be, its just not recommended.
+
+Use `.env` values for credentials:
+
+- **Username**: `admin`
+- **Password**: your DB password
+- **Database**: `hive-db`
 
 ---
 
 ## Running Tests
 
-You can run tests using Yarn:
-
 ```bash
 # Unit tests
 yarn test
 
-# End-to-end tests
+# End-to-end
 yarn test:e2e
 
-# Test coverage
+# Coverage report
 yarn test:cov
 ```
 
@@ -151,4 +256,4 @@ yarn test:cov
 
 ## License
 
-This project is licensed under the [MIT license](LICENSE).
+This project is licensed under the [MIT license](./LICENSE).
