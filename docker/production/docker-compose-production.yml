@@ -5,7 +5,7 @@ services:
       dockerfile: ./docker/production/containers/nginx.production.Dockerfile
     image: user-management-nginx
     container_name: nginx
-    restart: always
+    restart: on-failure
     ports:
       - '80:80'
       - '443:443'
@@ -46,7 +46,7 @@ services:
   postgres:
     image: postgres:13.5
     container_name: postgres
-    restart: always
+    restart: on-failure
     env_file:
       - ../../docker/production/.env.production
     environment:
@@ -68,7 +68,7 @@ services:
   adminer:
     image: adminer
     container_name: adminer
-    restart: always
+    restart: on-failure
     env_file:
       - ../../docker/production/.env.production
     ports:
@@ -88,7 +88,7 @@ services:
       context: ../..
       dockerfile: ./docker/production/containers/nest.production.Dockerfile
     container_name: nestjs
-    restart: always
+    restart: on-failure
     env_file:
       - ../../docker/production/.env.production
       - ../../apps/backend/.env
@@ -103,7 +103,7 @@ services:
       context: ../..
       dockerfile: ./docker/production/containers/homepage-app.production.Dockerfile
     container_name: homepage-app
-    restart: always
+    restart: on-failure
     ports:
       - '3001:3000'
     env_file:
