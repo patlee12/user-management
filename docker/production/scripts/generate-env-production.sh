@@ -35,6 +35,13 @@ fi
 # === PROMPTS ===
 read -rp "Enter DOMAIN_HOST (e.g. example.com): " DOMAIN_HOST
 DOMAIN_HOST=$(echo "$DOMAIN_HOST" | tr -d '\r\n')
+
+read -rp "Use manually uploaded certificates instead of Let's Encrypt? (y/N): " manual_cert
+case "$manual_cert" in
+  [yY][eE][sS]|[yY]) USE_MANUAL_CERTS=true ;;
+  *) USE_MANUAL_CERTS=false ;;
+esac
+
 read -rp "Enter ADMIN_EMAIL: " ADMIN_EMAIL
 ADMIN_EMAIL=$(echo "$ADMIN_EMAIL" | tr -d '\r\n')
 read -rp "Enter MAIL_SERVICE_PROVIDER: " MAIL_SERVICE_PROVIDER
@@ -67,7 +74,6 @@ resolve_and_merge_templates() {
 
   cat /dev/null > "$output"
 
-  # First merge the base, then override with production
   for template in "$template1" "$template2"; do
     while IFS= read -r line || [[ -n "$line" ]]; do
       [[ "$line" =~ ^#.*$ || -z "$line" ]] && continue
@@ -85,7 +91,6 @@ resolve_and_merge_templates() {
   done
 }
 
-# Load POSTGRES_USER and POSTGRES_DB from shared template
 POSTGRES_USER=$(grep '^POSTGRES_USER=' "$SHARED_TEMPLATE" | cut -d '=' -f2- | tr -d '"')
 POSTGRES_DB=$(grep '^POSTGRES_DB=' "$SHARED_TEMPLATE" | cut -d '=' -f2- | tr -d '"')
 POSTGRES_PASSWORD=$(openssl rand -base64 48 | tr -dc 'A-Za-z0-9!@#$%^&*()_+=' | head -c 32)
@@ -105,6 +110,7 @@ cp "$SHARED_TEMPLATE" "$SHARED_ENV"
   echo "COOKIE_SECRET=$(quote "$COOKIE_SECRET")"
   echo "PUBLIC_SESSION_SECRET=$(quote "$PUBLIC_SESSION_SECRET")"
   echo "DOMAIN_HOST=$(quote "$DOMAIN_HOST")"
+  echo "USE_MANUAL_CERTS=$(quote "$USE_MANUAL_CERTS")"
   echo "MAIL_SERVICE_PROVIDER=$(quote "$MAIL_SERVICE_PROVIDER")"
   echo "EMAIL_USER=$(quote "$EMAIL_USER")"
   echo "EMAIL_PASS=$(quote "$EMAIL_PASS")"

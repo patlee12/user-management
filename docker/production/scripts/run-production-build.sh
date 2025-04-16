@@ -11,26 +11,38 @@ CERTBOT_SCRIPT="$SCRIPT_DIR/request-certbot-cert.sh"
 NGINX_SERVICE_NAME="nginx"
 COMPOSE_FILE="$ROOT_DIR/docker/production/docker-compose-production.yml"
 
-echo "🔧 [1/12] Running setup.sh to ensure permissions…"
+# Step 0: Clean up conflicting containers and unused Docker artifacts
+echo "🧼 [0/14] Cleaning up any previously stopped or named containers..."
+CONFLICT_NAMES=("postgres" "nginx" "cert-renewer" "homepage-app" "nestjs")
+for name in "${CONFLICT_NAMES[@]}"; do
+  if docker ps -a --format '{{.Names}}' | grep -q "^$name$"; then
+    echo "⚠️  Removing conflicting container: $name"
+    docker rm -f "$name" 2>/dev/null || true
+  fi
+done
+
+echo "🧹 Removing exited containers..."
+docker container prune -f
+
+echo "🧹 Removing dangling images..."
+docker image prune -f
+
+echo "🧹 Removing unused networks..."
+docker network prune -f
+
+# Step 1: Ensure permissions
+echo ""
+echo "🔧 [1/14] Running setup.sh to ensure permissions…"
 bash "$SCRIPT_DIR/setup.sh"
 
+# Step 2–6: Setup environment, config, and fallback certs
 echo ""
-echo "🗃️  [2/12] Reset Postgres volume? This **deletes** all data."
-read -rp "⚠️   Type 'reset' to proceed or press Enter to skip: " RESET_CONFIRM
-if [[ "$RESET_CONFIRM" == "reset" ]]; then
-  echo "🛑 Stopping containers and removing Postgres volume..."
-  docker compose -f "$COMPOSE_FILE" down -v || true
-  docker volume rm user-management_postgres 2>/dev/null || true
-fi
-
-# Step 3–6: Setup environment, config, and fallback certs
-echo ""
-echo "🔄 [3–6] Running generate-production.sh to set up env and fallback certs…"
+echo "🔄 [2–6] Running generate-production.sh to set up env and fallback certs…"
 "$SCRIPT_DIR/generate-production.sh"
 
 # Step 7: Load environment
 echo ""
-echo "📦 [7/12] Sourcing environment variables from .env.production..."
+echo "📦 [7/14] Sourcing environment variables from .env.production..."
 if [[ -f "$ENV_FILE" ]]; then
   set -a
   source "$ENV_FILE"
@@ -42,11 +54,11 @@ fi
 
 # Step 8: Start nginx container
 echo ""
-echo "🚀 [8/12] Starting nginx container for initial TLS routing..."
+echo "🚀 [8/14] Starting nginx container for initial TLS routing..."
 docker compose -f "$COMPOSE_FILE" up -d "$NGINX_SERVICE_NAME"
 
 # Step 9: Wait for nginx to be reachable
-echo "🌐 [9/12] Waiting for Nginx to respond on http://$DOMAIN_HOST…"
+echo "🌐 [9/14] Waiting for Nginx to respond on http://$DOMAIN_HOST…"
 for i in {1..30}; do
   if curl -s --head "http://$DOMAIN_HOST" | grep -q "HTTP/1.1 301"; then
     echo "✅ Nginx is reachable (HTTP 301)"
@@ -58,9 +70,9 @@ done
 # Step 10: Attempt Let's Encrypt cert (unless manually overridden)
 echo ""
 if [[ "${USE_MANUAL_CERTS:-false}" == "true" ]]; then
-  echo "📦 [10/12] Manual certificate override enabled — skipping Certbot request."
+  echo "📦 [10/14] Manual certificate override enabled — skipping Certbot request."
 else
-  echo "🔐 [10/12] Attempting Let's Encrypt certificate request…"
+  echo "🔐 [10/14] Attempting Let's Encrypt certificate request…"
   if ! bash "$CERTBOT_SCRIPT"; then
     echo "❌ Certbot failed (possibly due to rate limits or other errors), falling back to self-signed certificates."
   fi
@@ -68,7 +80,7 @@ fi
 
 # Step 11: Rebuild nginx config with proper cert path
 echo ""
-echo "🧱 [11/12] Rebuilding Nginx config with correct cert paths…"
+echo "🧱 [11/14] Rebuilding Nginx config with correct cert paths…"
 CERT_DIR_PATH="$LIVE_CERT_DIR/$DOMAIN_HOST"
 LE_CERT="$CERT_DIR_PATH/fullchain.pem"
 LE_KEY="$CERT_DIR_PATH/privkey.key"
@@ -98,7 +110,7 @@ docker compose -f "$COMPOSE_FILE" exec "$NGINX_SERVICE_NAME" nginx -s reload || 
 
 # Step 12: Build and run all services (without cert-renewer if using manual certs)
 echo ""
-echo "🔄 [12/12] Building and launching all containers..."
+echo "🔄 [12/14] Building and launching all containers..."
 
 if [[ "${USE_MANUAL_CERTS:-false}" == "true" ]]; then
   echo "❌ USE_MANUAL_CERTS=true detected — cert-renewer will be disabled."
@@ -108,4 +120,4 @@ else
 fi
 
 echo ""
-echo "✅ Production deployment complete."
+echo "✅ [14/14] Production deployment complete."

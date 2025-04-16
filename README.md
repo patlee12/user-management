@@ -125,20 +125,52 @@ On non Ubuntu OS like macOS or Windows, [`run-in-vm.sh`](./scripts/internal/run-
 
 ### 3️⃣ Production Deployment (Public HTTPS with Real Domain)
 
-This mode deploys the application to a real domain using HTTPS via Let's Encrypt or manually provided certs.
+This mode deploys the application to a real domain using HTTPS, either via **Let's Encrypt** or using **manually provided certificates**.
+
+It also includes the following automation features:
+
+- **Environment file generation** with dynamic variable resolution and secret validation
+- **Snapshot logging** of all generated `.env` files to assist with debugging and auditing
+- **Secure handling of secrets** such as SMTP credentials, JWT keys, and admin passwords
+- **SSL Certificate Support** with two options (prompts for choice) set by `USE_MANUAL_CERTS=true` or `USE_MANUAL_CERTS=false` flags.
+  - If `true`, points to directory containing manual certificate files
+  - If `false`, automatically runs Let's Encrypt to request new certs
+- **Automatically generates Fallback** self-signed certificates if Let's Encrypt fails
+- **Automatically boots Nginx in fallback mode** first, then switches to real certs after issuance
+- **ACME challenge files** are generated to ensure Nginx can serve validation files
+- **Nginx is reloaded automatically** once real certs are issued successfully
+- **Full Docker image build and deployment** after cert resolution
+- **Cleanup** of all temporary challenge files post-deployment
 
 ```bash
 # From repo root, choose "Production Build (With Domain and Subdomains)" when prompted
 ./run-local-build.sh
 ```
 
-#### Features
+## Example Configuration Using `DOMAIN_HOST=user-management.net`
 
-See the following example if you were using `DOMAIN_HOST=user-management.net`:
+- **Automatic HTTPS via Let's Encrypt**
+  Certificates are automatically provisioned and renewed using Let's Encrypt.
 
-- Real HTTPS via Let's Encrypt (auto)
-- Optional manual certificate support
-- Uses environment variable `DOMAIN_HOST` to configure all subdomains
+- **Manual Certificate Support (Optional)**
+  To use your own SSL certificates, place them in the following directory:
+
+  ```bash
+  ./docker/production/nginx/certs/live/<YOUR-DOMAIN_HOST>/
+  ```
+
+  Ensure this directory contains the following files:
+
+  ```bash
+  fullchain.pem  # Your CA-signed certificate
+  privkey.key    # Your private key
+  ```
+
+  Replace `<YOUR-DOMAIN_HOST>` with your actual domain, e.g., `user-management.net`.\_
+
+- **Subdomain Configuration via Environment Variable**
+  The `DOMAIN_HOST` environment variable is used to configure all subdomains.
+
 - Automatically sets up:
 
   - `https://user-management.net` (Homepage)
@@ -146,13 +178,14 @@ See the following example if you were using `DOMAIN_HOST=user-management.net`:
   - `https://admin.user-management.net` (Admin Panel)
   - `https://swagger.user-management.net` (Swagger UI)
 
-#### DNS Configuration
+### DNS Configuration
 
 To ensure subdomains resolve correctly, you must configure DNS records with your domain registrar or DNS provider:
 
 - Create **A record** pointing to your server’s public IP:
 
   - `@ → YOUR_SERVER_IP`
+  - If you are self-hosting remember to login into router and port forward for 80 and 443 to your machine that is hosting.
 
 - Create **CNAME records** that point to a root domain or DNS name (eg. user-management.net or your `DOMAIN_HOST`):
   - `api → user-management.net`
