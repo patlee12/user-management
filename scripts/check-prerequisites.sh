@@ -86,18 +86,25 @@ done
 if [[ "$production_detected" == true ]]; then
   echo ""
   echo "🚨 One or more .env files are set to NODE_ENV=production!"
-  echo "🧼 It's recommended to reset environment files and clear Postgres volume for development."
-  read -rp "Would you like to do that now? (y/N): " fix_env
+  echo "🧼 It's recommended to reset environment files for development."
+
+  read -rp "Would you like to regenerate .env files now? (y/N): " fix_env
   if [[ "$fix_env" =~ ^[yY]$ ]]; then
     echo "▶️  Running: $GENERATE_SCRIPT"
     bash "$GENERATE_SCRIPT"
     echo "✅ .env files regenerated."
+  else
+    echo "⚠️  Skipping regeneration. Be careful running production config in development mode."
+  fi
 
-    echo "🛑 Resetting dev Postgres volume..."
+  echo ""
+  read -rp "🧹 Do you also want to reset the dev Postgres database volume 'dev_postgres_data'? This will DELETE ALL DATA. (y/N): " reset_pg_on_prod
+  if [[ "$reset_pg_on_prod" =~ ^[yY]$ ]]; then
+    echo "🛑 Stopping containers and removing volume..."
     docker compose -f "$ROOT_DIR/docker/docker-compose-development.yml" down -v
     echo "✅ Volume 'dev_postgres_data' has been reset."
   else
-    echo "⚠️  Skipping regeneration. Be careful running production config in development mode."
+    echo "↩️  Skipping Postgres volume reset."
   fi
 fi
 
