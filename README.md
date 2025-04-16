@@ -228,8 +228,8 @@ docker system prune -a --volumes --force
 
 Adminer is bundled to inspect PostgreSQL:
 
-- Dev: http://localhost:8081
-- LAN: https://user-management.local/adminer
+- Dev: <http://localhost:8081>
+- LAN: <https://user-management.local/adminer>
 - Production: same as dev its not public but it can be configured to be, its just not recommended.
 
 Use `.env` values for credentials:
