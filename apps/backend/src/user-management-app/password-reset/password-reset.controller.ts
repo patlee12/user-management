@@ -11,7 +11,12 @@ import {
 import { PasswordResetService } from './password-reset.service';
 import { CreatePasswordResetDto } from './dto/create-password-reset.dto';
 import { UpdatePasswordResetDto } from './dto/update-password-reset.dto';
-import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiTags,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { PasswordResetEntity } from './entities/password-reset.entity';
 import { ConfirmPasswordResetDto } from './dto/confirm-password-reset.dto';
 import { UserEntity } from '../users/entities/user.entity';
@@ -54,6 +59,7 @@ export class PasswordResetController {
 
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
   @Roles('Admin')
   @ApiOkResponse({ type: PasswordResetEntity, isArray: true })
   async findAll(): Promise<PasswordResetEntity[]> {
@@ -63,6 +69,7 @@ export class PasswordResetController {
 
   @Get(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
   @Roles('Admin')
   @ApiOkResponse({ type: PasswordResetEntity })
   async findOne(@Param('id') id: string): Promise<PasswordResetEntity> {
@@ -72,6 +79,8 @@ export class PasswordResetController {
 
   @Get('byUserId/:userId')
   @Throttle(PASSWORD_RESET_THROTTLE)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
   @ApiOkResponse({ type: PasswordResetEntity })
   async findOneByUserId(
     @Param('userId') userId: string,
@@ -82,7 +91,8 @@ export class PasswordResetController {
   }
 
   @Get('byEmail/:email')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
   @ApiOkResponse({ type: PasswordResetEntity })
   async findOneByEmail(
     @Param('email') email: string,
@@ -93,6 +103,7 @@ export class PasswordResetController {
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
   @Roles('Admin')
   @ApiOkResponse({ type: PasswordResetEntity })
   async update(
@@ -108,6 +119,7 @@ export class PasswordResetController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
   @Roles('Admin')
   @ApiOkResponse({ type: PasswordResetEntity })
   async remove(@Param('id') id: string): Promise<PasswordResetEntity> {

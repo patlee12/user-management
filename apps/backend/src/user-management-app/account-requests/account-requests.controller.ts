@@ -11,7 +11,12 @@ import {
 import { AccountRequestsService } from './account-requests.service';
 import { CreateAccountRequestDto } from './dto/create-account-request.dto';
 import { UpdateAccountRequestDto } from './dto/update-account-request.dto';
-import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiTags,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { VerifyAccountRequestDto } from './dto/verify-account-request.dto';
 import { AccountRequestEntity } from './entities/account-request.entity';
 import { UserEntity } from '../users/entities/user.entity';
@@ -59,6 +64,7 @@ export class AccountRequestsController {
 
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
   @Roles('Admin')
   @ApiOkResponse({ type: AccountRequestEntity, isArray: true })
   async findAll(): Promise<AccountRequestEntity[]> {
@@ -70,6 +76,7 @@ export class AccountRequestsController {
   @ApiOkResponse({ type: AccountRequestEntity })
   @Throttle(GLOBAL_THROTTLE_CONFIG)
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
   @Roles('Admin')
   async findOne(@Param('id') id: string): Promise<AccountRequestEntity> {
     const accountRequest = await this.accountRequestsService.findOne(+id);
@@ -78,6 +85,8 @@ export class AccountRequestsController {
 
   @Get('byEmail/:email')
   @Throttle(GLOBAL_THROTTLE_CONFIG)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
   @ApiOkResponse({ type: AccountRequestEntity })
   async findOneByEmail(
     @Param('email') email: string,
@@ -89,6 +98,7 @@ export class AccountRequestsController {
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
   @Roles('Admin')
   @ApiOkResponse({ type: AccountRequestEntity })
   async update(
@@ -104,6 +114,7 @@ export class AccountRequestsController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
   @Roles('Admin')
   @ApiOkResponse({ type: AccountRequestEntity })
   async remove(@Param('id') id: string): Promise<AccountRequestEntity> {
