@@ -1,26 +1,37 @@
-import { IsArray, IsOptional, ValidateNested } from 'class-validator';
+import { IsArray, IsNumber, IsOptional, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
+import { PartialType, OmitType, ApiProperty } from '@nestjs/swagger';
+import { CreateRoleDto } from './create-role.dto';
 
 /**
- * Data transfer object for updating a role.
- * This allows modifying a role and optionally updating its associated permissions.
+ * DTO for referencing a permission by ID only
  */
-export class UpdateRoleDto {
-  /**
-   * List of permissions to associate with the role.
-   * Each permission must be a valid object containing an `id` field.
-   * @example [{ "id": 1 }, { "id": 2 }]
-   */
+export class PermissionIdDto {
+  @IsNumber()
+  @ApiProperty({ example: 1 })
+  id: number;
+}
+
+/**
+ * Omit permissions so we can redefine it with ID-only array
+ */
+class BaseUpdateRoleDto extends OmitType(CreateRoleDto, [
+  'permissions',
+] as const) {}
+
+/**
+ * DTO used to update a role and optionally associate it with permission IDs
+ */
+export class UpdateRoleDto extends PartialType(BaseUpdateRoleDto) {
   @IsArray()
   @IsOptional()
   @ValidateNested({ each: true })
   @Type(() => PermissionIdDto)
+  @ApiProperty({
+    type: [PermissionIdDto],
+    required: false,
+    description: 'Array of permission IDs to associate with the role',
+    example: [{ id: 1 }, { id: 2 }],
+  })
   permissions?: PermissionIdDto[];
-}
-
-/**
- * Dto for referencing a permission by its Id.
- */
-export class PermissionIdDto {
-  id: number;
 }

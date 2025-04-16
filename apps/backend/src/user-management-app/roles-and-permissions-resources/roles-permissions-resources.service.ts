@@ -193,9 +193,9 @@ export class RolesPermissionsResourcesService {
 
     const updateRole: Prisma.RoleUpdateInput = {
       ...data,
-      permissions: permissions
+      permissions: permissions?.length
         ? {
-            connect: await permissions.map((permission) => ({
+            connect: permissions.map((permission) => ({
               id: permission.id,
             })),
           }
@@ -212,22 +212,23 @@ export class RolesPermissionsResourcesService {
    * Updates an existing permission by its ID.
    *
    * If `roles` are provided in `updatePermissionDto`, the permission will be updated to include these roles.
-   *
    * If `roles` are omitted, only the permission's other attributes will be modified.
-   * @param id
-   * @param updatePermissionDto
-   * @returns {Promise<PermissionEntity>} - The updated permission entity.
+   *
+   * @param id - ID of the permission to update
+   * @param updatePermissionDto - DTO containing fields to update
+   * @returns {Promise<PermissionEntity>} - The updated permission entity
    */
-  async updatePermission(id: number, updatePermissionDto: UpdatePermissionDto) {
+  async updatePermission(
+    id: number,
+    updatePermissionDto: UpdatePermissionDto,
+  ): Promise<PermissionEntity> {
     const { roles, ...data } = updatePermissionDto;
 
     const updatePermission: Prisma.PermissionUpdateInput = {
       ...data,
-      roles: roles
+      roles: roles?.length
         ? {
-            connect: await roles.map((role) => ({
-              id: role.id,
-            })),
+            connect: roles.map((role) => ({ id: role.id })),
           }
         : undefined,
     };
