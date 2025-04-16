@@ -168,7 +168,7 @@ It also includes the following automation features:
   privkey.key    # Your private key
   ```
 
-  Replace `<YOUR-DOMAIN_HOST>` with your actual domain, e.g., `user-management.net`.\_
+  Replace `<YOUR-DOMAIN_HOST>` with your actual domain, e.g., `user-management.net`.
 
 - **Subdomain Configuration via Environment Variable**
   The `DOMAIN_HOST` environment variable is used to configure all subdomains.
