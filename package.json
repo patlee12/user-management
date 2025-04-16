@@ -12,7 +12,9 @@
     "apps/*",
     "apps/backend",
     "apps/frontend/*",
-    "libs/*"
+    "libs/*",
+    "tools/*",
+    "tools/localtunnel"
   ],
   "dependencies": {
     "axios": "^0.21.1",
@@ -32,13 +34,14 @@
     "dev:docker:down": "docker compose -f docker/docker-compose-development.yml down",
     "dev:docker:remove": "docker compose -f docker/docker-compose-development.yml down -v",
     "dev:database:reset": "yarn workspace user-management-backend migrate:reset",
-    "dev:frontend": "yarn build:types && PORT=3000 yarn workspace homepage-app dev",
+    "dev:frontend": "yarn build:types && yarn workspace homepage-app dev",
     "dev:backend": "PORT=3001 yarn workspace user-management-backend start:dev",
-    "dev": "bash -c './scripts/check-prerequisites.sh && yarn dev:docker && yarn env:backend && concurrently \"yarn dev:backend\" \"wait-on http://localhost:3001/api && yarn dev:frontend\"'",
+    "dev": "bash ./scripts/run-dev.sh",
     "build:frontend": "yarn build:types && yarn workspace homepage-app build",
     "build:backend": "yarn workspace user-management-backend build",
     "build": "yarn build:types && concurrently \"yarn build:frontend\" \"yarn build:backend\"",
     "localareanetwork:prod": "docker compose -f docker/docker-compose-local-area-network.yml up --build",
-    "reset:localareanetwork": "docker compose -f docker/docker-compose-local-area-network.yml down --volumes --remove-orphans"
+    "reset:localareanetwork": "docker compose -f docker/docker-compose-local-area-network.yml down --volumes --remove-orphans",
+    "tunnel": "yarn workspace localtunnel tunnel:with-password"
   }
 }

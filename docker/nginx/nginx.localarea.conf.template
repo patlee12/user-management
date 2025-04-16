@@ -45,6 +45,7 @@ http {
         add_header X-XSS-Protection "1; mode=block" always;
         add_header Referrer-Policy "no-referrer" always;
 
+        # Homepage frontend (Next.js)
         location / {
             proxy_pass http://homepage-app:3000;
             proxy_set_header Host $host;
@@ -53,8 +54,11 @@ http {
             proxy_set_header X-Forwarded-Proto $scheme;
         }
 
+        # Normalize /nestjs/admin → /nestjs/admin/
+        rewrite ^(/nestjs/admin)$ $1/ permanent;
+
+        # AdminJS Panel (must keep full /nestjs prefix)
         location /nestjs/admin/ {
-            rewrite ^/nestjs/admin(/.*)?$ /admin$1 break;
             proxy_pass http://nestjs:3001;
 
             proxy_set_header Host $host;
@@ -62,7 +66,7 @@ http {
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-Forwarded-Proto $scheme;
 
-            proxy_redirect /admin /nestjs/admin;
+            proxy_redirect off;
 
             sub_filter_once off;
             sub_filter 'href="/admin' 'href="/nestjs/admin';
@@ -70,7 +74,8 @@ http {
             sub_filter 'action="/admin' 'action="/nestjs/admin';
             sub_filter '"/admin' '"/nestjs/admin';
         }
-        
+
+        # All other NestJS routes
         location /nestjs/ {
             proxy_pass http://nestjs:3001;
             proxy_set_header Host $host;
@@ -79,13 +84,14 @@ http {
             proxy_set_header X-Forwarded-Proto $scheme;
         }
 
-
+        # Adminer (optional)
         location /adminer/ {
             proxy_pass http://adminer:8080/;
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-Forwarded-Proto $scheme;
+
             proxy_redirect http://adminer:8080/ /adminer/;
             rewrite ^/adminer(/.*)$ $1 break;
 
