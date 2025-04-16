@@ -171,14 +171,15 @@ It also includes the following automation features:
   Replace `<YOUR-DOMAIN_HOST>` with your actual domain, e.g., `user-management.net`.
 
 - **Subdomain Configuration via Environment Variable**
-- The `DOMAIN_HOST` environment variable is used to configure all subdomains.
 
-- Automatically sets up:
+  - The `DOMAIN_HOST` environment variable is used to configure all subdomains.
 
-  - `https://user-management.net` (Homepage)
-  - `https://api.user-management.net` (API)
-  - `https://admin.user-management.net` (Admin Panel)
-  - `https://swagger.user-management.net` (Swagger UI)
+  - Automatically sets up:
+
+    - `https://user-management.net` (Homepage)
+    - `https://api.user-management.net` (API)
+    - `https://admin.user-management.net` (Admin Panel)
+    - `https://swagger.user-management.net` (Swagger UI)
 
 ### DNS Configuration
 
