@@ -8,6 +8,7 @@ import {
   Length,
 } from 'class-validator';
 import { AtLeastOneField } from '@src/common/Decorators/atleast-one-field-constraint';
+import { Transform } from 'class-transformer';
 
 /**
  * Data transfer object passed to server to log user in and provide access token JWT on successful login.
@@ -19,11 +20,13 @@ export class LoginDto {
   @IsString()
   @MinLength(3)
   @IsOptional()
+  @Transform(({ value }) => value.toLowerCase())
   @ApiPropertyOptional()
   username?: string;
 
   @IsEmail()
   @IsOptional()
+  @Transform(({ value }) => value.toLowerCase())
   @ApiPropertyOptional()
   email?: string;
 

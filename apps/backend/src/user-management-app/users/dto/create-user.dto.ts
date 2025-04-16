@@ -11,6 +11,7 @@ import {
   IsBoolean,
 } from 'class-validator';
 import { UserRolesDto } from 'src/user-management-app/roles-and-permissions-resources/dto/user-roles.dto';
+import { Transform } from 'class-transformer';
 
 /**
  * Data transfer object used to create a unique user in database.
@@ -19,6 +20,7 @@ export class CreateUserDto {
   @IsString()
   @IsNotEmpty()
   @MinLength(3)
+  @Transform(({ value }) => value.toLowerCase())
   @ApiProperty()
   username: string;
 
@@ -44,6 +46,7 @@ export class CreateUserDto {
 
   @IsEmail()
   @IsNotEmpty()
+  @Transform(({ value }) => value.toLowerCase())
   @ApiProperty()
   email: string;
 

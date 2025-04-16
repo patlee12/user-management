@@ -6,6 +6,7 @@ import {
   IsEmail,
   IsBase32,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 /**
  * Data transfer object used to create a new Mfa entry in database tied to a specific user.
@@ -24,6 +25,7 @@ export class CreateMfaDto {
 
   @IsEmail()
   @IsNotEmpty()
+  @Transform(({ value }) => value.toLowerCase())
   @ApiProperty()
   email: string;
 }

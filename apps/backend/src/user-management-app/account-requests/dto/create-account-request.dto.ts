@@ -8,6 +8,7 @@ import {
   Matches,
   IsEmail,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 /**
  * Data transfer object used to create a new account request.
@@ -22,6 +23,7 @@ export class CreateAccountRequestDto {
   @IsString()
   @IsNotEmpty()
   @MinLength(3)
+  @Transform(({ value }) => value.toLowerCase())
   @ApiProperty()
   username: string;
 
@@ -36,6 +38,7 @@ export class CreateAccountRequestDto {
 
   @IsEmail()
   @IsNotEmpty()
+  @Transform(({ value }) => value.toLowerCase())
   @ApiProperty()
   email: string;
 }
