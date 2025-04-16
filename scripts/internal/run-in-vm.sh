@@ -1,5 +1,4 @@
 #!/bin/bash
-
 # Force fresh VM + repo every time
 set -e
 
@@ -50,9 +49,24 @@ multipass stop "$VM_NAME" 2>/dev/null || true
 multipass delete "$VM_NAME" 2>/dev/null || true
 multipass purge
 
-echo "▶ Launching Ubuntu VM '$VM_NAME' with Hyper-V bridge networking..."
-multipass launch --name "$VM_NAME" --mem 2G --disk 20G --cpus 2 --network name='Multipass Bridge'
+# Determine networking settings based on OS:
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+  # On Linux we expect a custom virtual bridge 'br0' to be created externally.
+  NETWORK_FLAG="--network name=br0"
+  echo "▶ Launching Ubuntu VM '$VM_NAME' with Linux bridge networking (br0)..."
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+  # macOS does not support custom virtual bridges natively.
+  # It is recommended to use the default NAT networking (or set up Internet Sharing manually).
+  NETWORK_FLAG=""
+  echo "▶ Launching Ubuntu VM '$VM_NAME' with macOS NAT networking (default)."
+else
+  # For Windows (Git Bash), we expect the user to have created a Hyper-V external virtual switch
+  # named 'Multipass Bridge' (see your create-virtual-bridge.sh instructions).
+  NETWORK_FLAG="--network name='Multipass Bridge'"
+  echo "▶ Launching Ubuntu VM '$VM_NAME' with Hyper-V bridge networking..."
+fi
 
+multipass launch --name "$VM_NAME" --mem 2G --disk 20G --cpus 2 $NETWORK_FLAG
 
 if mountpoint -q "$VM_REPO_PATH"; then
   echo "🧹 Unmounting existing mount..."
