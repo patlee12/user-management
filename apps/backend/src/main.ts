@@ -9,7 +9,6 @@ import {
 import { PrismaClientExceptionFilter } from './prisma-client-exception/prisma-client-exception.filter';
 import * as os from 'os';
 import cookieParser from 'cookie-parser';
-import { updateFrontendEnv } from 'scripts/update-frontend-env';
 import { waitForPortOpen } from './helpers/network';
 import { PrismaService } from './prisma/prisma.service';
 import { SwaggerAuthMiddleware } from './middleware/swagger-auth.middleware';
@@ -17,6 +16,7 @@ import { AdminAuthMiddleware } from './middleware/admin-auth.middleware';
 import { setupAdminPanel } from './user-management-app/admin/setup-admin-panel';
 import { getHttpsOptions } from './helpers/https-options';
 import type { RequestHandler } from 'express';
+import { SanitizeInputPipe } from './common/pipes/sanitize.pipe';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -35,15 +35,19 @@ async function bootstrap() {
   // Apply global prefix (LAN deployment only)
   if (isLanDeployment && globalPrefix) {
     app.setGlobalPrefix(globalPrefix);
-    logger.log(`🔧 Global prefix set to: ${globalPrefix}`);
+    logger.log(`Global prefix set to: ${globalPrefix}`);
   }
 
   app.use(cookieParser());
   app.useGlobalPipes(
+    new SanitizeInputPipe(),
     new ValidationPipe({
       whitelist: true,
-      transform: true,
       forbidNonWhitelisted: true,
+      transform: true,
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
     }),
   );
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
@@ -136,27 +140,27 @@ async function bootstrap() {
 
   // Final Environment Logging
   if (isProd && domainHost) {
-    logger.log(`🌍 Public Domain:     https://${domainHost}`);
-    logger.log(`📖 Swagger Docs:     https://${domainHost}/api`);
+    logger.log(`Public Domain:     https://${domainHost}`);
+    logger.log(`Swagger Docs:     https://${domainHost}/api`);
   } else if (isLanDeployment) {
     logger.log(
-      `🌐 LAN Deployment:   https://${localIpAddress}:${port}${globalPrefix}`,
+      `LAN Deployment:   https://${localIpAddress}:${port}${globalPrefix}`,
     );
     logger.log(
-      `📖 Swagger Docs:     https://${localIpAddress}:${port}${swaggerPath}`,
+      `Swagger Docs:     https://${localIpAddress}:${port}${swaggerPath}`,
     );
   } else {
     await waitForPortOpen(+port);
-    logger.log(`🧪 Dev IP:           https://${localIpAddress}:${port}`);
+    logger.log(`Dev IP:           https://${localIpAddress}:${port}`);
     logger.log(
-      `📖 Swagger Docs:     https://${localIpAddress}:${port}${swaggerPath}`,
+      `Swagger Docs:     https://${localIpAddress}:${port}${swaggerPath}`,
     );
     if (dockerIp) {
-      logger.log(`🐳 Docker IP:        https://${dockerIp}:${port}`);
+      logger.log(`Docker IP:        https://${dockerIp}:${port}`);
     }
   }
 
-  logger.log('✅ App bootstrap complete.');
+  logger.log('App bootstrap complete.');
 }
 
 bootstrap();
