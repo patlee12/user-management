@@ -36,7 +36,7 @@ export default function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full min-h-[64px] border-b border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-lg shadow-md">
+    <header className="sticky top-0 z-50 w-full min-h-[64px] border-b border-zinc-200 dark:border-zinc-800 bg-white/60 dark:bg-zinc-900/50 backdrop-blur-md shadow-md">
       <div className="max-w-7xl mx-auto px-6 py-6 flex justify-between items-center animate-fade-in-up">
         <div className="flex items-center gap-4">
           <ShieldCheck className="h-8 w-8 text-zinc-900 dark:text-white animate-bounce-slow" />

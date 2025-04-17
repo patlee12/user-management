@@ -1,126 +1,111 @@
 'use client';
 
-import { Carousel, CarouselItem } from '@/components/ui/carousel';
-import CanvasBackground from '@/components/ui/backgrounds/canvasBackground';
 import { Github } from 'lucide-react';
+import CanvasBackground from '@/components/ui/backgrounds/canvasBackground';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 export default function AboutPage() {
+  const cards = [
+    {
+      title: 'About Us',
+      content: `We're building secure, modern web applications with a full-stack approach using Nest.js, Next.js, Docker, and Nginx. This monorepo is optimized for scalability, performance, and deployment automation across local, LAN, and public HTTPS environments.`,
+    },
+    {
+      title: 'Our Philosophy',
+      list: [
+        'Security-first by design',
+        'Reusable boilerplate for teams and startups',
+        'Seamless deployment via LAN (Avahi) and production (Nginx)',
+        'Open-source and developer-friendly',
+      ],
+    },
+    {
+      title: 'Production Automation',
+      list: [
+        'Automated HTTPS via Let’s Encrypt or manual certs',
+        'Self-signed fallback with Nginx auto-reload',
+        'Dynamic `.env` generation with secret validation',
+        'One-command deploy for any environment',
+        'Service discovery over LAN via Avahi',
+      ],
+    },
+    {
+      title: 'Developer Experience',
+      list: [
+        'One-command dev startup (backend, frontend, browser)',
+        'Runtime-configurable HTTPS builds',
+        'Smart prompts for Postgres reset and secrets',
+        'OpenSSL-secured credential generation',
+        'Scripted cert management and readiness checks',
+      ],
+    },
+  ];
+
   return (
-    <div className="relative w-full text-white overflow-x-hidden overflow-y-hidden">
+    <div className="relative w-full h-full bg-black text-white overflow-x-hidden">
       <CanvasBackground />
 
-      <section className="relative z-10 max-w-5xl mx-auto px-6 py-16">
-        <Carousel>
-          <CarouselItem>
-            <div className="bg-zinc-800 bg-opacity-60 backdrop-blur-md rounded-2xl shadow-xl p-8 h-full">
-              <h2 className="text-3xl font-bold mb-6">About Us</h2>
-              <p className="text-lg text-zinc-300">
-                We're building secure, modern web applications with a full-stack
-                approach that integrates Nest.js, Next.js, Docker, and Nginx.
-                This monorepo is engineered for scalability, performance, and
-                automation across local, LAN, and public HTTPS deployments.
-              </p>
-            </div>
-          </CarouselItem>
-          <CarouselItem>
-            <div className="bg-zinc-800 bg-opacity-60 backdrop-blur-md rounded-2xl shadow-xl p-8 h-full">
-              <h3 className="text-2xl font-semibold mb-2">Our Philosophy</h3>
-              <ul className="list-disc list-inside text-zinc-400 space-y-2">
-                <li>Security-first by design</li>
-                <li>
-                  Reusable boilerplate for any team or business looking to start
-                  a secure web application quickly
-                </li>
-                <li>
-                  Seamless deployment to LAN with Avahi and production
-                  environments using reverse proxying via Nginx
-                </li>
-                <li>Open-source and developer friendly</li>
-              </ul>
-            </div>
-          </CarouselItem>
-          <CarouselItem>
-            <div className="bg-zinc-800 bg-opacity-60 backdrop-blur-md rounded-2xl shadow-xl p-8 h-full">
-              <h3 className="text-2xl font-semibold mb-2">
-                Production Automation
-              </h3>
-              <ul className="list-disc list-inside text-zinc-400 space-y-2">
-                <li>
-                  Automated HTTPS with Let's Encrypt or manual certificate
-                  support
-                </li>
-                <li>
-                  Self-signed fallback with automatic Nginx reload after cert
-                  issuance
-                </li>
-                <li>
-                  Dynamic environment generation with full variable
-                  interpolation and secret validation
-                </li>
-                <li>
-                  One-command deploy for LAN, staging, or domain environments
-                </li>
-                <li>Service discovery via Avahi for local networks</li>
-              </ul>
-            </div>
-          </CarouselItem>
-          <CarouselItem>
-            <div className="bg-zinc-800 bg-opacity-60 backdrop-blur-md rounded-2xl shadow-xl p-8 h-full">
-              <h3 className="text-2xl font-semibold mb-2">
-                Developer Experience
-              </h3>
-              <ul className="list-disc list-inside text-zinc-400 space-y-2">
-                <li>
-                  One command dev startup with backend, frontend, and automatic
-                  browser launch
-                </li>
-                <li>Runtime configurable HTTPS builds in all environments</li>
-                <li>
-                  Smart prompts for resetting Postgres and managing secrets
-                </li>
-                <li>OpenSSL based secure password and secret generation</li>
-                <li>
-                  Script-driven certificate management supporting Let's Encrypt,
-                  self-signed fallback, or manual certs
-                </li>
-                <li>
-                  Automated readiness checks and modular preflight validation
-                </li>
-              </ul>
-            </div>
-          </CarouselItem>
-          <CarouselItem>
-            <div className="bg-zinc-800 bg-opacity-60 backdrop-blur-md rounded-2xl shadow-xl p-6 h-full flex flex-col justify-center">
-              <div className="text-center bg-zinc-900 p-6 rounded-xl border border-zinc-700 shadow-lg">
-                <div className="flex items-center justify-center mb-4">
-                  <a
-                    href="https://github.com/patlee12/user-management"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="bg-zinc-700 hover:bg-zinc-600 text-white px-4 py-2 rounded-md text-sm font-medium transition"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Github className="w-6 h-6 text-white" />
-                      <div>
-                        <h4 className="text-xl font-semibold">
-                          patlee12/user-management
-                        </h4>
-                        <p className="text-zinc-400 text-sm">
-                          A full-stack monorepo for modern user management
-                        </p>
-                      </div>
-                    </div>
-                  </a>
-                </div>
-                <p className="text-zinc-300 text-sm leading-relaxed">
-                  Includes Nest.js, Next.js, Prisma, Docker, JWT auth, RBAC,
-                  Swagger, and smart deployment scripts. Designed for real-world
-                  teams who need a rapid launch with long-term maintainability.
+      <section className="relative isolate w-full py-8">
+        <div className="absolute top-0 left-0 right-0 bottom-0 rounded-2xl border-[3px] border-zinc-800 bg-zinc-950/70 backdrop-blur-sm z-0 pointer-events-none h-full" />
+
+        <div className="relative z-10 max-w-6xl mx-auto px-2 sm:px-4 text-center">
+          <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-zinc-100 mb-12">
+            About This Project
+          </h1>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {cards.map(({ title, content, list }, idx) => (
+              <Card
+                key={idx}
+                className="bg-zinc-950/80 border border-zinc-800 shadow-xl backdrop-blur-md text-left p-4"
+              >
+                <CardHeader>
+                  <CardTitle className="text-zinc-100 text-xl tracking-tight">
+                    {title}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {content && (
+                    <p className="text-sm text-zinc-300 leading-relaxed">
+                      {content}
+                    </p>
+                  )}
+                  {list && (
+                    <ul className="list-disc pl-4 mt-2 space-y-1 text-sm text-zinc-300 leading-relaxed">
+                      {list.map((item, i) => (
+                        <li key={i}>{item}</li>
+                      ))}
+                    </ul>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <div className="flex justify-center pt-16">
+            <Card className="bg-zinc-950/80 border border-zinc-800 shadow-xl backdrop-blur-md text-center max-w-xl p-4">
+              <CardHeader>
+                <CardTitle className="text-white">Project Repository</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <a
+                  href="https://github.com/patlee12/user-management"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-3 px-5 py-2.5 rounded-md text-sm font-medium bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-sm transition-all duration-300"
+                >
+                  <Github className="w-5 h-5" />
+                  <span>patlee12/user-management</span>
+                </a>
+                <p className="text-zinc-400 mt-4 text-sm leading-relaxed">
+                  A full-stack monorepo with NestJS, NextJS, Prisma, Docker,
+                  RBAC, and production automation — built for security,
+                  scalability, and fast iteration.
                 </p>
-              </div>
-            </div>
-          </CarouselItem>
-        </Carousel>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </section>
     </div>
   );

@@ -3,47 +3,89 @@
 import CanvasBackground from '@/components/ui/backgrounds/canvasBackground';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import useEmblaCarousel from 'embla-carousel-react';
+import Autoplay from 'embla-carousel-autoplay';
+import { useEffect, useRef, useCallback } from 'react';
+import {
+  ShieldCheck,
+  TerminalSquare,
+  Layers3,
+  ArrowLeft,
+  ArrowRight,
+} from 'lucide-react';
+
+const slides = [
+  {
+    title: 'Secure by Design',
+    icon: ShieldCheck,
+    description:
+      'Built with JWT, MFA, RBAC, and strong defaults — security is not an afterthought.',
+  },
+  {
+    title: 'Dev Experience First',
+    icon: TerminalSquare,
+    description:
+      'One-command startup. Runtime HTTPS. Preflight checks. No more fragile setup steps.',
+  },
+  {
+    title: 'Full Stack, One Repo',
+    icon: Layers3,
+    description:
+      'Next.js frontend. Nest.js backend. Prisma, Docker, Nginx, and more out of the box.',
+  },
+];
 
 export default function HomePage() {
+  const autoplay = useRef(Autoplay({ delay: 8000, stopOnInteraction: true }));
+  const [emblaRef, emblaApi] = useEmblaCarousel(
+    { loop: true, align: 'center' },
+    [autoplay.current],
+  );
+
+  const scrollPrev = useCallback(() => {
+    autoplay.current.stop();
+    emblaApi?.scrollPrev();
+  }, [emblaApi]);
+
+  const scrollNext = useCallback(() => {
+    autoplay.current.stop();
+    emblaApi?.scrollNext();
+  }, [emblaApi]);
+
+  const carouselContainerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const node = carouselContainerRef.current;
+    if (!node) return;
+
+    const handleMouseEnter = () => autoplay.current.stop();
+    const handleMouseLeave = () => autoplay.current.play();
+
+    node.addEventListener('mouseenter', handleMouseEnter);
+    node.addEventListener('mouseleave', handleMouseLeave);
+
+    return () => {
+      node.removeEventListener('mouseenter', handleMouseEnter);
+      node.removeEventListener('mouseleave', handleMouseLeave);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (emblaApi) emblaApi.scrollTo(0);
+  }, [emblaApi]);
+
   return (
-    <div>
+    <div className="relative w-full min-h-screen bg-black text-white overflow-x-hidden">
       <CanvasBackground />
 
-      <section className="group relative isolate overflow-hidden text-white py-24 sm:py-32 w-screen transition-transform duration-200">
-        <div className="absolute inset-0 ml-3 mr-3 rounded-2xl border-[3px]  bg-zinc-950 border-white/25 z-0 pointer-events-none" />
+      <section className="relative isolate py-12 sm:py-24 md:py-32 w-full">
+        <div className="absolute inset-0 rounded-2xl border-[3px] border-zinc-800 bg-zinc-950/70 backdrop-blur-sm z-0 pointer-events-none" />
 
-        <style jsx>{`
-          .group:hover .shake-wrapper {
-            animation: shake 0.3s ease-in-out;
-          }
-
-          @keyframes shake {
-            0% {
-              transform: translate(0px, 0px) rotate(0deg);
-            }
-            20% {
-              transform: translate(-2px, 1px) rotate(-0.5deg);
-            }
-            40% {
-              transform: translate(2px, -1px) rotate(0.5deg);
-            }
-            60% {
-              transform: translate(-1px, 1px) rotate(0deg);
-            }
-            80% {
-              transform: translate(1px, -1px) rotate(0.5deg);
-            }
-            100% {
-              transform: translate(0px, 0px) rotate(0deg);
-            }
-          }
-        `}</style>
-
-        <div className="shake-wrapper relative z-10 max-w-4xl mx-auto px-6 text-center">
-          <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-white">
+        <div className="relative z-10 max-w-5xl mx-auto px-2 sm:px-4 text-center">
+          <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-zinc-100">
             Build Modern Web Apps With Security
           </h1>
-          <p className="mt-6 text-lg leading-8 text-zinc-300 max-w-2xl mx-auto">
+          <p className="mt-6 text-lg leading-8 text-zinc-400 max-w-2xl mx-auto">
             This is a monorepo that provides a full-stack application
             boilerplate with separate applications for the backend and frontend.
             The backend is built using Nest.js, while the frontend so far has a
@@ -53,9 +95,49 @@ export default function HomePage() {
             reverse proxy.
           </p>
 
-          <div className="mt-10 flex justify-center gap-x-6">
+          <div className="mt-16 relative" ref={carouselContainerRef}>
+            <div className="overflow-hidden px-4" ref={emblaRef}>
+              <div className="flex gap-6">
+                {slides.map((slide, index) => (
+                  <div
+                    key={index}
+                    className="flex-[0_0_100%] max-w-full box-border px-6 py-10 bg-zinc-950/80 border border-zinc-800 rounded-2xl backdrop-blur-md shadow-xl transition-all duration-300 text-center"
+                  >
+                    <slide.icon className="w-10 h-10 mx-auto text-emerald-400 mb-4" />
+                    <h2 className="text-2xl sm:text-3xl font-semibold text-zinc-100">
+                      {slide.title}
+                    </h2>
+                    <p className="mt-4 text-base text-zinc-400 max-w-xl mx-auto">
+                      {slide.description}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="absolute inset-y-0 left-0 flex items-center pl-7">
+              <button
+                onClick={scrollPrev}
+                className="p-2 sm:p-4 rounded-full border border-white text-white/80 hover:text-white hover:bg-white/10 backdrop-blur-md transition-colors duration-200"
+                aria-label="Previous slide"
+              >
+                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+              </button>
+            </div>
+            <div className="absolute inset-y-0 right-0 flex items-center pr-7">
+              <button
+                onClick={scrollNext}
+                className="p-2 sm:p-4 rounded-full border border-white text-white/80 hover:text-white hover:bg-white/10 backdrop-blur-md transition-colors duration-200"
+                aria-label="Next slide"
+              >
+                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-12 flex justify-center">
             <Link href="/products">
-              <Button className="text-base px-6 py-3 font-medium rounded-xl shadow hover:shadow-xl transition-all transform hover:-translate-y-1">
+              <Button className="text-base px-6 py-3 font-medium rounded-xl shadow hover:shadow-xl transition-all transform hover:-translate-y-1 bg-zinc-800 hover:bg-zinc-700 text-white">
                 Get Started
               </Button>
             </Link>
