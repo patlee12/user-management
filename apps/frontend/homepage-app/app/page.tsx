@@ -36,19 +36,32 @@ const slides = [
 ];
 
 export default function HomePage() {
-  const autoplay = useRef(Autoplay({ delay: 8000, stopOnInteraction: true }));
+  const autoplay = useRef(Autoplay({ delay: 7000, stopOnInteraction: true }));
+  const pauseTimeout = useRef<NodeJS.Timeout | null>(null);
+  const isMouseOver = useRef(false);
+
   const [emblaRef, emblaApi] = useEmblaCarousel(
     { loop: true, align: 'center' },
     [autoplay.current],
   );
 
-  const scrollPrev = useCallback(() => {
+  const pauseAutoplayFor = (ms: number) => {
     autoplay.current.stop();
+    if (pauseTimeout.current) clearTimeout(pauseTimeout.current);
+    pauseTimeout.current = setTimeout(() => {
+      if (!isMouseOver.current) {
+        autoplay.current.play();
+      }
+    }, ms);
+  };
+
+  const scrollPrev = useCallback(() => {
+    pauseAutoplayFor(10000);
     emblaApi?.scrollPrev();
   }, [emblaApi]);
 
   const scrollNext = useCallback(() => {
-    autoplay.current.stop();
+    pauseAutoplayFor(10000);
     emblaApi?.scrollNext();
   }, [emblaApi]);
 
@@ -58,8 +71,16 @@ export default function HomePage() {
     const node = carouselContainerRef.current;
     if (!node) return;
 
-    const handleMouseEnter = () => autoplay.current.stop();
-    const handleMouseLeave = () => autoplay.current.play();
+    const handleMouseEnter = () => {
+      isMouseOver.current = true;
+      autoplay.current.stop();
+      if (pauseTimeout.current) clearTimeout(pauseTimeout.current);
+    };
+
+    const handleMouseLeave = () => {
+      isMouseOver.current = false;
+      pauseAutoplayFor(5000);
+    };
 
     node.addEventListener('mouseenter', handleMouseEnter);
     node.addEventListener('mouseleave', handleMouseLeave);
