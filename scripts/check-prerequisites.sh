@@ -72,6 +72,8 @@ fi
 echo ""
 echo "🔎 Checking for NODE_ENV=production in env files..."
 production_detected=false
+env_files_handled=false
+pg_volume_handled=false
 
 for env_file in "${REQUIRED_ENV_FILES[@]}"; do
   if [[ -f "$env_file" ]]; then
@@ -93,6 +95,7 @@ if [[ "$production_detected" == true ]]; then
     echo "▶️  Running: $GENERATE_SCRIPT"
     bash "$GENERATE_SCRIPT"
     echo "✅ .env files regenerated."
+    env_files_handled=true
   else
     echo "⚠️  Skipping regeneration. Be careful running production config in development mode."
   fi
@@ -103,13 +106,14 @@ if [[ "$production_detected" == true ]]; then
     echo "🛑 Stopping containers and removing volume..."
     docker compose -f "$ROOT_DIR/docker/docker-compose-development.yml" down -v
     echo "✅ Volume 'dev_postgres_data' has been reset."
+    pg_volume_handled=true
   else
     echo "↩️  Skipping Postgres volume reset."
   fi
 fi
 
-# ───── If no production, continue with existing logic ─────
-if [[ $missing_env -gt 0 ]]; then
+# ───── If no production, continue with env checks ─────
+if [[ $missing_env -gt 0 && "$env_files_handled" != true ]]; then
   echo ""
   echo "⚠️  One or more .env files are missing."
   read -rp "➡️  Would you like to generate them now? (y/N): " choice
@@ -117,11 +121,12 @@ if [[ $missing_env -gt 0 ]]; then
     echo "▶️  Running: $GENERATE_SCRIPT"
     bash "$GENERATE_SCRIPT"
     echo "✅ Finished generating .env files."
+    env_files_handled=true
   else
     echo "❌ Skipped generation. Cannot continue without env files."
     exit 1
   fi
-else
+elif [[ "$env_files_handled" != true ]]; then
   echo ""
   read -rp "🔁 All .env files exist. Would you like to regenerate them anyway? (y/N): " reset_env
   if [[ "$reset_env" =~ ^[yY]$ ]]; then
@@ -134,21 +139,22 @@ else
 fi
 
 # ───── Optional Postgres Volume Reset ─────
-echo ""
-read -rp "🧹 Do you want to reset the dev Postgres database volume 'dev_postgres_data'? This will DELETE ALL DATA. (y/N): " reset_pg
-if [[ "$reset_pg" =~ ^[yY]$ ]]; then
-  echo "🛑 Stopping containers and removing volume..."
-  docker compose -f "$ROOT_DIR/docker/docker-compose-development.yml" down -v
-  echo "✅ Volume 'dev_postgres_data' has been reset."
-else
-  echo "↩️  Skipping Postgres volume reset."
+if [[ "$pg_volume_handled" != true ]]; then
+  echo ""
+  read -rp "🧹 Do you want to reset the dev Postgres database volume 'dev_postgres_data'? This will DELETE ALL DATA. (y/N): " reset_pg
+  if [[ "$reset_pg" =~ ^[yY]$ ]]; then
+    echo "🛑 Stopping containers and removing volume..."
+    docker compose -f "$ROOT_DIR/docker/docker-compose-development.yml" down -v
+    echo "✅ Volume 'dev_postgres_data' has been reset."
+  else
+    echo "↩️  Skipping Postgres volume reset."
+  fi
 fi
 
 # ───── Optional Email Service Setup ─────
 echo ""
 echo "📧 Email service is required to support account creation, verification, and recovery flows."
 
-# Show current values if available
 if [[ -f "$BACKEND_ENV_FILE" ]]; then
   current_provider=$(grep -E '^MAIL_SERVICE_PROVIDER=' "$BACKEND_ENV_FILE" | cut -d= -f2-)
   current_user=$(grep -E '^EMAIL_USER=' "$BACKEND_ENV_FILE" | cut -d= -f2-)
