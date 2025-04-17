@@ -24,9 +24,7 @@ export default function Header() {
     {
       label: 'Profile',
       icon: User,
-      onClick: () => {
-        router.push('/profile');
-      },
+      onClick: () => router.push('/profile'),
     },
     {
       label: 'Logout',
@@ -36,11 +34,11 @@ export default function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full min-h-[64px] border-b border-zinc-200 dark:border-zinc-800 bg-white/60 dark:bg-zinc-900/50 backdrop-blur-md shadow-md">
+    <header className="sticky top-0 z-50 w-full min-h-[64px] border-b border-white/10 bg-black/60 backdrop-blur-md shadow-md">
       <div className="max-w-7xl mx-auto px-6 py-6 flex justify-between items-center animate-fade-in-up">
         <div className="flex items-center gap-4">
-          <ShieldCheck className="h-8 w-8 text-zinc-900 dark:text-white animate-bounce-slow" />
-          <h1 className="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white">
+          <ShieldCheck className="h-8 w-8 text-white animate-bounce-slow" />
+          <h1 className="text-3xl font-extrabold tracking-tight text-white">
             User Management
           </h1>
         </div>
@@ -50,18 +48,19 @@ export default function Header() {
             user ? (
               <div className="flex items-center gap-3">
                 {buttons.map((btn, index) => {
-                  const IconComponent = btn.icon;
+                  const Icon = btn.icon;
                   return (
                     <Tooltip.Provider key={index}>
                       <Tooltip.Root>
                         <Tooltip.Trigger asChild>
-                          <button
+                          <Button
                             onClick={btn.onClick}
-                            className="w-10 h-10 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 text-white transition duration-200 shadow-md"
+                            variant="ghost"
+                            className="w-10 h-10 p-0 rounded-full"
                             aria-label={btn.label}
                           >
-                            <IconComponent className="w-5 h-5" />
-                          </button>
+                            <Icon className="w-5 h-5" />
+                          </Button>
                         </Tooltip.Trigger>
                         <Tooltip.Portal>
                           <Tooltip.Content
@@ -78,9 +77,7 @@ export default function Header() {
               </div>
             ) : (
               <Link href="/login">
-                <Button className="px-6 py-2.5 text-base font-semibold rounded-lg shadow-md transition duration-200 bg-zinc-700 text-white hover:bg-zinc-600">
-                  Login
-                </Button>
+                <Button variant="primary">Login</Button>
               </Link>
             )
           ) : null}

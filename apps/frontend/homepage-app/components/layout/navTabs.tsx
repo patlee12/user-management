@@ -14,21 +14,25 @@ export default function NavTabs() {
   const pathname = usePathname();
 
   return (
-    <nav className="w-full flex justify-center gap-8 py-4 border-t border-border">
-      {navLinks.map(({ label, href, icon: Icon }) => (
-        <Link
-          key={label}
-          href={href}
-          className={`flex items-center gap-2 text-sm sm:text-base font-medium transition-colors border-b-2 pb-1 hover:border-accent hover:text-accent-foreground ${
-            pathname === href
-              ? 'text-accent-foreground border-accent'
-              : 'text-muted-foreground border-transparent'
-          }`}
-        >
-          <Icon className="w-7 h-7" />
-          {label}
-        </Link>
-      ))}
+    <nav className="w-full flex justify-center gap-6 sm:gap-10 py-4 border-t border-white/10 bg-black/60 backdrop-blur-md shadow-inner">
+      {navLinks.map(({ label, href, icon: Icon }) => {
+        const isActive = pathname === href;
+
+        return (
+          <Link
+            key={label}
+            href={href}
+            className={`flex items-center gap-2 text-sm sm:text-base font-medium transition-all pb-1 border-b-2 ${
+              isActive
+                ? 'text-zinc-100 border-white/80'
+                : 'text-zinc-400 border-transparent hover:text-white hover:border-white/40'
+            }`}
+          >
+            <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
+            {label}
+          </Link>
+        );
+      })}
     </nav>
   );
 }

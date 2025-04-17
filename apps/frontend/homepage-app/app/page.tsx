@@ -75,13 +75,13 @@ export default function HomePage() {
   }, [emblaApi]);
 
   return (
-    <div className="relative w-full min-h-screen bg-black text-white overflow-x-hidden">
+    <div className="relative w-full h-full bg-black text-white overflow-x-hidden">
       <CanvasBackground />
 
       <section className="relative isolate py-12 sm:py-24 md:py-32 w-full">
-        <div className="absolute inset-0 rounded-2xl border-[3px] border-zinc-800 bg-zinc-950/70 backdrop-blur-sm z-0 pointer-events-none" />
+        <div className="absolute inset-0 rounded-2xl border border-white/10 bg-black/80 backdrop-blur-sm z-0 pointer-events-none" />
 
-        <div className="relative z-10 max-w-5xl mx-auto px-2 sm:px-4 text-center">
+        <div className="relative z-10 w-full sm:w-4/5 lg:w-3/5 mx-auto px-2 sm:px-4 text-center">
           <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-zinc-100">
             Build Modern Web Apps With Security
           </h1>
@@ -96,12 +96,12 @@ export default function HomePage() {
           </p>
 
           <div className="mt-16 relative" ref={carouselContainerRef}>
-            <div className="overflow-hidden px-4" ref={emblaRef}>
+            <div className="overflow-hidden sm:px-2 px-1" ref={emblaRef}>
               <div className="flex gap-6">
                 {slides.map((slide, index) => (
                   <div
                     key={index}
-                    className="flex-[0_0_100%] max-w-full box-border px-6 py-10 bg-zinc-950/80 border border-zinc-800 rounded-2xl backdrop-blur-md shadow-xl transition-all duration-300 text-center"
+                    className="flex-[0_0_100%] max-w-full box-border px-6 py-10 bg-black/80 border border-white/10 rounded-2xl backdrop-blur-md shadow-xl transition-all duration-300 text-center"
                   >
                     <slide.icon className="w-10 h-10 mx-auto text-emerald-400 mb-4" />
                     <h2 className="text-2xl sm:text-3xl font-semibold text-zinc-100">
@@ -115,31 +115,29 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="absolute inset-y-0 left-0 flex items-center pl-7">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-6 sm:pl-7">
               <button
                 onClick={scrollPrev}
-                className="p-2 sm:p-4 rounded-full border border-white text-white/80 hover:text-white hover:bg-white/10 backdrop-blur-md transition-colors duration-200"
+                className="p-2 sm:p-3 rounded-full bg-black/60 border border-white/10 text-white/80 hover:bg-white/10 hover:text-white backdrop-blur-md transition-transform duration-200 hover:scale-105"
                 aria-label="Previous slide"
               >
-                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+                <ArrowLeft className="w-5 h-5" />
               </button>
             </div>
-            <div className="absolute inset-y-0 right-0 flex items-center pr-7">
+            <div className="absolute inset-y-0 right-0 flex items-center pr-6 sm:pr-7">
               <button
                 onClick={scrollNext}
-                className="p-2 sm:p-4 rounded-full border border-white text-white/80 hover:text-white hover:bg-white/10 backdrop-blur-md transition-colors duration-200"
+                className="p-2 sm:p-3 rounded-full bg-black/60 border border-white/10 text-white/80 hover:bg-white/10 hover:text-white backdrop-blur-md transition-transform duration-200 hover:scale-105"
                 aria-label="Next slide"
               >
-                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
+                <ArrowRight className="w-5 h-5" />
               </button>
             </div>
           </div>
 
           <div className="mt-12 flex justify-center">
             <Link href="/products">
-              <Button className="text-base px-6 py-3 font-medium rounded-xl shadow hover:shadow-xl transition-all transform hover:-translate-y-1 bg-zinc-800 hover:bg-zinc-700 text-white">
-                Get Started
-              </Button>
+              <Button variant="primary">Get Started</Button>
             </Link>
           </div>
         </div>
