@@ -23,8 +23,14 @@ echo "🗂️  Ensuring log directories exist..."
 mkdir -p "$ENV_LOG_DIR"
 mkdir -p "$NGINX_LOG_DIR"
 
-# Set proper permissions for log directories
-chmod -R 755 "$ENV_LOG_DIR"
-chmod -R 755 "$NGINX_LOG_DIR"
+# Set proper permissions if running as root
+echo "🔧 Setting permissions for log directories..."
+if [ "$(id -u)" -eq 0 ]; then
+  chmod -R 755 "$ENV_LOG_DIR"
+  chmod -R 755 "$NGINX_LOG_DIR"
+  echo "✅ Permissions successfully updated."
+else
+  echo "⚠️ Skipping chmod on $NGINX_LOG_DIR — insufficient permissions. Run as root if needed."
+fi
 
 echo "✅ Script permissions and log directories set."
