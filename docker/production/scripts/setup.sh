@@ -15,4 +15,16 @@ if [ -f "$MAIN_SCRIPT" ]; then
   chmod +x "$MAIN_SCRIPT"
 fi
 
-echo "✅ Script permissions set."
+# Create log directories if they don't exist
+ENV_LOG_DIR="$BASE_DIR/../env-logs"
+NGINX_LOG_DIR="$BASE_DIR/../nginx/logs"
+
+echo "🗂️  Ensuring log directories exist..."
+mkdir -p "$ENV_LOG_DIR"
+mkdir -p "$NGINX_LOG_DIR"
+
+# Set proper permissions for log directories
+chmod -R 755 "$ENV_LOG_DIR"
+chmod -R 755 "$NGINX_LOG_DIR"
+
+echo "✅ Script permissions and log directories set."
