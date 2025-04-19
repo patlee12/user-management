@@ -21,7 +21,7 @@ CERTBOT_STAGE=$(awk -F= '/^CERTBOT_STAGE=/ {gsub(/["\r\n ]/, "", $2); print $2; 
 DOMAINS=(
   "$DOMAIN_HOST"
   "admin.$DOMAIN_HOST"
-  "nestjs.$DOMAIN_HOST"
+  "api.$DOMAIN_HOST"
   "swagger.$DOMAIN_HOST"
 )
 
