@@ -37,16 +37,10 @@ http {
 
     ssl_certificate     ${SSL_CERT_PATH};
     ssl_certificate_key ${SSL_KEY_PATH};
-    ssl_protocols       TLSv1.2 TLSv1.3;
-    ssl_ciphers         HIGH:!aNULL:!MD5;
 
     location / {
       proxy_pass http://homepage-app:3000;
-      proxy_http_version 1.1;
-      proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
-      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-      proxy_set_header X-Forwarded-Proto $scheme;
+      include /etc/nginx/proxy-headers.conf;
     }
   }
 
@@ -57,16 +51,10 @@ http {
 
     ssl_certificate     ${SSL_CERT_PATH};
     ssl_certificate_key ${SSL_KEY_PATH};
-    ssl_protocols       TLSv1.2 TLSv1.3;
-    ssl_ciphers         HIGH:!aNULL:!MD5;
 
     location / {
       proxy_pass http://nestjs:3001;
-      proxy_http_version 1.1;
-      proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
-      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-      proxy_set_header X-Forwarded-Proto $scheme;
+      include /etc/nginx/proxy-headers.conf;
     }
   }
 
@@ -77,8 +65,6 @@ http {
 
     ssl_certificate     ${SSL_CERT_PATH};
     ssl_certificate_key ${SSL_KEY_PATH};
-    ssl_protocols       TLSv1.2 TLSv1.3;
-    ssl_ciphers         HIGH:!aNULL:!MD5;
 
     location = / {
       return 302 /admin/;
@@ -86,23 +72,17 @@ http {
 
     location / {
       proxy_pass http://nestjs:3001;
-      proxy_http_version 1.1;
-      proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
-      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-      proxy_set_header X-Forwarded-Proto $scheme;
+      include /etc/nginx/proxy-headers.conf;
     }
   }
 
-  # ───────────── HTTPS - Swagger (with redirect) ─────────────
+  # ───────────── HTTPS - Swagger ─────────────
   server {
     listen 443 ssl;
     server_name swagger.${DOMAIN_HOST};
 
     ssl_certificate     ${SSL_CERT_PATH};
     ssl_certificate_key ${SSL_KEY_PATH};
-    ssl_protocols       TLSv1.2 TLSv1.3;
-    ssl_ciphers         HIGH:!aNULL:!MD5;
 
     location = / {
       return 302 /api/;
@@ -110,11 +90,7 @@ http {
 
     location /api/ {
       proxy_pass http://nestjs:3001;
-      proxy_http_version 1.1;
-      proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
-      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-      proxy_set_header X-Forwarded-Proto $scheme;
+      include /etc/nginx/proxy-headers.conf;
     }
   }
 }

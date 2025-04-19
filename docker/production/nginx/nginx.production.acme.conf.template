@@ -13,7 +13,7 @@ http {
   # ───────────── HTTP :80 ─────────────
   server {
     listen 80 default_server;
-    server_name ${DOMAIN_HOST};
+    server_name ${DOMAIN_HOST} admin.${DOMAIN_HOST} nestjs.${DOMAIN_HOST} swagger.${DOMAIN_HOST};
 
     # ACME challenge for Let's Encrypt
     location ^~ /.well-known/acme-challenge/ {
@@ -36,7 +36,7 @@ http {
   # ───────────── HTTPS :443 ─────────────
   server {
     listen 443 ssl;
-    server_name ${DOMAIN_HOST};
+    server_name ${DOMAIN_HOST} admin.${DOMAIN_HOST} nestjs.${DOMAIN_HOST} swagger.${DOMAIN_HOST};
 
     ssl_certificate     ${SSL_CERT_PATH};
     ssl_certificate_key ${SSL_KEY_PATH};
@@ -50,7 +50,7 @@ http {
       try_files $uri =404;
     }
 
-    # For now, serve a simple static page or minimal response.
+    # Minimal response while in ACME mode
     location / {
       return 200 "ACME mode in effect";
     }

@@ -57,15 +57,19 @@ echo ""
 echo "🚀 [8/14] Starting nginx container for initial TLS routing..."
 docker compose -f "$COMPOSE_FILE" up -d "$NGINX_SERVICE_NAME"
 
-# Step 9: Wait for nginx to be reachable
-echo "🌐 [9/14] Waiting for Nginx to respond on http://$DOMAIN_HOST…"
-for i in {1..30}; do
-  if curl -s --head "http://$DOMAIN_HOST" | grep -q "HTTP/1.1 301"; then
-    echo "✅ Nginx is reachable (HTTP 301)"
-    break
-  fi
-  sleep 2
-done
+# Step 9: Wait for nginx to be reachable only if using Let's Encrypt
+if [[ "${USE_MANUAL_CERTS:-false}" != "true" ]]; then
+  echo "🌐 [9/14] Waiting for Nginx to respond on http://$DOMAIN_HOST…"
+  for i in {1..30}; do
+    if curl -s --head "http://$DOMAIN_HOST" | grep -q "HTTP/1.1 301"; then
+      echo "✅ Nginx is reachable (HTTP 301)"
+      break
+    fi
+    sleep 2
+  done
+else
+  echo "⏩ [9/14] Skipping HTTP check — manual cert mode enabled."
+fi
 
 # Step 10: Attempt Let's Encrypt cert (unless manually overridden)
 echo ""

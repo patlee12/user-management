@@ -13,27 +13,24 @@ http {
   # ───────────── HTTP :80 ─────────────
   server {
     listen 80 default_server;
-    server_name ${DOMAIN_HOST};
+    server_name ${DOMAIN_HOST} api.${DOMAIN_HOST} admin.${DOMAIN_HOST} swagger.${DOMAIN_HOST};
 
-    # ACME challenge for Let's Encrypt (for both HTTP and HTTPS)
     location ^~ /.well-known/acme-challenge/ {
       root /var/www/html;
       default_type "text/plain";
       try_files $uri =404;
     }
 
-    # Health check
     location = /healthz {
       return 200 "OK\n";
     }
 
-    # Redirect to HTTPS
     location / {
       return 301 https://$host$request_uri;
     }
   }
 
-  # ───────────── HTTPS :443 ─────────────
+  # ───────────── HTTPS - Homepage ─────────────
   server {
     listen 443 ssl;
     server_name ${DOMAIN_HOST};
@@ -43,55 +40,59 @@ http {
     ssl_protocols       TLSv1.2 TLSv1.3;
     ssl_ciphers         HIGH:!aNULL:!MD5;
 
-    # ACME challenge (again for redundancy)
-    location ^~ /.well-known/acme-challenge/ {
-      root /var/www/html;
-      default_type "text/plain";
-      try_files $uri =404;
-    }
-
-    # ───────────── Frontend (Homepage App) ─────────────
-    server_name ${DOMAIN_HOST};
     location / {
       proxy_pass http://homepage-app:3000;
-      proxy_http_version 1.1;
-      proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
-      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-      proxy_set_header X-Forwarded-Proto $scheme;
+      include /etc/nginx/proxy-headers.conf;
     }
+  }
 
-    # ───────────── Subdomain - Backend (NestJS API) ─────────────
+  # ───────────── HTTPS - NestJS API ─────────────
+  server {
+    listen 443 ssl;
     server_name api.${DOMAIN_HOST};
+
+    ssl_certificate     ${SSL_CERT_PATH};
+    ssl_certificate_key ${SSL_KEY_PATH};
+
     location / {
       proxy_pass http://nestjs:3001;
-      proxy_http_version 1.1;
-      proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
-      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-      proxy_set_header X-Forwarded-Proto $scheme;
+      include /etc/nginx/proxy-headers.conf;
     }
+  }
 
-    # ───────────── Subdomain - AdminJS ─────────────
+  # ───────────── HTTPS - AdminJS ─────────────
+  server {
+    listen 443 ssl;
     server_name admin.${DOMAIN_HOST};
-    location / {
-      proxy_pass http://adminjs:3001; # Adjust if AdminJS runs on a different port
-      proxy_http_version 1.1;
-      proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
-      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-      proxy_set_header X-Forwarded-Proto $scheme;
+
+    ssl_certificate     ${SSL_CERT_PATH};
+    ssl_certificate_key ${SSL_KEY_PATH};
+
+    location = / {
+      return 302 /admin/;
     }
 
-    # ───────────── Subdomain - Swagger ─────────────
-    server_name swagger.${DOMAIN_HOST};
     location / {
-      proxy_pass http://swagger:3000; # Adjust if Swagger runs on a different port
-      proxy_http_version 1.1;
-      proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
-      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-      proxy_set_header X-Forwarded-Proto $scheme;
+      proxy_pass http://nestjs:3001;
+      include /etc/nginx/proxy-headers.conf;
+    }
+  }
+
+  # ───────────── HTTPS - Swagger ─────────────
+  server {
+    listen 443 ssl;
+    server_name swagger.${DOMAIN_HOST};
+
+    ssl_certificate     ${SSL_CERT_PATH};
+    ssl_certificate_key ${SSL_KEY_PATH};
+
+    location = / {
+      return 302 /api/;
+    }
+
+    location /api/ {
+      proxy_pass http://nestjs:3001;
+      include /etc/nginx/proxy-headers.conf;
     }
   }
 }
