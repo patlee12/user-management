@@ -1,38 +1,23 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# ────────────────────────────────────────────────────────
-# Resolve paths
-# ────────────────────────────────────────────────────────
+# ──────────────── Path resolution ────────────────
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 ENV_FILE="$ROOT_DIR/docker/production/.env.production"
 
-# ────────────────────────────────────────────────────────
-# Load and sanitize environment variables
-# ────────────────────────────────────────────────────────
-if [[ ! -f "$ENV_FILE" ]]; then
-  echo "❌ Environment file not found: $ENV_FILE"
-  exit 1
-fi
+# ──────────────── Load env vars ────────────────
+[[ -f "$ENV_FILE" ]] || { echo "❌ $ENV_FILE not found"; exit 1; }
 
-# Extract and sanitize DOMAIN_HOST and ADMIN_EMAIL using awk
-DOMAIN_HOST=$(awk -F= '/^DOMAIN_HOST=/ { gsub(/["\r\n ]/, "", $2); print $2; exit }' "$ENV_FILE")
-ADMIN_EMAIL=$(awk -F= '/^ADMIN_EMAIL=/ { gsub(/["\r\n ]/, "", $2); print $2; exit }' "$ENV_FILE")
+# strip quotes / whitespace
+DOMAIN_HOST=$(awk -F= '/^DOMAIN_HOST=/ {gsub(/["\r\n ]/, "", $2); print $2; exit}' "$ENV_FILE")
+ADMIN_EMAIL=$(awk -F= '/^ADMIN_EMAIL=/ {gsub(/["\r\n ]/, "", $2); print $2; exit}' "$ENV_FILE")
+CERTBOT_STAGE=$(awk -F= '/^CERTBOT_STAGE=/ {gsub(/["\r\n ]/, "", $2); print $2; exit}' "$ENV_FILE")
 
-if [[ -z "$DOMAIN_HOST" ]]; then
-  echo "❌ DOMAIN_HOST is not set in $ENV_FILE"
-  exit 1
-fi
+[[ -n "$DOMAIN_HOST"  ]] || { echo "❌ DOMAIN_HOST not set";  exit 1; }
+[[ -n "$ADMIN_EMAIL"  ]] || { echo "❌ ADMIN_EMAIL not set";  exit 1; }
 
-if [[ -z "$ADMIN_EMAIL" ]]; then
-  echo "❌ ADMIN_EMAIL is not set in $ENV_FILE"
-  exit 1
-fi
-
-# ────────────────────────────────────────────────────────
-# Build domain list
-# ────────────────────────────────────────────────────────
+# ──────────────── Domain list ────────────────
 DOMAINS=(
   "$DOMAIN_HOST"
   "admin.$DOMAIN_HOST"
@@ -40,30 +25,55 @@ DOMAINS=(
   "swagger.$DOMAIN_HOST"
 )
 
-echo "🔐 Requesting Let's Encrypt certificate for:"
-for d in "${DOMAINS[@]}"; do
-  echo " • $d"
+echo "🔍 Verifying DNS for requested hosts…"
+GOOD_DOMAINS=()
+for host in "${DOMAINS[@]}"; do
+  if dig +short "$host" | grep -qE '^[0-9]'; then
+    echo " ✓ $host → $(dig +short "$host" | head -1)"
+    GOOD_DOMAINS+=("$host")
+  else
+    echo " ✗ $host has no A/AAAA record – will be skipped"
+  fi
 done
 
-# ────────────────────────────────────────────────────────
-# Request certificate using Certbot in webroot mode
-# ────────────────────────────────────────────────────────
-echo "🔐 Requesting Let's Encrypt certificate for: $DOMAIN_HOST and subdomains"
+[[ ${#GOOD_DOMAINS[@]} -gt 0 ]] || { echo "❌ No resolvable domains left – aborting"; exit 1; }
+
+# ──────────────── HTTP‑01 reachability test ────────────────
+echo "🔍 Verifying port 80 reachability…"
+TOKEN="pretest-$(date +%s)"
+WEBROOT="$ROOT_DIR/docker/production/nginx/www"
+mkdir -p "$WEBROOT/.well-known/acme-challenge"
+echo ok > "$WEBROOT/.well-known/acme-challenge/$TOKEN"
+
+FAILED=false
+for host in "${GOOD_DOMAINS[@]}"; do
+  if ! curl -fs "http://${host}/.well-known/acme-challenge/$TOKEN" >/dev/null; then
+    echo " ✗ $host is not reachable on port 80 (HTTP‑01 will fail)"
+    FAILED=true
+  else
+    echo " ✓ $host reachable on port 80"
+  fi
+done
+$FAILED && { echo "❌ Fix port 80 reachability and retry"; exit 1; }
+
+# ──────────────── Invoke Certbot ────────────────
+echo -e "\n🔐 Requesting Let's Encrypt certificate for:"
+printf ' • %s\n' "${GOOD_DOMAINS[@]}"
+
+CERTBOT_OPTS=(
+  certonly
+  --webroot -w /var/www/certbot
+  --email "$ADMIN_EMAIL"
+  --agree-tos --no-eff-email --non-interactive --verbose
+)
+[[ "${CERTBOT_STAGE,,}" == "true" ]] && CERTBOT_OPTS+=( --staging )
 
 if ! docker run --rm \
   -v "$ROOT_DIR/docker/production/nginx/certs:/etc/letsencrypt" \
   -v "$ROOT_DIR/docker/production/nginx/www:/var/www/certbot" \
-  certbot/certbot certonly \
-  --webroot \
-  --webroot-path=/var/www/certbot \
-  --email "$ADMIN_EMAIL" \
-  --agree-tos \
-  --non-interactive \
-  --no-eff-email \
-  $(printf -- "-d %s " "${DOMAINS[@]}") \
-  --verbose; then
-  echo "❌ Certbot failed (possibly due to rate limits or other errors), falling back to self-signed certificates."
+  certbot/certbot "${CERTBOT_OPTS[@]}" $(printf -- '-d %s ' "${GOOD_DOMAINS[@]}"); then
+  echo "❌ Certbot failed – falling back to self‑signed certs"
   exit 2
 fi
 
-echo "✅ Certificate obtained for: $DOMAIN_HOST and subdomains"
+echo "✅ Certificate obtained for: ${GOOD_DOMAINS[*]}"
