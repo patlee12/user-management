@@ -55,3 +55,4 @@ yarn.lock
 *.csr
 csr.conf
 cert-CA-signed.zip
+nginx.production.conf
