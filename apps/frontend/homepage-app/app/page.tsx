@@ -4,7 +4,6 @@ import CanvasBackground from '@/components/ui/backgrounds/canvasBackground';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import useEmblaCarousel from 'embla-carousel-react';
-import Autoplay from 'embla-carousel-autoplay';
 import { useEffect, useRef, useCallback } from 'react';
 import {
   ShieldCheck,
@@ -36,64 +35,77 @@ const slides = [
 ];
 
 export default function HomePage() {
-  const autoplay = useRef(Autoplay({ delay: 7000, stopOnInteraction: true }));
-  const pauseTimeout = useRef<NodeJS.Timeout | null>(null);
-  const isMouseOver = useRef(false);
+  const AUTOPLAY_DELAY = 5000;
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const isPaused = useRef(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  const [emblaRef, emblaApi] = useEmblaCarousel(
-    { loop: true, align: 'center' },
-    [autoplay.current],
-  );
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    loop: true,
+    align: 'center',
+  });
 
-  const pauseAutoplayFor = (ms: number) => {
-    autoplay.current.stop();
-    if (pauseTimeout.current) clearTimeout(pauseTimeout.current);
-    pauseTimeout.current = setTimeout(() => {
-      if (!isMouseOver.current) {
-        autoplay.current.play();
-      }
-    }, ms);
-  };
-
-  const scrollPrev = useCallback(() => {
-    pauseAutoplayFor(10000);
-    emblaApi?.scrollPrev();
-  }, [emblaApi]);
-
-  const scrollNext = useCallback(() => {
-    pauseAutoplayFor(10000);
-    emblaApi?.scrollNext();
-  }, [emblaApi]);
-
-  const carouselContainerRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    const node = carouselContainerRef.current;
-    if (!node) return;
-
-    const handleMouseEnter = () => {
-      isMouseOver.current = true;
-      autoplay.current.stop();
-      if (pauseTimeout.current) clearTimeout(pauseTimeout.current);
-    };
-
-    const handleMouseLeave = () => {
-      isMouseOver.current = false;
-      pauseAutoplayFor(5000);
-    };
-
-    node.addEventListener('mouseenter', handleMouseEnter);
-    node.addEventListener('mouseleave', handleMouseLeave);
-
-    return () => {
-      node.removeEventListener('mouseenter', handleMouseEnter);
-      node.removeEventListener('mouseleave', handleMouseLeave);
-    };
+  const clearTimer = useCallback(() => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
   }, []);
 
+  const scheduleAutoplay = useCallback(() => {
+    clearTimer();
+    if (isPaused.current || !emblaApi) return;
+    timerRef.current = setTimeout(() => {
+      emblaApi.scrollNext();
+    }, AUTOPLAY_DELAY);
+  }, [clearTimer, emblaApi]);
+
+  // On each settle, try to schedule the next slide
   useEffect(() => {
-    if (emblaApi) emblaApi.scrollTo(0);
-  }, [emblaApi]);
+    if (!emblaApi) return;
+    emblaApi.on('settle', scheduleAutoplay);
+    // kick off initial autoplay
+    scheduleAutoplay();
+    return () => {
+      emblaApi.off('settle', scheduleAutoplay);
+      clearTimer();
+    };
+  }, [emblaApi, scheduleAutoplay, clearTimer]);
+
+  // Pause on hover, resume on leave
+  useEffect(() => {
+    const node = containerRef.current;
+    if (!node) return;
+    const onEnter = () => {
+      isPaused.current = true;
+      clearTimer();
+    };
+    const onLeave = () => {
+      isPaused.current = false;
+      scheduleAutoplay();
+    };
+    node.addEventListener('mouseenter', onEnter);
+    node.addEventListener('mouseleave', onLeave);
+    return () => {
+      node.removeEventListener('mouseenter', onEnter);
+      node.removeEventListener('mouseleave', onLeave);
+    };
+  }, [scheduleAutoplay, clearTimer]);
+
+  // Arrow click handlers clear & pause
+  const scrollPrev = useCallback(() => {
+    if (!emblaApi) return;
+    isPaused.current = true;
+    clearTimer();
+    emblaApi.scrollPrev();
+  }, [emblaApi, clearTimer]);
+
+  const scrollNext = useCallback(() => {
+    if (!emblaApi) return;
+    isPaused.current = true;
+    clearTimer();
+    emblaApi.scrollNext();
+  }, [emblaApi, clearTimer]);
 
   return (
     <div className="relative w-full h-full bg-black text-white overflow-x-hidden">
@@ -107,22 +119,18 @@ export default function HomePage() {
             Build Modern Web Apps With Security
           </h1>
           <p className="mt-6 text-lg leading-8 text-zinc-400 max-w-2xl mx-auto">
-            This is a monorepo that provides a full-stack application
-            boilerplate with separate applications for the backend and frontend.
-            The backend is built using Nest.js, while the frontend so far has a
-            Homepage Application that is built using Next.js. This project also
-            includes Docker configurations for local development and production
-            environments, including Avahi for service discovery and Nginx as a
-            reverse proxy.
+            This monorepo includes a full‑stack boilerplate with a Next.js
+            landing‑page frontend and a Nest.js backend. It also comes
+            preconfigured with Docker environments (for both development and
+            production), Avahi service discovery, and an Nginx reverse‑proxy.
           </p>
-
-          <div className="mt-16 relative" ref={carouselContainerRef}>
+          <div className="mt-16 relative" ref={containerRef}>
             <div className="overflow-hidden sm:px-2 px-1" ref={emblaRef}>
               <div className="flex gap-6">
-                {slides.map((slide, index) => (
+                {slides.map((slide, idx) => (
                   <div
-                    key={index}
-                    className="flex-[0_0_100%] max-w-full box-border px-6 py-10 bg-black/80 border border-white/10 rounded-2xl backdrop-blur-md shadow-xl transition-all duration-300 text-center"
+                    key={idx}
+                    className="flex-[0_0_100%] box-border px-6 py-10 bg-black/80 border border-white/10 rounded-2xl backdrop-blur-md shadow-xl text-center"
                   >
                     <slide.icon className="w-10 h-10 mx-auto text-emerald-400 mb-4" />
                     <h2 className="text-2xl sm:text-3xl font-semibold text-zinc-100">
@@ -135,7 +143,6 @@ export default function HomePage() {
                 ))}
               </div>
             </div>
-
             <div className="absolute inset-y-0 left-0 flex items-center pl-6 sm:pl-7">
               <button
                 onClick={scrollPrev}
@@ -155,7 +162,6 @@ export default function HomePage() {
               </button>
             </div>
           </div>
-
           <div className="mt-12 flex justify-center">
             <Link href="/products">
               <Button variant="primary">Get Started</Button>
