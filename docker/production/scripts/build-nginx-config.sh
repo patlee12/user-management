@@ -21,6 +21,13 @@ LIVE_DIR="$ROOT_DIR/docker/production/nginx/certs/live/$DOMAIN_HOST"
 FULLCHAIN="$LIVE_DIR/fullchain.pem"
 PRIVKEY="$LIVE_DIR/privkey.pem"
 
+# Auto fix cert file permissions if needed
+if [[ -d "$LIVE_DIR" ]]; then
+  echo "🔧 Fixing permissions on cert files in $LIVE_DIR..."
+  find "$LIVE_DIR" -type f \( -name '*.pem' -or -name '*.crt' -or -name '*.key' \) -exec chmod 644 {} \;
+  find "$LIVE_DIR" -type f -exec chown "$USER:docker" {} \; 2>/dev/null || true
+fi
+
 # Use raw paths if readlink fails due to perms
 RESOLVED_FULLCHAIN=$(readlink -f "$FULLCHAIN" 2>/dev/null || echo "$FULLCHAIN")
 RESOLVED_PRIVKEY=$(readlink -f "$PRIVKEY" 2>/dev/null || echo "$PRIVKEY")
