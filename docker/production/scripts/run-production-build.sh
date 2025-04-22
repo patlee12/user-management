@@ -87,7 +87,7 @@ echo ""
 echo "🧱 [11/14] Rebuilding Nginx config with correct cert paths…"
 CERT_DIR_PATH="$LIVE_CERT_DIR/$DOMAIN_HOST"
 LE_CERT="$CERT_DIR_PATH/fullchain.pem"
-LE_KEY="$CERT_DIR_PATH/privkey.key"
+LE_KEY="$CERT_DIR_PATH/privkey.pem"
 
 if [[ "${USE_MANUAL_CERTS:-false}" == "true" && -f "$LE_CERT" && -f "$LE_KEY" ]]; then
   echo "✅ Using manually provided certs from: $CERT_DIR_PATH"
