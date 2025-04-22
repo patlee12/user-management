@@ -24,6 +24,27 @@ PRIVKEY="$LIVE_DIR/privkey.pem"
 RESOLVED_FULLCHAIN=$(readlink -f "$FULLCHAIN" || echo "")
 RESOLVED_PRIVKEY=$(readlink -f "$PRIVKEY" || echo "")
 
+# Diagnostics
+echo "🔍 USE_MANUAL_CERTS          = $USE_MANUAL_CERTS"
+echo "🔍 DOMAIN_HOST               = $DOMAIN_HOST"
+echo "🔍 GLOBAL_PREFIX             = $GLOBAL_PREFIX"
+echo "🔍 FULLCHAIN (raw) path      = $FULLCHAIN"
+echo "🔍 PRIVKEY   (raw) path      = $PRIVKEY"
+echo "🔍 Resolved fullchain path   = $RESOLVED_FULLCHAIN"
+echo "🔍 Resolved privkey path     = $RESOLVED_PRIVKEY"
+
+if [[ ! -s "$RESOLVED_FULLCHAIN" ]]; then
+  echo "❌ fullchain.pem is missing or empty at: $RESOLVED_FULLCHAIN"
+else
+  echo "✅ fullchain.pem found and non-empty"
+fi
+
+if [[ ! -s "$RESOLVED_PRIVKEY" ]]; then
+  echo "❌ privkey.pem is missing or empty at: $RESOLVED_PRIVKEY"
+else
+  echo "✅ privkey.pem found and non-empty"
+fi
+
 # Decide which cert mode to use
 if [[ "${ACME_MODE:-}" == "1" ]]; then
   TEMPLATE="$ACME_TEMPLATE"
