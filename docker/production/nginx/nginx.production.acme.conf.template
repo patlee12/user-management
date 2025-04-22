@@ -17,7 +17,7 @@ http {
 
     # ACME challenge for Let's Encrypt
     location ^~ /.well-known/acme-challenge/ {
-      root /var/www/html;
+      root /var/www/certbot;
       default_type "text/plain";
       try_files $uri =404;
     }
@@ -45,7 +45,7 @@ http {
 
     # ACME challenge redundancy (optional)
     location ^~ /.well-known/acme-challenge/ {
-      root /var/www/html;
+      root /var/www/certbot;
       default_type "text/plain";
       try_files $uri =404;
     }
