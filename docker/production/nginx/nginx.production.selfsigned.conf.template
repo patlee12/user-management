@@ -81,8 +81,8 @@ http {
     listen 443 ssl;
     server_name swagger.${DOMAIN_HOST};
 
-    ssl_certificate     /etc/nginx/certs/self-signed/${DOMAIN_HOST}.crt;
-    ssl_certificate_key /etc/nginx/certs/self-signed/${DOMAIN_HOST}.key;
+    ssl_certificate     /etc/nginx/certs/self-signed/server.crt;
+    ssl_certificate_key /etc/nginx/certs/self-signed/server.key;
 
     location = / {
       return 302 /api/;
