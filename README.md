@@ -165,7 +165,7 @@ It also includes the following automation features:
 
   ```bash
   fullchain.pem  # Your CA-signed certificate
-  privkey.key    # Your private key
+  privkey.pem    # Your private key
   ```
 
   Replace `<YOUR-DOMAIN_HOST>` with your actual domain, e.g., `user-management.net`.
