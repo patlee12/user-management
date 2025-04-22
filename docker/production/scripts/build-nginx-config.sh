@@ -12,47 +12,42 @@ OUTPUT_CONF="$ROOT_DIR/docker/production/nginx/nginx.production.conf"
 
 [[ -f "$ENV_FILE" ]] || { echo "❌ Missing $ENV_FILE"; exit 1; }
 
-DOMAIN_HOST=$(grep '^DOMAIN_HOST='       "$ENV_FILE" | cut -d= -f2- | tr -d '\"' | xargs)
-GLOBAL_PREFIX=$(grep '^GLOBAL_PREFIX='   "$ENV_FILE" | cut -d= -f2- | tr -d '\"' | xargs || true)
-USE_MANUAL_CERTS=$(grep '^USE_MANUAL_CERTS=' "$ENV_FILE" | cut -d= -f2- | tr -d '\"' | xargs || echo "false")
+# Load env variables
+DOMAIN_HOST=$(grep '^DOMAIN_HOST=' "$ENV_FILE" | cut -d= -f2- | tr -d '"')
+GLOBAL_PREFIX=$(grep '^GLOBAL_PREFIX=' "$ENV_FILE" | cut -d= -f2- | tr -d '"' || true)
+USE_MANUAL_CERTS=$(grep '^USE_MANUAL_CERTS=' "$ENV_FILE" | cut -d= -f2- | tr -d '"' || echo "false")
+
 GLOBAL_PREFIX="${GLOBAL_PREFIX:-}"
 
 LIVE_DIR="$ROOT_DIR/docker/production/nginx/certs/live/$DOMAIN_HOST"
 FULLCHAIN="$LIVE_DIR/fullchain.pem"
 PRIVKEY="$LIVE_DIR/privkey.pem"
 
+# Decide which cert mode to use
+if [[ "${ACME_MODE:-}" == "1" ]]; then
+  TEMPLATE="$ACME_TEMPLATE"
+  SSL_CERT_PATH="/etc/nginx/certs/self-signed/server.crt"
+  SSL_KEY_PATH="/etc/nginx/certs/self-signed/server.key"
+  echo '📡 ACME_MODE=1 – temporary HTTP‑only config'
 
-# Decide which cert
+elif [[ "$USE_MANUAL_CERTS" == "true" && -s "$FULLCHAIN" && -s "$PRIVKEY" ]]; then
+  TEMPLATE="$TLS_TEMPLATE"
+  SSL_CERT_PATH="/etc/nginx/certs/live/$DOMAIN_HOST/fullchain.pem"
+  SSL_KEY_PATH="/etc/nginx/certs/live/$DOMAIN_HOST/privkey.pem"
+  echo '✅ Using manual certs found in live folder'
 
-case 1 in
-  $([[ "${ACME_MODE:-}" == "1" ]] && echo 1))
-    TEMPLATE=$ACME_TEMPLATE
-    SSL_CERT_PATH="/etc/nginx/certs/self-signed/server.crt"
-    SSL_KEY_PATH="/etc/nginx/certs/self-signed/server.key"
-    echo '📡 ACME_MODE=1 – temporary HTTP‑only config'
-    ;;
+elif [[ -s "$FULLCHAIN" && -s "$PRIVKEY" && "$(openssl x509 -in "$FULLCHAIN" -noout -issuer 2>/dev/null | grep -qi "Let's Encrypt" && echo true)" == "true" ]]; then
+  TEMPLATE="$TLS_TEMPLATE"
+  SSL_CERT_PATH="/etc/nginx/certs/live/$DOMAIN_HOST/fullchain.pem"
+  SSL_KEY_PATH="/etc/nginx/certs/live/$DOMAIN_HOST/privkey.pem"
+  echo '✅ Valid Let’s Encrypt cert detected – full HTTPS config'
 
-  $([[ "$USE_MANUAL_CERTS" == "true" && -s "$FULLCHAIN" && -s "$PRIVKEY" ]] && echo 1))
-    TEMPLATE=$TLS_TEMPLATE
-    SSL_CERT_PATH="/etc/nginx/certs/live/$DOMAIN_HOST/fullchain.pem"
-    SSL_KEY_PATH="/etc/nginx/certs/live/$DOMAIN_HOST/privkey.pem"
-    echo '✅ Using manual certs found in live folder'
-    ;;
-
-  $([[ -s "$FULLCHAIN" && -s "$PRIVKEY" ]] && openssl x509 -in "$FULLCHAIN" -noout -issuer 2>/dev/null | grep -qi \"Let's Encrypt\" && echo 1))
-    TEMPLATE=$TLS_TEMPLATE
-    SSL_CERT_PATH="/etc/nginx/certs/live/$DOMAIN_HOST/fullchain.pem"
-    SSL_KEY_PATH="/etc/nginx/certs/live/$DOMAIN_HOST/privkey.pem"
-    echo '✅ Valid Let’s Encrypt cert detected – full HTTPS config'
-    ;;
-
-  *)
-    TEMPLATE=$SELF_TEMPLATE
-    SSL_CERT_PATH="/etc/nginx/certs/self-signed/server.crt"
-    SSL_KEY_PATH="/etc/nginx/certs/self-signed/server.key"
-    echo '⚠️  Falling back to self‑signed certs'
-    ;;
-esac
+else
+  TEMPLATE="$SELF_TEMPLATE"
+  SSL_CERT_PATH="/etc/nginx/certs/self-signed/server.crt"
+  SSL_KEY_PATH="/etc/nginx/certs/self-signed/server.key"
+  echo '⚠️  Falling back to self‑signed certs'
+fi
 
 echo "🔒 Using cert: $SSL_CERT_PATH"
 echo "🔑 Using key:  $SSL_KEY_PATH"
