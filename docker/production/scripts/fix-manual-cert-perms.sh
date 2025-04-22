@@ -10,12 +10,11 @@ ARCHIVE_CERTS_DIR="$ROOT_DIR/docker/production/nginx/certs/archive"
 
 # Ensure traversal is possible
 echo "🔧 Fixing permissions on cert folders..."
-chmod +x \
-  "$ROOT_DIR/docker" \
-  "$ROOT_DIR/docker/production" \
-  "$ROOT_DIR/docker/production/nginx" \
-  "$ROOT_DIR/docker/production/nginx/certs" \
-  "$LIVE_CERTS_DIR" || true
+chmod 755 "$ROOT_DIR/docker" \
+           "$ROOT_DIR/docker/production" \
+           "$ROOT_DIR/docker/production/nginx" \
+           "$ROOT_DIR/docker/production/nginx/certs" \
+           "$LIVE_CERTS_DIR" || true
 
 # Fix all certs under each domain folder
 for domain_dir in "$LIVE_CERTS_DIR"/*; do
@@ -23,19 +22,24 @@ for domain_dir in "$LIVE_CERTS_DIR"/*; do
 
   echo "🔍 Fixing certs in: $domain_dir"
 
-  # Resolve and replace symlinks with actual files
   for file in fullchain.pem privkey.pem cert.pem chain.pem; do
     src="$domain_dir/$file"
+
     if [[ -L "$src" ]]; then
-      real_path=$(readlink -f "$src")
-      if [[ -f "$real_path" ]]; then
-        echo "🔁 Replacing symlink $file → $real_path"
-        cp "$real_path" "$src.copy"
-        mv "$src.copy" "$src"
+      if [[ ! -e "$src" ]]; then
+        echo "⚠️  Broken symlink: $src (skipping)"
+        continue
       fi
+
+      real_path=$(readlink -f "$src")
+      echo "🔁 Replacing symlink $file → $real_path"
+      cp -fL "$src" "$src"
     fi
-    chmod 644 "$src" 2>/dev/null || true
-    chown "$USER:docker" "$src" 2>/dev/null || true
+
+    if [[ -f "$src" ]]; then
+      chmod 644 "$src" || true
+      chown "$USER:docker" "$src" || true
+    fi
   done
 
   chmod 755 "$domain_dir" || true

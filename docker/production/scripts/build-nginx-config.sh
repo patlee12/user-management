@@ -47,18 +47,11 @@ if [[ "${ACME_MODE:-}" == "1" ]]; then
   SSL_KEY_PATH="/etc/nginx/certs/self-signed/server.key"
   echo '📡 ACME_MODE=1 – temporary HTTP-only config'
 
-elif [[ "$USE_MANUAL_CERTS" == "true" ]]; then
-  if [[ -s "$RESOLVED_FULLCHAIN" && -s "$RESOLVED_PRIVKEY" ]]; then
-    TEMPLATE="$TLS_TEMPLATE"
-    SSL_CERT_PATH="/etc/nginx/certs/live/$DOMAIN_HOST/fullchain.pem"
-    SSL_KEY_PATH="/etc/nginx/certs/live/$DOMAIN_HOST/privkey.pem"
-    echo '✅ Using manually specified certs'
-  else
-    TEMPLATE="$SELF_TEMPLATE"
-    SSL_CERT_PATH="/etc/nginx/certs/self-signed/server.crt"
-    SSL_KEY_PATH="/etc/nginx/certs/self-signed/server.key"
-    echo '❌ USE_MANUAL_CERTS is true, but cert files are missing — falling back to self-signed'
-  fi
+elif [[ "$USE_MANUAL_CERTS" == "true" && -s "$RESOLVED_FULLCHAIN" && -s "$RESOLVED_PRIVKEY" ]]; then
+  TEMPLATE="$TLS_TEMPLATE"
+  SSL_CERT_PATH="/etc/nginx/certs/live/$DOMAIN_HOST/fullchain.pem"
+  SSL_KEY_PATH="/etc/nginx/certs/live/$DOMAIN_HOST/privkey.pem"
+  echo '✅ Using manually specified certs'
 
 elif [[ -s "$RESOLVED_FULLCHAIN" && -s "$RESOLVED_PRIVKEY" ]]; then
   TEMPLATE="$TLS_TEMPLATE"
@@ -70,7 +63,12 @@ else
   TEMPLATE="$SELF_TEMPLATE"
   SSL_CERT_PATH="/etc/nginx/certs/self-signed/server.crt"
   SSL_KEY_PATH="/etc/nginx/certs/self-signed/server.key"
-  echo '⚠️  No valid cert found — falling back to self-signed'
+
+  if [[ "$USE_MANUAL_CERTS" == "true" ]]; then
+    echo "❌ USE_MANUAL_CERTS is true, but cert files are missing — falling back to self-signed"
+  else
+    echo "⚠️  No valid cert found — falling back to self-signed"
+  fi
 fi
 
 # Export for envsubst
