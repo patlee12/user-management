@@ -199,7 +199,7 @@ Make sure these DNS records are publicly resolvable **before running Certbot**, 
 
 #### Manual Cert Support
 
-If you're providing your own SSL certificates, do the following:
+If you're providing your own SSL certificates, pick to use manual certs in prompt. Or if you want to edit your current env manually, make sure to update the following:
 
 ```env
 USE_MANUAL_CERTS=true
