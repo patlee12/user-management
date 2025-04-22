@@ -41,24 +41,24 @@ if [[ "${ACME_MODE:-}" == "1" ]]; then
   SSL_KEY_PATH="/etc/nginx/certs/self-signed/server.key"
   echo '📡 ACME_MODE=1 – temporary HTTP-only config'
 
-elif [[ "$USE_MANUAL_CERTS" == "true" && -s "$RESOLVED_FULLCHAIN" && -s "$RESOLVED_PRIVKEY" ]]; then
-  TEMPLATE="$TLS_TEMPLATE"
-  SSL_CERT_PATH="/etc/nginx/certs/live/$DOMAIN_HOST/fullchain.pem"
-  SSL_KEY_PATH="/etc/nginx/certs/live/$DOMAIN_HOST/privkey.pem"
-  echo '✅ Using manual certs found in live folder'
-
-elif [[ -s "$RESOLVED_FULLCHAIN" && -s "$RESOLVED_PRIVKEY" ]]; then
-  if openssl x509 -in "$RESOLVED_FULLCHAIN" -noout -issuer 2>/dev/null | grep -qi "Let's Encrypt"; then
+elif [[ "$USE_MANUAL_CERTS" == "true" ]]; then
+  if [[ -s "$RESOLVED_FULLCHAIN" && -s "$RESOLVED_PRIVKEY" ]]; then
     TEMPLATE="$TLS_TEMPLATE"
     SSL_CERT_PATH="/etc/nginx/certs/live/$DOMAIN_HOST/fullchain.pem"
     SSL_KEY_PATH="/etc/nginx/certs/live/$DOMAIN_HOST/privkey.pem"
-    echo '✅ Valid Let’s Encrypt cert detected – full HTTPS config'
+    echo '✅ Using manually specified certs'
   else
     TEMPLATE="$SELF_TEMPLATE"
     SSL_CERT_PATH="/etc/nginx/certs/self-signed/server.crt"
     SSL_KEY_PATH="/etc/nginx/certs/self-signed/server.key"
-    echo '⚠️  Cert exists but not from Let’s Encrypt — falling back'
+    echo '❌ USE_MANUAL_CERTS is true, but cert files are missing — falling back to self-signed'
   fi
+
+elif [[ -s "$RESOLVED_FULLCHAIN" && -s "$RESOLVED_PRIVKEY" ]]; then
+  TEMPLATE="$TLS_TEMPLATE"
+  SSL_CERT_PATH="/etc/nginx/certs/live/$DOMAIN_HOST/fullchain.pem"
+  SSL_KEY_PATH="/etc/nginx/certs/live/$DOMAIN_HOST/privkey.pem"
+  echo '✅ Valid cert files found (non-manual mode) — full HTTPS config'
 
 else
   TEMPLATE="$SELF_TEMPLATE"
