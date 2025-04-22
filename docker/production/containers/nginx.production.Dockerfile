@@ -3,6 +3,9 @@ FROM nginx:1.27-alpine-slim
 # Install bash and gettext for envsubst (environment variable substitution)
 RUN apk add --no-cache bash gettext
 
+# Remove the default.conf to prevent it from loading an invalid cert path
+RUN rm -f /etc/nginx/conf.d/default.conf
+
 # Create necessary directories for logs and self-signed certs
 RUN mkdir -p /var/log/nginx /etc/nginx/certs/self-signed
 
