@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider      = "prisma-client-js"
   binaryTargets = ["native", "linux-musl", "linux-musl-openssl-3.0.x"]
@@ -26,19 +23,21 @@ model AccountRequest {
 
 
 model User {
-  id            Int      @id @default(autoincrement())
-  username      String   @unique
-  name          String?
-  email         String   @unique
-  password      String
-  mfaEnabled    Boolean  @default(false)
-  emailVerified Boolean  @default(false)
-  userRoles     UserRoles[]
-  posts         Post[]
-  mfa_auth      mfa_auth[]
-  PasswordReset PasswordReset[]
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id                    Int      @id @default(autoincrement())
+  username              String   @unique
+  name                  String?
+  email                 String   @unique
+  password              String
+  mfaEnabled            Boolean  @default(false)
+  emailVerified         Boolean  @default(false)
+  emailMfaTempCode      String?
+  emailMfaTempExpiresAt DateTime?
+  userRoles             UserRoles[]
+  posts                 Post[]
+  mfa_auth              mfa_auth[]
+  PasswordReset         PasswordReset[]
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 
   @@unique([id, email])
 }

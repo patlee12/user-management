@@ -4,7 +4,7 @@ import { Exclude } from 'class-transformer';
 
 /**
  * Represents a user in the system.
- * Excludes the 'password' field from API responses for security.
+ * Excludes sensitive fields like password and email MFA temp codes from API responses.
  */
 export class UserEntity implements User {
   @ApiProperty()
@@ -28,6 +28,14 @@ export class UserEntity implements User {
 
   @ApiProperty()
   emailVerified: boolean;
+
+  @Exclude()
+  @ApiHideProperty()
+  emailMfaTempCode: string | null;
+
+  @Exclude()
+  @ApiHideProperty()
+  emailMfaTempExpiresAt: Date;
 
   @ApiProperty({ required: false, nullable: true })
   userRoles?: number[];
