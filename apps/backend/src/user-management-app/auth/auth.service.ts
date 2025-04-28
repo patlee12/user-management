@@ -16,6 +16,7 @@ import { JwtPayload } from './jwt.strategy';
 import { decryptSecret } from 'src/helpers/encryption-tools';
 import { MfaDto } from './dto/mfa.dto';
 import { LoginDto } from './dto/login.dto';
+import { MailingService } from '../mailing/mailing.service';
 
 @Injectable()
 export class AuthService {
@@ -23,6 +24,7 @@ export class AuthService {
     private prisma: PrismaService,
     private userService: UsersService,
     private jwtService: JwtService,
+    private mailingService: MailingService,
   ) {}
 
   /**
@@ -108,15 +110,39 @@ export class AuthService {
       };
     }
 
-    // No MFA — proceed normally
-    const jwtPayload: JwtPayload = {
-      userId: user.id,
-      mfaVerified: false,
-    };
+    // No MFA enabled — fallback to email MFA
+    const code = this.generateSixDigitCode();
 
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        emailMfaTempCode: code,
+        emailMfaTempExpiresAt: new Date(Date.now() + 10 * 60 * 1000),
+      },
+    });
+
+    // Send the MFA code by email
+    await this.mailingService.sendEmailMfaCode({ email: user.email, code });
+
+    // Instead of immediately returning accessToken,
+    // return a response telling frontend "email verification required"
     return {
-      accessToken: this.jwtService.sign(jwtPayload),
+      emailMfaRequired: true,
+      userId: user.id,
     };
+  }
+
+  /**
+   * Generates a random 6-digit numerical code as a string.
+   *
+   * This is used for email-based MFA fallback during the login process,
+   * providing a simple, time-sensitive second factor for users
+   * who have not enabled full TOTP multi-factor authentication.
+   *
+   * @returns {string} A six-digit string.
+   */
+  generateSixDigitCode(): string {
+    return Math.floor(100000 + Math.random() * 900000).toString();
   }
 
   /**
