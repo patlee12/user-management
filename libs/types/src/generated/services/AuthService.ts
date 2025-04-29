@@ -3,6 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { AuthResponseDto } from '../models/AuthResponseDto';
+import type { EmailMfaDto } from '../models/EmailMfaDto';
 import type { LoginDto } from '../models/LoginDto';
 import type { MfaDto } from '../models/MfaDto';
 import type { MfaResponseDto } from '../models/MfaResponseDto';
@@ -41,6 +42,23 @@ export class AuthService {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/auth/verify-mfa',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * Verify 6-digit email MFA code to complete login.
+     * Use this after login when the response has `emailMfaRequired: true`. This endpoint verifies the email and code and issues a final access token.
+     * @param requestBody
+     * @returns AuthResponseDto
+     * @throws ApiError
+     */
+    public static authControllerVerifyEmailMfa(
+        requestBody: EmailMfaDto,
+    ): CancelablePromise<AuthResponseDto> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/auth/verify-email-mfa',
             body: requestBody,
             mediaType: 'application/json',
         });
