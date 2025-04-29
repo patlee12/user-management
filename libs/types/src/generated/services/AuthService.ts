@@ -13,7 +13,7 @@ import { request as __request } from '../core/request';
 export class AuthService {
     /**
      * Login with email/username and password and optionally MFA token.
-     * Returns an access token if MFA is not enabled or the token is valid. If MFA is enabled and no token is provided, returns a temporary ticket for completing the MFA challenge. Use Admin Email and password from .env files if you need an account.
+     * Returns an access token if MFA is not enabled or the token is valid. If MFA is enabled and no token is provided, returns a temporary ticket for completing the MFA challenge.
      * @param requestBody
      * @returns AuthResponseDto
      * @throws ApiError
@@ -47,7 +47,7 @@ export class AuthService {
     }
     /**
      * Generate MFA secret and QR code for user setup.
-     * Returns the MFA secret and QR code image to register with an authenticator app. You must be logged in (JWT).
+     * Returns the MFA secret and QR code image to register with an authenticator app.
      * @returns MfaResponseDto
      * @throws ApiError
      */
@@ -59,7 +59,7 @@ export class AuthService {
     }
     /**
      * Confirm MFA token and activate MFA on account.
-     * Verifies the user's 6-digit MFA token during setup and enables MFA if valid. Requires JWT.
+     * Verifies the user's 6-digit MFA token during setup and enables MFA if valid.
      * @param requestBody
      * @returns any
      * @throws ApiError
