@@ -132,6 +132,8 @@ export default function LoginComponent() {
         type: 'LOGIN_ERROR',
         message: err.response?.data?.message || 'Invalid code',
       });
+    } finally {
+      setMfaCode('');
     }
   };
 
@@ -158,6 +160,8 @@ export default function LoginComponent() {
         type: 'LOGIN_ERROR',
         message: err.response?.data?.message || 'Invalid MFA code',
       });
+    } finally {
+      setMfaCode('');
     }
   };
 
