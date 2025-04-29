@@ -1,6 +1,7 @@
 import axiosInstance from '@/lib/axiosInstance';
 import {
   AuthResponseDto,
+  EmailMfaDto,
   LoginDto,
   MfaDto,
   MfaResponseDto,
@@ -38,6 +39,23 @@ export async function verifyMfa(mfaDto: MfaDto): Promise<AuthResponseDto> {
         Authorization: `Bearer ${mfaDto.ticket}`,
       },
     },
+  );
+  return res.data;
+}
+
+/**
+ * Submits POST request to `/auth/verify-email-mfa` with email and 6-digit MFA code
+ * to complete the fallback email MFA authentication process after login.
+ *
+ * @param emailMfaDto - The email and 6-digit code sent to the user.
+ * @returns {Promise<AuthResponseDto>} A promise resolving to the final access token if verification succeeds.
+ */
+export async function verifyEmailMfa(
+  emailMfaDto: EmailMfaDto,
+): Promise<AuthResponseDto> {
+  const res = await axiosInstance.post<AuthResponseDto>(
+    '/auth/verify-email-mfa',
+    emailMfaDto,
   );
   return res.data;
 }

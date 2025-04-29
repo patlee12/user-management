@@ -8,6 +8,7 @@ import {
   verifyMfa,
   getMfaSetup,
   confirmMfaSetup,
+  verifyEmailMfa,
 } from '@/app/services/auth-service';
 import { LoginDto, MfaDto } from '@user-management/types';
 import { useAuthStore } from '@/stores/authStore';
@@ -73,6 +74,14 @@ export default function LoginComponent() {
         return;
       }
 
+      if (response.emailMfaRequired) {
+        dispatch({
+          type: 'EMAIL_MFA_REQUIRED',
+          email: buildLoginDto.email || '',
+        });
+        return;
+      }
+
       // Capture the current user data from loadUser() rather than relying on a potentially stale store value.
       await loadUser();
 
@@ -102,6 +111,31 @@ export default function LoginComponent() {
   };
 
   /**
+   * Handles email MFA code verification submission.
+   */
+  const handleEmailMfaSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    dispatch({ type: 'START_LOGIN' });
+    try {
+      await verifyEmailMfa({
+        email: tempToken,
+        token: mfaCode,
+      });
+      await loadUser();
+
+      // After verifying the email MFA code, instead of logging in immediately,
+      // offer the optional MFA setup prompt to improve account security
+      dispatch({ type: 'OPTIONAL_MFA_PROMPT', qrCodeUrl: '', secret: '' });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      dispatch({
+        type: 'LOGIN_ERROR',
+        message: err.response?.data?.message || 'Invalid code',
+      });
+    }
+  };
+
+  /**
    * Handles MFA verification submission for enforced MFA login.
    */
   const handleMfaSubmit = async (e: React.FormEvent) => {
@@ -117,7 +151,7 @@ export default function LoginComponent() {
       dispatch({ type: 'LOGIN_SUCCESS' });
       setTimeout(() => {
         window.location.href = redirectTo.startsWith('/') ? redirectTo : '/';
-      }, 100);
+      }, 50);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       dispatch({
@@ -222,6 +256,16 @@ export default function LoginComponent() {
             onSubmit={handleMfaSubmit}
             isLoading={isLoading}
           />
+        ) : status === 'email-mfa' ? (
+          <MfaVerify
+            title="Enter Your Login Code"
+            description="Enter the 6-digit code we emailed to you."
+            mfaCode={mfaCode}
+            errorMessage={errorMessage}
+            onChange={setMfaCode}
+            onSubmit={handleEmailMfaSubmit}
+            isLoading={isLoading}
+          />
         ) : (
           <form onSubmit={handleLogin} className="space-y-6">
             <h2 className="text-3xl font-bold mb-6 text-center">Login</h2>
@@ -274,6 +318,7 @@ export default function LoginComponent() {
             </Button>
           </form>
         )}
+
         {status !== 'mfa' &&
           status !== 'mfa-optional' &&
           status !== 'mfa-setup' &&

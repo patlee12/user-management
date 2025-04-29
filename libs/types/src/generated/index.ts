@@ -17,6 +17,7 @@ export type { CreatePostDto } from './models/CreatePostDto';
 export type { CreateRoleDto } from './models/CreateRoleDto';
 export type { CreateUserDto } from './models/CreateUserDto';
 export type { EmailMfaCodeDto } from './models/EmailMfaCodeDto';
+export type { EmailMfaDto } from './models/EmailMfaDto';
 export type { EmailPasswordResetDto } from './models/EmailPasswordResetDto';
 export type { EmailVerificationDto } from './models/EmailVerificationDto';
 export type { LoginDto } from './models/LoginDto';
