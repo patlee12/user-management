@@ -2,17 +2,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common';
 import { Strategy, Profile, VerifyCallback } from 'passport-google-oauth20';
 import { OAuthProvider } from '../constants/oauth-providers.enum';
-
-/**
- * Represents the user payload returned from an OAuth strategy (e.g. Google, Apple).
- * This is injected into `req.user` by Passport during the OAuth flow.
- */
-export interface OAuthPayload {
-  provider: OAuthProvider;
-  providerId: string;
-  email: string;
-  name?: string;
-}
+import { OAuthPayload } from '../interfaces/oauth-payload.interface';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(
