@@ -7,7 +7,7 @@ import {
 import { Request, Response, NextFunction } from 'express';
 import * as jwt from 'jsonwebtoken';
 import { PrismaService } from '@src/prisma/prisma.service';
-import { JwtPayload } from '@src/user-management-app/auth/jwt.strategy';
+import { JwtPayload } from '@src/user-management-app/auth/strategies/jwt.strategy';
 
 @Injectable()
 export class SwaggerAuthMiddleware implements NestMiddleware {
