@@ -43,9 +43,15 @@ model User {
   @@unique([id, email])
 }
 
+enum OAuthProvider {
+  google
+  apple
+  github
+}
+
 model OAuthAccount {
   id         Int      @id @default(autoincrement())
-  provider   String
+  provider   OAuthProvider
   providerId String
   email      String
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
