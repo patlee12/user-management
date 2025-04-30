@@ -3,6 +3,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { mailConfig } from './mail.config';
 import { EmailVerificationDto } from './dto/email-verification.dto';
 import { EmailPasswordResetDto } from './dto/email-password-reset.dto';
+import { EmailMfaCodeDto } from './dto/email-mfa-code.dto';
 import * as path from 'path';
 import * as fs from 'fs';
 
@@ -124,5 +125,22 @@ export class MailingService {
       undefined,
       html,
     );
+  }
+
+  /**
+   * Sends a one-time email MFA code to the specified recipient for login verification.
+   * @param emailMfaDto - A data transfer object containing email and code to verify.
+   * @returns A promise that resolves when the email is sent successfully.
+   */
+  async sendEmailMfaCode(emailMfaDto: EmailMfaCodeDto): Promise<void> {
+    const subject = 'Your Login Security Code';
+
+    const html = await this.loadTemplate('email-mfa-code.html', {
+      code: emailMfaDto.code,
+      year: new Date().getFullYear().toString(),
+      company: 'User-Management',
+    });
+
+    return await this.sendEmail(emailMfaDto.email, subject, undefined, html);
   }
 }

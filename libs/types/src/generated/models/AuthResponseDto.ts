@@ -12,6 +12,14 @@ export type AuthResponseDto = {
      */
     mfaRequired?: boolean;
     /**
+     * Whether email MFA is required
+     */
+    emailMfaRequired?: boolean;
+    /**
+     * Whether email MFA is required
+     */
+    userId?: number;
+    /**
      * Temporary JWT ticket used for MFA verification
      */
     ticket?: string;

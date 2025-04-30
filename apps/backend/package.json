@@ -7,7 +7,7 @@
   "license": "MIT",
   "scripts": {
     "generate:env": "ts-node -P tsconfig.json scripts/generate-backend-env.ts",
-    "generate:types": "npx openapi-typescript-codegen --input https://localhost:3001/api-json --output ../../libs/types/src/generated",
+    "generate:types": "curl -k https://localhost:3001/api-json -o ../../libs/types/swagger.json && NODE_TLS_REJECT_UNAUTHORIZED=0 npx openapi-typescript-codegen --input ../../libs/types/swagger.json --output ../../libs/types/src/generated && rm ../../libs/types/swagger.json",
     "build": "yarn prisma generate && nest build --path tsconfig.build.json",
     "copy-mailing-templates": "mkdir -p dist/src/user-management-app/mailing/templates && cp -R src/user-management-app/mailing/templates/. dist/src/user-management-app/mailing/templates",
     "start": "nest start",

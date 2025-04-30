@@ -4,6 +4,14 @@ import { Button } from '@/components/ui/button';
 
 export interface MfaVerifyProps {
   /**
+   * Optional custom title for the form.
+   */
+  title?: string;
+  /**
+   * Optional custom description text.
+   */
+  description?: string;
+  /**
    * The current MFA code input value.
    */
   mfaCode: string;
@@ -28,10 +36,12 @@ export interface MfaVerifyProps {
 /**
  * MfaVerify Component
  *
- * Displays a form for the user to enter their MFA code when MFA verification is required
- * (for example, on login when the backend enforces MFA).
+ * Displays a form for the user to enter their MFA or Email MFA code
+ * to complete authentication.
  */
 export function MfaVerify({
+  title,
+  description,
   mfaCode,
   errorMessage,
   onChange,
@@ -41,10 +51,10 @@ export function MfaVerify({
   return (
     <form onSubmit={onSubmit} className="space-y-6">
       <h2 className="text-3xl font-bold mb-6 text-center">
-        Multi-Factor Authentication
+        {title ?? 'Multi-Factor Authentication'}
       </h2>
       <p className="text-zinc-400 text-sm text-center">
-        Enter the 6-digit code from your authenticator app.
+        {description ?? 'Enter the 6-digit code from your authenticator app.'}
       </p>
       <div>
         <label

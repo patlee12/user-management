@@ -5,6 +5,7 @@ export type AuthStatus =
   | 'idle'
   | 'loading'
   | 'mfa'
+  | 'email-mfa'
   | 'mfa-optional'
   | 'mfa-setup'
   | 'confirm-mfa'
@@ -33,6 +34,7 @@ export type LoginAction =
   | { type: 'START_LOGIN' }
   | { type: 'LOGIN_SUCCESS' }
   | { type: 'MFA_REQUIRED'; ticket: string }
+  | { type: 'EMAIL_MFA_REQUIRED'; email: string }
   | { type: 'OPTIONAL_MFA_PROMPT'; qrCodeUrl: string; secret: string }
   | { type: 'BEGIN_MFA_SETUP' }
   | { type: 'BEGIN_CONFIRM_MFA_SETUP' }
@@ -69,6 +71,13 @@ export function loginReducer(
       return { ...initialLoginState };
     case 'MFA_REQUIRED':
       return { ...state, status: 'mfa', tempToken: action.ticket };
+    case 'EMAIL_MFA_REQUIRED':
+      return {
+        ...state,
+        status: 'email-mfa',
+        errorMessage: '',
+        tempToken: action.email,
+      };
     case 'OPTIONAL_MFA_PROMPT':
       return {
         ...state,

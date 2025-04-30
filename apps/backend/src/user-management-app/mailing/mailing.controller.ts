@@ -20,6 +20,7 @@ import { EmailPasswordResetDto } from './dto/email-password-reset.dto';
 import { GLOBAL_THROTTLE_CONFIG } from 'src/common/constraints';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Roles } from '../roles-and-permissions-resources/roles.decorator';
+import { EmailMfaCodeDto } from './dto/email-mfa-code.dto';
 
 @ApiTags('mailing')
 @Controller('mailing')
@@ -30,7 +31,7 @@ import { Roles } from '../roles-and-permissions-resources/roles.decorator';
 export class MailingController {
   constructor(private readonly mailingService: MailingService) {}
 
-  @Post('send-verification-email')
+  @Post('verification')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Send verification email with link.' })
   @ApiResponse({
@@ -45,7 +46,7 @@ export class MailingController {
     return { message: 'Verification email sent successfully' };
   }
 
-  @Post('send-password-reset-email')
+  @Post('reset')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Send password reset email with link.' })
   @ApiResponse({
@@ -58,5 +59,20 @@ export class MailingController {
   ): Promise<{ message: string }> {
     await this.mailingService.sendPasswordResetEmail(emailPasswordResetDto);
     return { message: 'Password reset email sent successfully' };
+  }
+
+  @Post('mfa')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Send login MFA email code.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Email MFA code sent successfully',
+  })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  async sendEmailMfaCode(
+    @Body() emailMfaCodeDto: EmailMfaCodeDto,
+  ): Promise<{ message: string }> {
+    await this.mailingService.sendEmailMfaCode(emailMfaCodeDto);
+    return { message: 'Email MFA code sent successfully' };
   }
 }

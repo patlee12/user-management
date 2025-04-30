@@ -16,6 +16,8 @@ import { JwtPayload } from './jwt.strategy';
 import { decryptSecret } from 'src/helpers/encryption-tools';
 import { MfaDto } from './dto/mfa.dto';
 import { LoginDto } from './dto/login.dto';
+import { MailingService } from '../mailing/mailing.service';
+import { EmailMfaDto } from './dto/email-mfa.dto';
 
 @Injectable()
 export class AuthService {
@@ -23,23 +25,32 @@ export class AuthService {
     private prisma: PrismaService,
     private userService: UsersService,
     private jwtService: JwtService,
+    private mailingService: MailingService,
   ) {}
 
   /**
    * Authenticates a user with their provided email or username and password.
    *
-   * - If the user does **not** have MFA enabled, returns a JWT access token.
-   * - If the user **has MFA enabled**:
-   *   - and provides a valid MFA token, returns a JWT access token.
-   *   - and does **not** provide an MFA token, returns an MFA challenge response containing a short-lived ticket.
+   * Depending on the user's MFA status, the login behavior adjusts as follows:
    *
-   * This supports a two-step MFA flow where the frontend receives a `ticket` from the login response and completes MFA verification via `/auth/verify-mfa`.
+   * - If the user **has TOTP MFA enabled**:
+   *   - and provides a valid MFA token immediately, returns a JWT access token.
+   *   - and does **not** provide an MFA token, returns an MFA challenge ticket.
+   *
+   * - If the user **does not have TOTP MFA enabled**:
+   *   - generates a 6-digit MFA code,
+   *   - sends it to the user's email,
+   *   - and returns an email MFA challenge response (`emailMfaRequired: true`).
+   *
+   * This flow ensures:
+   * - Two-step login with MFA ticket verification (for TOTP users)
+   * - Email-based MFA fallback for all other users
    *
    * @param loginDto - The login data containing email or username, password, and optionally an MFA token.
-   * @returns {AuthResponseDto} - Either an access token, or an MFA challenge ticket.
+   * @returns {AuthResponseDto} - Either a final access token, an MFA challenge ticket, or an email MFA challenge.
    *
-   * @throws {NotFoundException} - If no user is found for the provided email.
-   * @throws {UnauthorizedException} - If the password is invalid or if an invalid MFA token is provided.
+   * @throws {BadRequestException} - If neither email nor username is provided.
+   * @throws {UnauthorizedException} - If invalid credentials or invalid MFA token are provided.
    */
   async login(loginDto: LoginDto): Promise<AuthResponseDto> {
     let user = null;
@@ -108,15 +119,39 @@ export class AuthService {
       };
     }
 
-    // No MFA — proceed normally
-    const jwtPayload: JwtPayload = {
-      userId: user.id,
-      mfaVerified: false,
-    };
+    // No MFA enabled — fallback to email MFA
+    const code = this.generateSixDigitCode();
 
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        emailMfaTempCode: code,
+        emailMfaTempExpiresAt: new Date(Date.now() + 10 * 60 * 1000),
+      },
+    });
+
+    // Send the MFA code by email
+    await this.mailingService.sendEmailMfaCode({ email: user.email, code });
+
+    // Instead of immediately returning accessToken,
+    // return a response telling frontend "email verification required"
     return {
-      accessToken: this.jwtService.sign(jwtPayload),
+      emailMfaRequired: true,
+      userId: user.id,
     };
+  }
+
+  /**
+   * Generates a random 6-digit numerical code as a string.
+   *
+   * This is used for email-based MFA fallback during the login process,
+   * providing a simple, time-sensitive second factor for users
+   * who have not enabled full TOTP multi-factor authentication.
+   *
+   * @returns {string} A six-digit string.
+   */
+  generateSixDigitCode(): string {
+    return Math.floor(100000 + Math.random() * 900000).toString();
   }
 
   /**
@@ -223,6 +258,58 @@ export class AuthService {
     if (!isMfaValid) {
       throw new UnauthorizedException('Invalid MFA token');
     }
+
+    const accessToken = this.jwtService.sign({
+      userId: user.id,
+      mfaVerified: true,
+    });
+
+    return { accessToken };
+  }
+
+  /**
+   * Verifies a user's email-based 6-digit MFA code during login fallback.
+   *
+   * This is called after the user logs in with email/password and receives
+   * an emailed 6-digit code because they don't have full MFA enabled.
+   *
+   * If the code matches and is not expired, an access token is issued.
+   *
+   * @param emailMfaDto -  Data transfer object with user's email address and a token represented by 6-digit code.
+   * @returns {AuthResponseDto} - JWT access token if the email MFA verification is successful.
+   * @throws {UnauthorizedException} - If the code is invalid, expired, or no user is found.
+   */
+  async verifyEmailMfaCode(emailMfaDto: EmailMfaDto): Promise<AuthResponseDto> {
+    const user = await this.prisma.user.findUnique({
+      where: { email: emailMfaDto.email },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    if (!user.emailMfaTempCode || !user.emailMfaTempExpiresAt) {
+      throw new UnauthorizedException('No MFA code found for this user');
+    }
+
+    const now = new Date();
+
+    if (user.emailMfaTempExpiresAt < now) {
+      throw new UnauthorizedException('MFA code has expired');
+    }
+
+    if (user.emailMfaTempCode !== emailMfaDto.token) {
+      throw new UnauthorizedException('Invalid MFA code');
+    }
+
+    // Clear the temp MFA code after successful verification
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        emailMfaTempCode: null,
+        emailMfaTempExpiresAt: null,
+      },
+    });
 
     const accessToken = this.jwtService.sign({
       userId: user.id,

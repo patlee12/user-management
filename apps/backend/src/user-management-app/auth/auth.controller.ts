@@ -29,6 +29,7 @@ import { UserEntity } from 'src/user-management-app/users/entities/user.entity';
 import { LOGIN_THROTTLE } from 'src/common/constraints';
 import { JwtService } from '@nestjs/jwt';
 import getCookieOptions from './helpers/get-cookie-options';
+import { EmailMfaDto } from './dto/email-mfa.dto';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -91,6 +92,32 @@ export class AuthController {
 
       const publicToken = await this.authService.generatePublicSessionToken(
         +payload.userId,
+      );
+      res.cookie('public_session', publicToken, getCookieOptions(false));
+    }
+
+    return result;
+  }
+
+  @Post('verify-email-mfa')
+  @Throttle(LOGIN_THROTTLE)
+  @ApiOperation({
+    summary: 'Verify 6-digit email MFA code to complete login.',
+    description:
+      'Use this after login when the response has `emailMfaRequired: true`. This endpoint verifies the email and code and issues a final access token.',
+  })
+  @ApiOkResponse({ type: AuthResponseDto })
+  async verifyEmailMfa(
+    @Body() emailMfaDto: EmailMfaDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<AuthResponseDto> {
+    const result = await this.authService.verifyEmailMfaCode(emailMfaDto);
+
+    if ('accessToken' in result) {
+      res.cookie('access_token', result.accessToken, getCookieOptions(true));
+
+      const publicToken = await this.authService.generatePublicSessionToken(
+        (await this.jwtService.verifyAsync(result.accessToken)).userId,
       );
       res.cookie('public_session', publicToken, getCookieOptions(false));
     }

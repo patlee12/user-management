@@ -3,6 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { AuthResponseDto } from '../models/AuthResponseDto';
+import type { EmailMfaDto } from '../models/EmailMfaDto';
 import type { LoginDto } from '../models/LoginDto';
 import type { MfaDto } from '../models/MfaDto';
 import type { MfaResponseDto } from '../models/MfaResponseDto';
@@ -13,7 +14,7 @@ import { request as __request } from '../core/request';
 export class AuthService {
     /**
      * Login with email/username and password and optionally MFA token.
-     * Returns an access token if MFA is not enabled or the token is valid. If MFA is enabled and no token is provided, returns a temporary ticket for completing the MFA challenge. Use Admin Email and password from .env files if you need an account.
+     * Returns an access token if MFA is not enabled or the token is valid. If MFA is enabled and no token is provided, returns a temporary ticket for completing the MFA challenge.
      * @param requestBody
      * @returns AuthResponseDto
      * @throws ApiError
@@ -46,8 +47,25 @@ export class AuthService {
         });
     }
     /**
+     * Verify 6-digit email MFA code to complete login.
+     * Use this after login when the response has `emailMfaRequired: true`. This endpoint verifies the email and code and issues a final access token.
+     * @param requestBody
+     * @returns AuthResponseDto
+     * @throws ApiError
+     */
+    public static authControllerVerifyEmailMfa(
+        requestBody: EmailMfaDto,
+    ): CancelablePromise<AuthResponseDto> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/auth/verify-email-mfa',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
      * Generate MFA secret and QR code for user setup.
-     * Returns the MFA secret and QR code image to register with an authenticator app. You must be logged in (JWT).
+     * Returns the MFA secret and QR code image to register with an authenticator app.
      * @returns MfaResponseDto
      * @throws ApiError
      */
@@ -59,7 +77,7 @@ export class AuthService {
     }
     /**
      * Confirm MFA token and activate MFA on account.
-     * Verifies the user's 6-digit MFA token during setup and enables MFA if valid. Requires JWT.
+     * Verifies the user's 6-digit MFA token during setup and enables MFA if valid.
      * @param requestBody
      * @returns any
      * @throws ApiError

@@ -2,6 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { EmailMfaCodeDto } from '../models/EmailMfaCodeDto';
 import type { EmailPasswordResetDto } from '../models/EmailPasswordResetDto';
 import type { EmailVerificationDto } from '../models/EmailVerificationDto';
 import type { CancelablePromise } from '../core/CancelablePromise';
@@ -19,7 +20,7 @@ export class MailingService {
     ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/mailing/send-verification-email',
+            url: '/mailing/verification',
             body: requestBody,
             mediaType: 'application/json',
             errors: {
@@ -38,7 +39,26 @@ export class MailingService {
     ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/mailing/send-password-reset-email',
+            url: '/mailing/reset',
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                400: `Bad request`,
+            },
+        });
+    }
+    /**
+     * Send login MFA email code.
+     * @param requestBody
+     * @returns any Email MFA code sent successfully
+     * @throws ApiError
+     */
+    public static mailingControllerSendEmailMfaCode(
+        requestBody: EmailMfaCodeDto,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/mailing/mfa',
             body: requestBody,
             mediaType: 'application/json',
             errors: {

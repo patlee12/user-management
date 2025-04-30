@@ -10,6 +10,9 @@ PUBLIC_SESSION_SECRET=$(openssl rand -base64 256)
 MFA_KEY=$(openssl rand -hex 32)
 COOKIE_SECRET=$(openssl rand -base64 256)
 
+# Prompt for admin email
+read -rp "Enter ADMIN_EMAIL for the admin account: " ADMIN_EMAIL
+
 # File paths
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 DOCKER_TEMPLATE="$ROOT_DIR/docker/.env.template"
@@ -32,7 +35,7 @@ generate_env_file() {
   local template="$1"
   local output="$2"
   shift 2
-  local updates=("$@")
+  local updates=("${@}")
 
   if [[ ! -f "$template" ]]; then
     echo "❌ Template not found: $template"
@@ -64,10 +67,11 @@ generate_env_file() {
   echo "✅ Generated: $output"
 }
 
-# Generate docker/.env
+# Generate docker/.env with ADMIN_EMAIL
 generate_env_file "$DOCKER_TEMPLATE" "$DOCKER_ENV" \
   POSTGRES_PASSWORD="$POSTGRES_PASSWORD" \
-  ADMIN_PASSWORD="$ADMIN_PASSWORD"
+  ADMIN_PASSWORD="$ADMIN_PASSWORD" \
+  ADMIN_EMAIL="$ADMIN_EMAIL"
 
 # Generate backend/.env
 generate_env_file "$BACKEND_TEMPLATE" "$BACKEND_ENV" \
