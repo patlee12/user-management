@@ -12,7 +12,7 @@ import * as argon2 from 'argon2';
 import * as speakeasy from 'speakeasy';
 import * as QRCode from 'qrcode';
 import { UsersService } from 'src/user-management-app/users/users.service';
-import { JwtPayload } from './jwt.strategy';
+import { JwtPayload } from './strategies/jwt.strategy';
 import { decryptSecret } from 'src/helpers/encryption-tools';
 import { MfaDto } from './dto/mfa.dto';
 import { LoginDto } from './dto/login.dto';
