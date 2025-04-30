@@ -15,9 +15,9 @@ model AccountRequest {
   name       String?
   email      String   @unique
   password   String
-  token      String?   
+  token      String?
   tokenId    String?   @unique
-  expiresAt  DateTime 
+  expiresAt  DateTime
   createdAt  DateTime @default(now())
 }
 
@@ -36,11 +36,26 @@ model User {
   posts                 Post[]
   mfa_auth              mfa_auth[]
   PasswordReset         PasswordReset[]
+  OAuthAccount          OAuthAccount[]
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 
   @@unique([id, email])
 }
+
+model OAuthAccount {
+  id         Int      @id @default(autoincrement())
+  provider   String
+  providerId String
+  email      String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([provider, providerId])
+}
+
 
 model PasswordReset {
   id         Int      @id @default(autoincrement())
@@ -91,7 +106,7 @@ enum ActionType {
 model Permission {
   id          Int        @id @default(autoincrement())
   actionType  ActionType
-  description String   
+  description String
   resource    Resource   @relation(fields: [resourceId],references: [id])
   resourceId  Int        //Indicates the resource or module the permission applies to
   isActive    Boolean    @default(true) //Enables or disables the permission without deletion
@@ -107,7 +122,7 @@ model Permission {
 
 
 model UserRoles {
-  id          Int      @id @default(autoincrement()) // New auto-incrementing id
+  id          Int      @id @default(autoincrement())
   user        User     @relation(fields: [userId], references: [id],onDelete: Cascade)
   userId      Int
   role        Role     @relation(fields: [roleId], references: [id])
@@ -137,7 +152,7 @@ model mfa_auth {
   secret      String
   user        User     @relation(fields: [userId,email],references: [id,email], onDelete: Cascade)
   userId      Int      @unique
-  email       String   @unique   
+  email       String   @unique
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
