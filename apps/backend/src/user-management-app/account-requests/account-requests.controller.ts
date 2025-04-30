@@ -21,7 +21,7 @@ import { VerifyAccountRequestDto } from './dto/verify-account-request.dto';
 import { AccountRequestEntity } from './entities/account-request.entity';
 import { UserEntity } from '../users/entities/user.entity';
 import { plainToInstance } from 'class-transformer';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../roles-and-permissions-resources/roles.guard';
 import { Roles } from '../roles-and-permissions-resources/roles.decorator';
 import { Throttle } from '@nestjs/throttler';

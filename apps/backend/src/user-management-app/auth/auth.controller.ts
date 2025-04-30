@@ -23,7 +23,7 @@ import { AuthResponseDto } from './dto/auth-response.dto';
 import { LoginDto } from './dto/login.dto';
 import { MfaDto } from './dto/mfa.dto';
 import { MfaResponseDto } from './dto/mfa-response.dto';
-import { JwtAuthGuard } from './jwt-auth.guard';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { UsersService } from 'src/user-management-app/users/users.service';
 import { UserEntity } from 'src/user-management-app/users/entities/user.entity';
 import { LOGIN_THROTTLE } from 'src/common/constraints';

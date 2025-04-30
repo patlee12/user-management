@@ -18,7 +18,7 @@ import { MailingService } from './mailing.service';
 import { EmailVerificationDto } from './dto/email-verification.dto';
 import { EmailPasswordResetDto } from './dto/email-password-reset.dto';
 import { GLOBAL_THROTTLE_CONFIG } from 'src/common/constraints';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Roles } from '../roles-and-permissions-resources/roles.decorator';
 import { EmailMfaCodeDto } from './dto/email-mfa-code.dto';
 
