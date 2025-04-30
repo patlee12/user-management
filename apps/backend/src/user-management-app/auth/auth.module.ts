@@ -6,9 +6,9 @@ import { JwtModule } from '@nestjs/jwt';
 import { PrismaModule } from '../../prisma/prisma.module';
 import { UsersModule } from 'src/user-management-app/users/users.module';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { GoogleStrategy } from './strategies/google.strategy';
 import { MailingService } from '../mailing/mailing.service';
 
-//Generate a random secret
 export const jwtSecret = process.env.JWT_SECRET;
 
 @Module({
@@ -22,6 +22,6 @@ export const jwtSecret = process.env.JWT_SECRET;
     UsersModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, MailingService],
+  providers: [AuthService, JwtStrategy, GoogleStrategy, MailingService],
 })
 export class AuthModule {}
