@@ -10,6 +10,7 @@ import { GoogleStrategy } from './strategies/google.strategy';
 import { MailingService } from '../mailing/mailing.service';
 
 export const jwtSecret = process.env.JWT_SECRET;
+export const ENABLE_OAUTH = process.env.ENABLE_OAUTH === 'true';
 
 @Module({
   imports: [
@@ -22,6 +23,11 @@ export const jwtSecret = process.env.JWT_SECRET;
     UsersModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, GoogleStrategy, MailingService],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    MailingService,
+    ...(ENABLE_OAUTH ? [GoogleStrategy] : []),
+  ],
 })
 export class AuthModule {}
