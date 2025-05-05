@@ -5,6 +5,7 @@ import {
   Post,
   Request,
   Res,
+  Req,
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
@@ -30,6 +31,8 @@ import { LOGIN_THROTTLE } from 'src/common/constraints';
 import { JwtService } from '@nestjs/jwt';
 import getCookieOptions from './helpers/get-cookie-options';
 import { EmailMfaDto } from './dto/email-mfa.dto';
+import { GoogleAuthGuard } from './guards/google-auth.guard';
+import { OAuthPayload } from './interfaces/oauth-payload.interface';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -62,6 +65,33 @@ export class AuthController {
         : await this.userService.findOneByUsername(loginDto.username);
 
       const publicToken = this.authService.generatePublicSessionToken(user.id);
+      res.cookie('public_session', publicToken, getCookieOptions(false));
+    }
+
+    return result;
+  }
+
+  @Get('google')
+  @UseGuards(GoogleAuthGuard)
+  @ApiOperation({ summary: 'Redirect to Google for OAuth login' })
+  googleAuth() {
+    // This route is just a redirect to Google handled by the guard
+  }
+
+  @Get('google/callback')
+  @UseGuards(GoogleAuthGuard)
+  @ApiOperation({ summary: 'Handle Google OAuth callback' })
+  async googleAuthCallback(
+    @Req() req: Request & { user: OAuthPayload },
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<AuthResponseDto> {
+    const result = await this.authService.loginWithOAuth(req.user);
+
+    if ('accessToken' in result) {
+      res.cookie('access_token', result.accessToken, getCookieOptions(true));
+      const publicToken = this.authService.generatePublicSessionToken(
+        (await this.jwtService.verifyAsync(result.accessToken)).userId,
+      );
       res.cookie('public_session', publicToken, getCookieOptions(false));
     }
 

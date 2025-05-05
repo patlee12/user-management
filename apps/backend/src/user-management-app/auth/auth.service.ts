@@ -13,11 +13,15 @@ import * as speakeasy from 'speakeasy';
 import * as QRCode from 'qrcode';
 import { UsersService } from 'src/user-management-app/users/users.service';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
-import { decryptSecret } from 'src/helpers/encryption-tools';
+import {
+  decryptSecret,
+  generateDummyPassword,
+} from 'src/helpers/encryption-tools';
 import { MfaDto } from './dto/mfa.dto';
 import { LoginDto } from './dto/login.dto';
 import { MailingService } from '../mailing/mailing.service';
 import { EmailMfaDto } from './dto/email-mfa.dto';
+import { OAuthPayload } from './interfaces/oauth-payload.interface';
 
 @Injectable()
 export class AuthService {
@@ -133,8 +137,6 @@ export class AuthService {
     // Send the MFA code by email
     await this.mailingService.sendEmailMfaCode({ email: user.email, code });
 
-    // Instead of immediately returning accessToken,
-    // return a response telling frontend "email verification required"
     return {
       emailMfaRequired: true,
       userId: user.id,
@@ -152,6 +154,100 @@ export class AuthService {
    */
   generateSixDigitCode(): string {
     return Math.floor(100000 + Math.random() * 900000).toString();
+  }
+
+  /**
+   * Handles login or account creation via an OAuth provider (e.g. Google, Apple).
+   *
+   * If the user has previously connected this OAuth provider (`providerId`), it returns
+   * the associated user and initiates the appropriate login flow.
+   *
+   * If no OAuth account exists:
+   * - A new user is created with the given email/name.
+   * - The OAuth account is linked to that user.
+   * - If an existing user with that email already exists, the login is rejected.
+   *
+   * @param oauthPayload - The profile data returned from the OAuth strategy.
+   * @returns A login response, which may include an access token or MFA challenge ticket.
+   *
+   * @throws BadRequestException - If an existing user already uses the same email.
+   */
+  async loginWithOAuth(oauthPayload: OAuthPayload): Promise<AuthResponseDto> {
+    const { provider, providerId, email, name } = oauthPayload;
+
+    let oauthAccount = await this.prisma.oAuthAccount.findUnique({
+      where: {
+        provider_providerId: {
+          provider,
+          providerId,
+        },
+      },
+      include: { user: true },
+    });
+
+    let user = oauthAccount?.user;
+
+    if (!user) {
+      const existingUser = await this.prisma.user.findUnique({
+        where: { email },
+      });
+
+      if (existingUser) {
+        throw new BadRequestException(
+          'An account already exists with this email. Please log in with your original method.',
+        );
+      }
+
+      const username = await this.userService.generateUniqueUsername(
+        name || email,
+        this.prisma,
+      );
+
+      user = await this.prisma.user.create({
+        data: {
+          username,
+          name,
+          email,
+          password: await generateDummyPassword(), // A placeholder password for the OAuth Account
+          emailVerified: true,
+          loginType: 'oauth',
+          OAuthAccount: {
+            create: {
+              provider,
+              providerId,
+              email,
+            },
+          },
+        },
+      });
+    }
+
+    return this.finalizeOAuthLogin(user);
+  }
+
+  /**
+   * Issues either a short-lived MFA challenge ticket or a JWT access token.
+   *
+   * This is used during OAuth or standard login to centralize MFA handling.
+   *
+   * @param user - The user attempting to log in.
+   * @returns A challenge ticket if MFA is enabled, or an access token otherwise.
+   */
+  private finalizeOAuthLogin(user: UserEntity): AuthResponseDto {
+    if (user.mfaEnabled) {
+      const ticket = this.jwtService.sign(
+        { userId: user.id, purpose: 'mfa-challenge' },
+        { expiresIn: '5m' },
+      );
+      return { mfaRequired: true, ticket };
+    }
+
+    return {
+      accessToken: this.jwtService.sign({
+        userId: user.id,
+        mfaVerified: false,
+      }),
+    };
   }
 
   /**
