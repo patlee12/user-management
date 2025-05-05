@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/buttons/button';
 import CanvasBackground from '@/components/ui/backgrounds/canvasBackground';
 import {
   confirmPasswordReset,

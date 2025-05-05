@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/buttons/button';
 import CanvasBackground from '@/components/ui/backgrounds/canvasBackground';
 import { submitPasswordReset } from '../services/password-reset-service';
 import { CreatePasswordResetDto } from '@user-management/types';

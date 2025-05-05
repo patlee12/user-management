@@ -2,7 +2,7 @@
 
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/buttons/button';
 import CanvasBackground from '@/components/ui/backgrounds/canvasBackground';
 import { useAuthStore } from '@/stores/authStore';
 import { verifyMfa } from '@/app/services/auth-service';

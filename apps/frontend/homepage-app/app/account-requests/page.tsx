@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/buttons/button';
 import Link from 'next/link';
 import CanvasBackground from '@/components/ui/backgrounds/canvasBackground';
 import { useState } from 'react';
