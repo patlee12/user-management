@@ -19,7 +19,12 @@ FRONTEND_PROD_TEMPLATE="$ROOT_DIR/apps/frontend/homepage-app/.env.production.tem
 
 mkdir -p "$LOG_DIR"
 
-for file in "$SHARED_TEMPLATE" "$BACKEND_TEMPLATE" "$BACKEND_PROD_TEMPLATE" "$FRONTEND_TEMPLATE" "$FRONTEND_PROD_TEMPLATE"; do
+for file in \
+  "$SHARED_TEMPLATE" \
+  "$BACKEND_TEMPLATE" \
+  "$BACKEND_PROD_TEMPLATE" \
+  "$FRONTEND_TEMPLATE" \
+  "$FRONTEND_PROD_TEMPLATE"; do
   [[ ! -f "$file" ]] && echo "❌ Missing template: $file" && exit 1
 done
 
@@ -44,11 +49,25 @@ esac
 
 read -rp "Enter ADMIN_EMAIL: " ADMIN_EMAIL
 ADMIN_EMAIL=$(echo "$ADMIN_EMAIL" | tr -d '\r\n')
+
 read -rp "Enter MAIL_SERVICE_PROVIDER: " MAIL_SERVICE_PROVIDER
 read -rp "Enter EMAIL_USER: " EMAIL_USER
 read -rsp "Enter EMAIL_PASS: " EMAIL_PASS && echo
+
 read -rp "Enter NEXT_PUBLIC_SUPPORT_EMAIL (leave blank to use ADMIN_EMAIL): " NEXT_PUBLIC_SUPPORT_EMAIL
 NEXT_PUBLIC_SUPPORT_EMAIL="${NEXT_PUBLIC_SUPPORT_EMAIL:-$ADMIN_EMAIL}"
+
+# === OAUTH PROMPT ===
+read -rp "Enable OAuth login? (y/N): " enable_oauth
+case "$enable_oauth" in
+  [yY][eE][sS]|[yY]) ENABLE_OAUTH=true ;;
+  *) ENABLE_OAUTH=false ;;
+esac
+
+if [[ "$ENABLE_OAUTH" == "true" ]]; then
+  read -rp "Enter GOOGLE_CLIENT_ID: " GOOGLE_CLIENT_ID
+  GOOGLE_CLIENT_ID=$(echo "$GOOGLE_CLIENT_ID" | tr -d '\r\n')
+fi
 
 # === SECRETS ===
 ADMIN_PASSWORD=$(openssl rand -base64 48 | tr -dc 'A-Za-z0-9!@#$%^&*()_+=' | head -c 32)
@@ -56,6 +75,7 @@ JWT_SECRET=$(openssl rand -base64 256)
 MFA_KEY=$(openssl rand -hex 32)
 COOKIE_SECRET=$(openssl rand -base64 256)
 PUBLIC_SESSION_SECRET=$(openssl rand -base64 256)
+GOOGLE_CLIENT_SECRET=$(openssl rand -base64 64)
 
 quote() {
   printf '"%s"' "$(echo "$1" | sed 's/["\\]/\\&/g')"
@@ -63,7 +83,10 @@ quote() {
 
 dedupe_env_file() {
   local file="$1"
-  tac "$file" | awk -F= '!a[$1]++' | tac > "${file}.tmp" && mv "${file}.tmp" "$file"
+  tac "$file" \
+    | awk -F= '!a[$1]++' \
+    | tac > "${file}.tmp" \
+    && mv "${file}.tmp" "$file"
   sed -i '/^\s*$/d' "$file"
 }
 
@@ -91,9 +114,12 @@ resolve_and_merge_templates() {
   done
 }
 
-POSTGRES_USER=$(grep '^POSTGRES_USER=' "$SHARED_TEMPLATE" | cut -d '=' -f2- | tr -d '"')
-POSTGRES_DB=$(grep '^POSTGRES_DB=' "$SHARED_TEMPLATE" | cut -d '=' -f2- | tr -d '"')
-POSTGRES_PASSWORD=$(openssl rand -base64 48 | tr -dc 'A-Za-z0-9!@#$%^&*()_+=' | head -c 32)
+POSTGRES_USER=$(grep '^POSTGRES_USER=' "$SHARED_TEMPLATE" \
+  | cut -d '=' -f2- | tr -d '"')
+POSTGRES_DB=$(grep '^POSTGRES_DB=' "$SHARED_TEMPLATE" \
+  | cut -d '=' -f2- | tr -d '"')
+POSTGRES_PASSWORD=$(openssl rand -base64 48 \
+  | tr -dc 'A-Za-z0-9!@#$%^&*()_+=' | head -c 32)
 
 # === SHARED ENV ===
 echo "🔐 Generating $SHARED_ENV..."
@@ -135,6 +161,15 @@ resolve_and_merge_templates "$BACKEND_TEMPLATE" "$BACKEND_PROD_TEMPLATE" "$BACKE
   echo "COOKIE_SECRET=$(quote "$COOKIE_SECRET")"
   echo "PUBLIC_SESSION_SECRET=$(quote "$PUBLIC_SESSION_SECRET")"
   echo "DOMAIN_HOST=$(quote "$DOMAIN_HOST")"
+  echo "ENABLE_OAUTH=$(quote "$ENABLE_OAUTH")"
+  if [[ "$ENABLE_OAUTH" == "true" ]]; then
+    echo "GOOGLE_CLIENT_ID=$(quote "$GOOGLE_CLIENT_ID")"
+    echo "GOOGLE_CLIENT_SECRET=$(quote "$GOOGLE_CLIENT_SECRET")"
+  else
+    echo "GOOGLE_CLIENT_ID=$(quote "")"
+    echo "GOOGLE_CLIENT_SECRET=$(quote "")"
+  fi
+  echo "GOOGLE_CALLBACK_URL=$(quote "https://${DOMAIN_HOST}/auth/google/callback")"
 } >> "$BACKEND_ENV"
 dedupe_env_file "$BACKEND_ENV"
 echo "✅ Created $BACKEND_ENV"
