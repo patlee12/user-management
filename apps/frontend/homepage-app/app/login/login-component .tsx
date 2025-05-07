@@ -35,6 +35,8 @@ export default function LoginComponent() {
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [mfaCode, setMfaCode] = useState('');
+
+  // reducer state machine
   const [state, dispatch] = useReducer(loginReducer, initialLoginState);
   const { status, tempToken, errorMessage, qrCodeUrl, secret } = state;
   const isLoading = status === 'loading';
@@ -227,6 +229,7 @@ export default function LoginComponent() {
             isLoading={isLoading}
           />
         ) : (
+          /* Regular login form */
           <form onSubmit={handleLogin} className="space-y-6">
             <h2 className="text-3xl font-bold mb-6 text-center">Login</h2>
 
