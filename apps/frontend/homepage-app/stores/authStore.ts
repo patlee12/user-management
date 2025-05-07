@@ -34,7 +34,7 @@ interface AuthState {
    * Loads the current session by calling `/auth/me`.
    * If the HttpOnly cookie is valid, sets the user; otherwise clears it.
    */
-  loadUser: () => Promise<void>;
+  loadUser: () => Promise<UserEntity | null>;
 
   /**
    * Resets the store to its default initial state (empty).
@@ -63,8 +63,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       const res = await axiosInstance.get<UserEntity>('/auth/me'); // cookie automatically sent
       set({ user: res.data, hasLoaded: true });
+      return res.data;
     } catch {
-      set({ user: null, hasLoaded: true }); // Not logged in or token expired
+      set({ user: null, hasLoaded: true });
+      return null;
     }
   },
 

@@ -3,9 +3,9 @@ import {
   Controller,
   Get,
   Post,
+  Req,
   Request,
   Res,
-  Req,
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
@@ -16,7 +16,7 @@ import {
   ApiOperation,
 } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
-import { Response } from 'express';
+import { Response, Request as ExpressRequest } from 'express';
 import { plainToInstance } from 'class-transformer';
 
 import { AuthService } from './auth.service';
@@ -34,6 +34,8 @@ import { EmailMfaDto } from './dto/email-mfa.dto';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { OAuthPayload } from './interfaces/oauth-payload.interface';
 
+const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+const isProd = process.env.NODE_ENV?.toLowerCase() === 'production';
 @Controller('auth')
 @ApiTags('auth')
 export class AuthController {
@@ -58,14 +60,20 @@ export class AuthController {
     const result = await this.authService.login(loginDto);
 
     if ('accessToken' in result) {
-      res.cookie('access_token', result.accessToken, getCookieOptions(true));
-
+      res.cookie(
+        'access_token',
+        result.accessToken,
+        getCookieOptions(true, isProd),
+      );
       const user = loginDto.email
         ? await this.userService.findOneByEmail(loginDto.email)
         : await this.userService.findOneByUsername(loginDto.username);
-
       const publicToken = this.authService.generatePublicSessionToken(user.id);
-      res.cookie('public_session', publicToken, getCookieOptions(false));
+      res.cookie(
+        'public_session',
+        publicToken,
+        getCookieOptions(false, isProd),
+      );
     }
 
     return result;
@@ -75,27 +83,50 @@ export class AuthController {
   @UseGuards(GoogleAuthGuard)
   @ApiOperation({ summary: 'Redirect to Google for OAuth login' })
   googleAuth() {
-    // This route is just a redirect to Google handled by the guard
+    // Passport will redirect to Google
   }
 
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)
-  @ApiOperation({ summary: 'Handle Google OAuth callback' })
   async googleAuthCallback(
-    @Req() req: Request & { user: OAuthPayload },
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<AuthResponseDto> {
+    @Req() req: ExpressRequest & { user: OAuthPayload; query: any },
+    @Res() res: Response,
+  ): Promise<void> {
     const result = await this.authService.loginWithOAuth(req.user);
 
+    // Direct login success
     if ('accessToken' in result) {
-      res.cookie('access_token', result.accessToken, getCookieOptions(true));
-      const publicToken = this.authService.generatePublicSessionToken(
-        (await this.jwtService.verifyAsync(result.accessToken)).userId,
+      res.cookie(
+        'access_token',
+        result.accessToken,
+        getCookieOptions(true, isProd),
       );
-      res.cookie('public_session', publicToken, getCookieOptions(false));
+
+      const { userId } = await this.jwtService.verifyAsync<{ userId: number }>(
+        result.accessToken,
+      );
+
+      const publicToken = this.authService.generatePublicSessionToken(userId);
+      res.cookie(
+        'public_session',
+        publicToken,
+        getCookieOptions(false, isProd),
+      );
     }
 
-    return result;
+    // MFA challenge issued
+    if ('ticket' in result) {
+      res.cookie('mfa_ticket', result.ticket, getCookieOptions(true, isProd));
+    }
+
+    const raw = Array.isArray(req.query.redirect)
+      ? req.query.redirect[0]
+      : req.query.redirect;
+    const redirect = raw ? raw.toString() : '/';
+
+    return res.redirect(
+      `${frontendUrl}/login?redirect=${encodeURIComponent(redirect)}`,
+    );
   }
 
   @Post('verify-mfa')
@@ -113,17 +144,23 @@ export class AuthController {
     const result = await this.authService.verifyMfaTicket(mfaDto);
 
     if ('accessToken' in result) {
-      res.cookie('access_token', result.accessToken, getCookieOptions(true));
-
+      res.cookie(
+        'access_token',
+        result.accessToken,
+        getCookieOptions(true, isProd),
+      );
       const payload = await this.jwtService.verifyAsync<{
         userId: number | string;
         purpose: string;
       }>(mfaDto.ticket);
-
-      const publicToken = await this.authService.generatePublicSessionToken(
+      const publicToken = this.authService.generatePublicSessionToken(
         +payload.userId,
       );
-      res.cookie('public_session', publicToken, getCookieOptions(false));
+      res.cookie(
+        'public_session',
+        publicToken,
+        getCookieOptions(false, isProd),
+      );
     }
 
     return result;
@@ -144,12 +181,20 @@ export class AuthController {
     const result = await this.authService.verifyEmailMfaCode(emailMfaDto);
 
     if ('accessToken' in result) {
-      res.cookie('access_token', result.accessToken, getCookieOptions(true));
-
-      const publicToken = await this.authService.generatePublicSessionToken(
-        (await this.jwtService.verifyAsync(result.accessToken)).userId,
+      res.cookie(
+        'access_token',
+        result.accessToken,
+        getCookieOptions(true, isProd),
       );
-      res.cookie('public_session', publicToken, getCookieOptions(false));
+      const { userId } = await this.jwtService.verifyAsync<{
+        userId: number;
+      }>(result.accessToken);
+      const publicToken = this.authService.generatePublicSessionToken(userId);
+      res.cookie(
+        'public_session',
+        publicToken,
+        getCookieOptions(false, isProd),
+      );
     }
 
     return result;
@@ -157,19 +202,18 @@ export class AuthController {
 
   @Post('setup-mfa')
   @ApiBearerAuth()
-  @ApiOkResponse({ type: MfaResponseDto })
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: 'Generate MFA secret and QR code for user setup.',
     description:
       'Returns the MFA secret and QR code image to register with an authenticator app.',
   })
-  @UseGuards(JwtAuthGuard)
+  @ApiOkResponse({ type: MfaResponseDto })
   async setupMfa(@Request() req): Promise<MfaResponseDto> {
     const user: UserEntity = req.user;
     if (user.mfaEnabled) {
       throw new UnauthorizedException('User account already has MFA enabled.');
     }
-
     const secret = await this.authService.generateMfaSecret(user);
     await this.userService.createMfaAuth({
       secret,
@@ -205,8 +249,8 @@ export class AuthController {
   @Throttle(LOGIN_THROTTLE)
   @ApiOperation({ summary: 'Log out by clearing the auth cookies' })
   async logout(@Res({ passthrough: true }) res: Response) {
-    res.clearCookie('access_token', getCookieOptions(true));
-    res.clearCookie('public_session', getCookieOptions(false));
+    res.clearCookie('access_token', getCookieOptions(true, isProd));
+    res.clearCookie('public_session', getCookieOptions(false, isProd));
     return { message: 'Logged out successfully' };
   }
 }

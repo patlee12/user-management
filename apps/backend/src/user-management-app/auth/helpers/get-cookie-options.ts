@@ -15,9 +15,7 @@ import { CookieOptions } from 'express';
  *
  * @param isHttpOnly - `true` for `access_token`, `false` for public cookies like `public_session`
  */
-function getCookieOptions(isHttpOnly: boolean): CookieOptions {
-  const isProd = process.env.NODE_ENV?.toLowerCase() === 'production';
-
+function getCookieOptions(isHttpOnly: boolean, isProd: boolean): CookieOptions {
   const options: CookieOptions = {
     httpOnly: isHttpOnly,
     secure: isProd,
