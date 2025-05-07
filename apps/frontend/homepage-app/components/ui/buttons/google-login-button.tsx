@@ -7,7 +7,7 @@ export function GoogleLoginButton({ onClick }: { onClick: () => void }) {
       onClick={onClick}
       className="
         flex items-center justify-center
-        w-full max-w-xs
+        w-full max-w
         bg-white text-gray-700
         border border-gray-300
         hover:bg-gray-100
