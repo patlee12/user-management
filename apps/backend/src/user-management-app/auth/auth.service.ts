@@ -22,6 +22,14 @@ import { LoginDto } from './dto/login.dto';
 import { MailingService } from '../mailing/mailing.service';
 import { EmailMfaDto } from './dto/email-mfa.dto';
 import { OAuthPayload } from './interfaces/oauth-payload.interface';
+import {
+  DOMAIN_HOST,
+  AVAHI_HOSTNAME,
+  PUBLIC_SESSION_SECRET,
+  MFA_KEY,
+} from '@src/common/constants/environment';
+
+const getIssuer = DOMAIN_HOST || AVAHI_HOSTNAME || 'User-Management';
 
 @Injectable()
 export class AuthService {
@@ -252,7 +260,7 @@ export class AuthService {
 
   /**
    * Generates a public session token (JWT) with minimal info.
-   * This token is used by Next.js middleware for route protection.
+   * This token is used by middleware for route protection.
    *
    * @param userId - The authenticated user's ID.
    * @returns A signed JWT string.
@@ -260,7 +268,7 @@ export class AuthService {
   generatePublicSessionToken(userId: number): string {
     const payload = { userId, publicSession: true };
     return this.jwtService.sign(payload, {
-      secret: process.env.PUBLIC_SESSION_SECRET,
+      secret: PUBLIC_SESSION_SECRET,
       expiresIn: '30m',
     });
   }
@@ -286,7 +294,7 @@ export class AuthService {
    * @returns {Promise<string>} A data URL containing the generated QR code.
    */
   async generateQrCode(user: UserEntity, secret: string): Promise<string> {
-    const issuer = process.env.AVAHI_HOSTNAME || 'User-Management'; // Replace with your actual issuer name
+    const issuer = getIssuer;
     const label = `${issuer}:${user.email}`;
     const otpAuthUrl = `otpauth://totp/${encodeURIComponent(label)}?secret=${secret}&issuer=${encodeURIComponent(issuer)}&algorithm=SHA1&digits=6&period=30`;
     return await QRCode.toDataURL(otpAuthUrl);
@@ -422,10 +430,7 @@ export class AuthService {
    * @returns {boolean}
    */
   async verifyTotp(encryptedSecret: string, token: string): Promise<boolean> {
-    const decryptedSecret = await decryptSecret(
-      encryptedSecret,
-      process.env.MFA_KEY,
-    );
+    const decryptedSecret = await decryptSecret(encryptedSecret, MFA_KEY);
     return speakeasy.totp.verify({
       secret: decryptedSecret,
       encoding: 'base32',

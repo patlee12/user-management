@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import type { NestApplicationOptions } from '@nestjs/common/interfaces/nest-application-options.interface';
 import selfsigned from 'selfsigned';
+import { isProd } from '@src/common/constants/environment';
 
 const CERT_DIR = path.resolve(__dirname, '../../certs');
 const CERT_PATH = path.join(CERT_DIR, 'localhost.pem');
@@ -39,7 +40,6 @@ function generateSelfSignedCerts() {
  * Returns `undefined` in production mode.
  */
 export function getHttpsOptions(): NestApplicationOptions | undefined {
-  const isProd = process.env.NODE_ENV?.toLowerCase() === 'production';
   if (isProd) return undefined;
 
   const certExists = fs.existsSync(CERT_PATH) && fs.existsSync(KEY_PATH);

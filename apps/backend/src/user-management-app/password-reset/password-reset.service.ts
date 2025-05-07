@@ -18,6 +18,7 @@ import {
 import { MailingService } from '../mailing/mailing.service';
 import { EmailPasswordResetDto } from '../mailing/dto/email-password-reset.dto';
 import buildEncodedLink from '@src/helpers/build-encoded-link';
+import { FRONTEND_URL } from '@src/common/constants/environment';
 
 @Injectable()
 export class PasswordResetService {
@@ -59,7 +60,7 @@ export class PasswordResetService {
 
     // Construct the password reset link using the token
     const resetLink = buildEncodedLink(
-      `${process.env.FRONTEND_URL}/forgot-password/reset`,
+      `${FRONTEND_URL}/forgot-password/reset`,
       {
         token: rawRandomToken,
         userId: user.id,

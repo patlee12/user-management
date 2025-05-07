@@ -8,6 +8,11 @@ import { Request, Response, NextFunction } from 'express';
 import * as jwt from 'jsonwebtoken';
 import { PrismaService } from '@src/prisma/prisma.service';
 import { JwtPayload } from '@src/user-management-app/auth/interfaces/jwt-payload.interface';
+import {
+  DOMAIN_HOST,
+  EMAIL_USER,
+  JWT_SECRET,
+} from '@src/common/constants/environment';
 
 @Injectable()
 export class SwaggerAuthMiddleware implements NestMiddleware {
@@ -27,7 +32,7 @@ export class SwaggerAuthMiddleware implements NestMiddleware {
         throw new UnauthorizedException('Missing token');
       }
 
-      const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+      const decoded = jwt.verify(token, JWT_SECRET!) as JwtPayload;
 
       const userRoles = await this.prisma.userRoles.findMany({
         where: { userId: decoded.userId },
@@ -50,9 +55,8 @@ export class SwaggerAuthMiddleware implements NestMiddleware {
     const protocol = req.protocol || 'https';
     const baseDomain = req.hostname.replace(/^swagger\./, '');
     const homeUrl = `${protocol}://${baseDomain}`;
-    const siteName = process.env.DOMAIN_HOST?.trim() || 'User Management';
-    const supportEmail =
-      process.env.EMAIL_USER?.trim() || 'support@user-management.net';
+    const siteName = DOMAIN_HOST?.trim() || 'User Management';
+    const supportEmail = EMAIL_USER?.trim() || 'support@user-management.net';
 
     return `
       <!DOCTYPE html>

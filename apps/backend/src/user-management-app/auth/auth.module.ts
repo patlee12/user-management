@@ -8,8 +8,8 @@ import { UsersModule } from 'src/user-management-app/users/users.module';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { MailingService } from '../mailing/mailing.service';
+import { JWT_SECRET } from '@src/common/constants/environment';
 
-export const jwtSecret = process.env.JWT_SECRET;
 export const ENABLE_OAUTH = process.env.ENABLE_OAUTH === 'true';
 
 @Module({
@@ -17,7 +17,7 @@ export const ENABLE_OAUTH = process.env.ENABLE_OAUTH === 'true';
     PrismaModule,
     PassportModule,
     JwtModule.register({
-      secret: jwtSecret,
+      secret: JWT_SECRET,
       signOptions: { expiresIn: '30m' },
     }),
     UsersModule,

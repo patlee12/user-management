@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import * as argon2 from 'argon2';
 import { randomUUID } from 'crypto';
+import { JWT_SECRET } from '@src/common/constants/environment';
 
 const IV_LENGTH = 16; // AES requires 16-byte IV
 
@@ -62,6 +63,6 @@ export async function generateToken(): Promise<string> {
  * @returns {Promise<string>} An Argon2-hashed random value.
  */
 export async function generateDummyPassword(): Promise<string> {
-  const randomSecret = `${randomUUID()}-${process.env.JWT_SECRET}`;
+  const randomSecret = `${randomUUID()}-${JWT_SECRET}`;
   return await argon2.hash(randomSecret);
 }

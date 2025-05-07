@@ -33,9 +33,8 @@ import getCookieOptions from './helpers/get-cookie-options';
 import { EmailMfaDto } from './dto/email-mfa.dto';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { OAuthPayload } from './interfaces/oauth-payload.interface';
+import { FRONTEND_URL, isProd } from '@src/common/constants/environment';
 
-const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-const isProd = process.env.NODE_ENV?.toLowerCase() === 'production';
 @Controller('auth')
 @ApiTags('auth')
 export class AuthController {
@@ -125,7 +124,7 @@ export class AuthController {
     const redirect = raw ? raw.toString() : '/';
 
     return res.redirect(
-      `${frontendUrl}/login?redirect=${encodeURIComponent(redirect)}`,
+      `${FRONTEND_URL}/login?redirect=${encodeURIComponent(redirect)}`,
     );
   }
 

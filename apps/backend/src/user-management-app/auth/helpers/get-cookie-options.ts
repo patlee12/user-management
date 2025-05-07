@@ -1,3 +1,4 @@
+import { DOMAIN_HOST } from '@src/common/constants/environment';
 import { CookieOptions } from 'express';
 
 /**
@@ -25,8 +26,8 @@ function getCookieOptions(isHttpOnly: boolean, isProd: boolean): CookieOptions {
 
   if (isProd) {
     options.sameSite = 'none';
-    if (process.env.DOMAIN_HOST?.trim()) {
-      options.domain = `.${process.env.DOMAIN_HOST.trim()}`;
+    if (DOMAIN_HOST?.trim()) {
+      options.domain = `.${DOMAIN_HOST.trim()}`;
     }
   }
 
