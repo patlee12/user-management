@@ -193,7 +193,7 @@ export class AuthService {
       include: { user: true },
     });
 
-    let user = oauthAccount?.user;
+    let user: UserEntity = oauthAccount?.user;
 
     if (!user) {
       const existingUser = await this.prisma.user.findUnique({
@@ -228,6 +228,19 @@ export class AuthService {
           },
         },
       });
+      const role = await this.prisma.role.findUnique({
+        where: { name: 'User' },
+      });
+
+      if (role) {
+        await this.prisma.userRoles.create({
+          data: {
+            userId: user.id,
+            roleId: role.id,
+            assignedBy: user.id,
+          },
+        });
+      }
     }
 
     return this.finalizeOAuthLogin(user);

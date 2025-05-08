@@ -45,6 +45,7 @@ export async function setupAdminPanel(prisma: PrismaService) {
       'UserRoles',
       'Post',
       'mfa_auth',
+      'OAuthAccount',
     ].map((modelName) => ({
       resource: {
         model: getModelByName(modelName),

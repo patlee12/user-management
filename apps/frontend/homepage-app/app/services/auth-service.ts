@@ -7,6 +7,8 @@ import {
   MfaResponseDto,
 } from '@user-management/types';
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+
 /**
  * Sends a login POST request to the backend `/auth/login` using email and password.
  * If MFA is enabled on the account, the response will include a temporary `ticket`
@@ -42,7 +44,7 @@ function sanitizeRedirect(path: string): string {
  */
 export function oauthLogin(opts: { redirect: string }): void {
   const safe = sanitizeRedirect(opts.redirect);
-  const url = `/auth/google?redirect=${encodeURIComponent(safe)}`;
+  const url = `${BACKEND_URL}/auth/google?redirect=${encodeURIComponent(safe)}`;
   window.location.href = url;
 }
 

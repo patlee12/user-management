@@ -91,41 +91,59 @@ export class AuthController {
     @Req() req: ExpressRequest & { user: OAuthPayload; query: any },
     @Res() res: Response,
   ): Promise<void> {
-    const result = await this.authService.loginWithOAuth(req.user);
+    try {
+      const result = await this.authService.loginWithOAuth(req.user);
 
-    // Direct login success
-    if ('accessToken' in result) {
-      res.cookie(
-        'access_token',
-        result.accessToken,
-        getCookieOptions(true, isProd),
-      );
+      // Direct login success
+      if ('accessToken' in result) {
+        res.cookie(
+          'access_token',
+          result.accessToken,
+          getCookieOptions(true, isProd),
+        );
 
-      const { userId } = await this.jwtService.verifyAsync<{ userId: number }>(
-        result.accessToken,
-      );
+        try {
+          const { userId } = await this.jwtService.verifyAsync<{
+            userId: number;
+          }>(result.accessToken);
 
-      const publicToken = this.authService.generatePublicSessionToken(userId);
-      res.cookie(
-        'public_session',
-        publicToken,
-        getCookieOptions(false, isProd),
+          const publicToken =
+            this.authService.generatePublicSessionToken(userId);
+          res.cookie(
+            'public_session',
+            publicToken,
+            getCookieOptions(false, isProd),
+          );
+        } catch (verifyError) {
+          console.error(
+            'JWT verification failed after Google login:',
+            verifyError?.message || verifyError,
+          );
+          // Optionally still proceed to frontend, or redirect with error
+        }
+      }
+
+      // MFA challenge
+      if ('ticket' in result) {
+        res.cookie('mfa_ticket', result.ticket, getCookieOptions(true, isProd));
+      }
+
+      // Determine safe redirect
+      const raw = Array.isArray(req.query.redirect)
+        ? req.query.redirect[0]
+        : req.query.redirect;
+      const redirect = raw ? raw.toString() : '/';
+
+      return res.redirect(
+        `${FRONTEND_URL}/login?redirect=${encodeURIComponent(redirect)}`,
       );
+    } catch (err: any) {
+      console.error(
+        'Google Auth Error:',
+        err?.message || err || 'Unknown error',
+      );
+      return res.redirect(`${FRONTEND_URL}/login?error=oauth_failed`);
     }
-
-    // MFA challenge issued
-    if ('ticket' in result) {
-      res.cookie('mfa_ticket', result.ticket, getCookieOptions(true, isProd));
-    }
-
-    const raw = Array.isArray(req.query.redirect)
-      ? req.query.redirect[0]
-      : req.query.redirect;
-    const redirect = raw ? raw.toString() : '/';
-
-    return res.redirect(
-      `${FRONTEND_URL}/login?redirect=${encodeURIComponent(redirect)}`,
-    );
   }
 
   @Post('verify-mfa')
@@ -248,8 +266,8 @@ export class AuthController {
   @Throttle(LOGIN_THROTTLE)
   @ApiOperation({ summary: 'Log out by clearing the auth cookies' })
   async logout(@Res({ passthrough: true }) res: Response) {
-    res.clearCookie('access_token', getCookieOptions(true, isProd));
-    res.clearCookie('public_session', getCookieOptions(false, isProd));
+    res.clearCookie('access_token', getCookieOptions(true, isProd, true));
+    res.clearCookie('public_session', getCookieOptions(false, isProd, true));
     return { message: 'Logged out successfully' };
   }
 }
