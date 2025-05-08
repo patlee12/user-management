@@ -21,6 +21,8 @@ export interface LoginState {
   errorMessage: string;
   /** Temporary token used for MFA verification. */
   tempToken: string;
+  /** Email used for MFA verification. */
+  email: string;
   /** URL for the QR code image (if MFA setup is in progress). */
   qrCodeUrl?: string;
   /** Secret key for MFA setup. */
@@ -49,6 +51,7 @@ export const initialLoginState: LoginState = {
   status: 'idle',
   errorMessage: '',
   tempToken: '',
+  email: '',
   qrCodeUrl: '',
   secret: '',
 };
@@ -76,7 +79,7 @@ export function loginReducer(
         ...state,
         status: 'email-mfa',
         errorMessage: '',
-        tempToken: action.email,
+        email: action.email,
       };
     case 'OPTIONAL_MFA_PROMPT':
       return {

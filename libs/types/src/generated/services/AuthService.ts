@@ -41,7 +41,6 @@ export class AuthService {
         });
     }
     /**
-     * Handle Google OAuth callback
      * @returns any
      * @throws ApiError
      */

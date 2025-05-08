@@ -147,7 +147,7 @@ export class AuthService {
 
     return {
       emailMfaRequired: true,
-      userId: user.id,
+      email: user.email,
     };
   }
 
