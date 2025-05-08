@@ -38,7 +38,7 @@ export default function LoginComponent() {
 
   // reducer state machine
   const [state, dispatch] = useReducer(loginReducer, initialLoginState);
-  const { status, tempToken, errorMessage, qrCodeUrl, secret } = state;
+  const { status, tempToken, email, errorMessage, qrCodeUrl, secret } = state;
   const isLoading = status === 'loading';
 
   const isEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
@@ -78,7 +78,6 @@ export default function LoginComponent() {
     const dto: LoginDto = { password };
     if (isEmail(identifier)) dto.email = identifier;
     else dto.username = identifier;
-
     try {
       const resp = await login(dto);
       await handleAuthResponse(resp);
@@ -104,7 +103,7 @@ export default function LoginComponent() {
     if (resp.emailMfaRequired) {
       dispatch({
         type: 'EMAIL_MFA_REQUIRED',
-        email: resp.userId + '',
+        email: resp.email + '',
       });
       return;
     }
@@ -117,7 +116,7 @@ export default function LoginComponent() {
     e.preventDefault();
     dispatch({ type: 'START_LOGIN' });
     try {
-      await verifyEmailMfa({ email: tempToken, token: mfaCode });
+      await verifyEmailMfa({ email: email, token: mfaCode });
       await loadUser();
       dispatch({ type: 'OPTIONAL_MFA_PROMPT', qrCodeUrl: '', secret: '' });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
