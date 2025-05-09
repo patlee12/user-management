@@ -85,16 +85,19 @@ export class AuthController {
   @Get('google')
   @UseGuards(GoogleAuthGuard)
   @ApiOperation({ summary: 'Redirect to Google for OAuth login' })
-  googleAuth() {
-    // Passport will redirect to Google
-  }
+  googleAuth() {}
 
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)
   async googleAuthCallback(
-    @Req() req: ExpressRequest & { user: OAuthPayload; query: any },
+    @Req() req: ExpressRequest & { user?: OAuthPayload; query: any },
     @Res() res: Response,
   ): Promise<void> {
+    if (!req.user) {
+      console.error('Google Auth Error: No user object found in request');
+      return res.redirect(`${FRONTEND_URL}/login?error=oauth_failed`);
+    }
+
     try {
       const result = await this.authService.loginWithOAuth(req.user);
 
@@ -120,7 +123,7 @@ export class AuthController {
         } catch (verifyError) {
           console.error(
             'JWT verification failed after Google login:',
-            verifyError?.message || verifyError,
+            verifyError,
           );
         }
       }
@@ -138,10 +141,11 @@ export class AuthController {
         `${FRONTEND_URL}/login?redirect=${encodeURIComponent(redirect)}`,
       );
     } catch (err: any) {
-      console.error(
-        'Google Auth Error:',
-        err?.message || err || 'Unknown error',
-      );
+      console.error('Google Auth Error:', {
+        message: err?.message,
+        stack: err?.stack,
+        raw: err,
+      });
       return res.redirect(`${FRONTEND_URL}/login?error=oauth_failed`);
     }
   }
