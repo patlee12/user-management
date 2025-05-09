@@ -26,6 +26,10 @@ import { GoogleLoginButton } from '@/components/ui/buttons/google-login-button';
  *
  * Handles login via credentials and Google OAuth, supporting MFA and email-based login codes.
  * Relies on secure HttpOnly cookies and MFA ticket cookies.
+ *
+ * Special OAuth redirect logic:
+ * - After Google login, the backend sets a short-lived `show_mfa` cookie and a `mfa_ticket` cookie.
+ * - This component detects those cookies on load and triggers MFA flow automatically.
  */
 export default function LoginComponent() {
   const router = useRouter();
@@ -35,6 +39,7 @@ export default function LoginComponent() {
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [mfaCode, setMfaCode] = useState('');
+  const [checkedCookies, setCheckedCookies] = useState(false);
 
   const [state, dispatch] = useReducer(loginReducer, initialLoginState);
   const { status, tempToken, email, errorMessage, qrCodeUrl, secret } = state;
@@ -42,6 +47,12 @@ export default function LoginComponent() {
 
   const isEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 
+  /**
+   * On page load:
+   * - Grab any redirect param
+   * - Detect MFA cookies and trigger flow if present
+   * - Avoid hydration mismatch by delaying render until cookies are read
+   */
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const redirect = params.get('redirect');
@@ -55,10 +66,8 @@ export default function LoginComponent() {
         return acc;
       }, {});
 
-    // MFA after Google OAuth
     if (cookieMap['show_mfa'] === 'true' && cookieMap['mfa_ticket']) {
       dispatch({ type: 'MFA_REQUIRED', ticket: cookieMap['mfa_ticket'] });
-      // Clear show_mfa so it doesn’t re-trigger on future renders
       document.cookie = 'show_mfa=; path=/; max-age=0';
     } else if (cookieMap['mfa_ticket'] && status === 'idle') {
       dispatch({ type: 'MFA_REQUIRED', ticket: cookieMap['mfa_ticket'] });
@@ -67,6 +76,8 @@ export default function LoginComponent() {
         dispatch({ type: 'OPTIONAL_MFA_PROMPT', qrCodeUrl: '', secret: '' });
       });
     }
+
+    setCheckedCookies(true);
   }, [loadUser, status]);
 
   const handleGoogleLogin = () => {
@@ -81,6 +92,7 @@ export default function LoginComponent() {
     const dto: LoginDto = { password };
     if (isEmail(identifier)) dto.email = identifier;
     else dto.username = identifier;
+
     try {
       const resp = await login(dto);
       await handleAuthResponse(resp);
@@ -174,7 +186,6 @@ export default function LoginComponent() {
     try {
       await confirmMfaSetup({ token: mfaCode });
       window.location.href = '/logout';
-
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       dispatch({
@@ -183,6 +194,8 @@ export default function LoginComponent() {
       });
     }
   };
+
+  if (!checkedCookies) return null;
 
   return (
     <div className="relative w-full text-white h-full overflow-hidden flex items-center justify-center">
