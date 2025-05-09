@@ -112,7 +112,6 @@ export class AuthController {
           const { userId } = await this.jwtService.verifyAsync<{
             userId: number;
           }>(result.accessToken);
-
           const publicToken =
             this.authService.generatePublicSessionToken(userId);
           res.cookie(
@@ -130,6 +129,12 @@ export class AuthController {
 
       if ('ticket' in result) {
         res.cookie('mfa_ticket', result.ticket, getCookieOptions(true, isProd));
+        // Need short lived cookie for frontend to read on redirect
+        res.cookie('show_mfa', 'true', {
+          ...getCookieOptions(false, isProd),
+          httpOnly: false,
+          maxAge: 1000 * 5,
+        });
       }
 
       const raw = Array.isArray(req.query.redirect)

@@ -49,21 +49,25 @@ export default function LoginComponent() {
 
     const cookieMap = document.cookie
       .split('; ')
-      .reduce<Record<string, string>>((cookieObject, cookieString) => {
-        const [cookieName, cookieValue] = cookieString.split('=');
-        cookieObject[cookieName] = cookieValue;
-        return cookieObject;
+      .reduce<Record<string, string>>((acc, curr) => {
+        const [k, v] = curr.split('=');
+        acc[k] = decodeURIComponent(v);
+        return acc;
       }, {});
 
-    // Only dispatch if we're still in idle state
-    if (cookieMap['mfa_ticket'] && state.status === 'idle') {
+    // MFA after Google OAuth
+    if (cookieMap['show_mfa'] === 'true' && cookieMap['mfa_ticket']) {
       dispatch({ type: 'MFA_REQUIRED', ticket: cookieMap['mfa_ticket'] });
-    } else if (cookieMap['public_session'] && state.status === 'idle') {
+      // Clear show_mfa so it doesn’t re-trigger on future renders
+      document.cookie = 'show_mfa=; path=/; max-age=0';
+    } else if (cookieMap['mfa_ticket'] && status === 'idle') {
+      dispatch({ type: 'MFA_REQUIRED', ticket: cookieMap['mfa_ticket'] });
+    } else if (cookieMap['public_session'] && status === 'idle') {
       loadUser().then(() => {
         dispatch({ type: 'OPTIONAL_MFA_PROMPT', qrCodeUrl: '', secret: '' });
       });
     }
-  }, [loadUser, state.status]);
+  }, [loadUser, status]);
 
   const handleGoogleLogin = () => {
     dispatch({ type: 'START_LOGIN' });
