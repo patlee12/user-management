@@ -19,6 +19,7 @@ import { MailingService } from '../mailing/mailing.service';
 import { EmailPasswordResetDto } from '../mailing/dto/email-password-reset.dto';
 import buildEncodedLink from '@src/helpers/build-encoded-link';
 import { FRONTEND_URL } from '@src/common/constants/environment';
+import { ValidatePasswordResetDto } from './dto/validate-password-reset.dto';
 
 @Injectable()
 export class PasswordResetService {
@@ -99,6 +100,43 @@ export class PasswordResetService {
     });
 
     return createPasswordReset;
+  }
+
+  /**
+   * Validate a password reset request by verifying a raw token against the stored hashed token
+   * for a given userId. This is used during frontend password reset link validation.
+   *
+   * NOTE: The stored token is hashed using Argon2, so this method must iterate all active
+   * reset tokens for the user and verify each one. This prevents leaking reset state by ID alone.
+   *
+   * @param userId - The ID of the user requesting the reset
+   * @param rawToken - The un-hashed token from the reset link
+   * @returns {Promise<PasswordResetEntity>} - The matching reset entity if valid
+   * @throws {InvalidTokenError} - If no valid token matches or the token is expired
+   */
+  async validateResetToken(
+    dto: ValidatePasswordResetDto,
+  ): Promise<PasswordResetEntity> {
+    const reset = await this.prisma.passwordReset.findFirst({
+      where: {
+        userId: dto.userId,
+        expiresAt: {
+          gte: new Date(),
+        },
+      },
+    });
+
+    if (!reset) {
+      throw new InvalidTokenError();
+    }
+
+    const isValid = await argon2.verify(reset.token, dto.token);
+
+    if (!isValid) {
+      throw new InvalidTokenError();
+    }
+
+    return reset;
   }
 
   /**

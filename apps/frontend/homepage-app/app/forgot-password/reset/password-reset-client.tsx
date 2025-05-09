@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/buttons/button';
 import CanvasBackground from '@/components/ui/backgrounds/canvasBackground';
 import {
   confirmPasswordReset,
-  findPasswordResetByUserId,
+  validatePasswordReset,
 } from '@/app/services/password-reset-service';
 import { ConfirmPasswordResetDto } from '@user-management/types';
 
@@ -35,7 +35,10 @@ export default function PasswordResetClient() {
 
     const findRequest = async () => {
       try {
-        const passwordResetReq = await findPasswordResetByUserId(+userId);
+        const passwordResetReq = await validatePasswordReset({
+          userId: +userId,
+          token,
+        });
         if (!passwordResetReq) throw new Error('Invalid or expired token');
         setStatus('valid');
       } catch {

@@ -4,12 +4,15 @@ import {
   CreatePasswordResetDto,
   PasswordResetEntity,
   UserEntity,
+  ValidatePasswordResetDto,
 } from '@user-management/types';
 
 /**
- * Submits a POST request to `/password-reset` that create a password reset request and emails the user with a token.
- * @param dto - email or userId
- * @returns {Promise<PasswordResetEntity>}
+ * Creates a password reset request and triggers an email to the user with a reset link.
+ * The backend stores a hashed token and expiration time.
+ *
+ * @param dto - The DTO containing either the user's email or userId
+ * @returns {Promise<PasswordResetEntity>} - The created password reset record
  */
 export async function submitPasswordReset(
   dto: CreatePasswordResetDto,
@@ -21,6 +24,13 @@ export async function submitPasswordReset(
   return res.data;
 }
 
+/**
+ * Confirms a password reset by verifying the provided token and updating the user's password.
+ * If the token is valid and not expired, the password is updated and the password reset record is deleted.
+ *
+ * @param dto - The DTO containing userId, token, and newPassword
+ * @returns {Promise<UserEntity>} - The updated user entity after password reset
+ */
 export async function confirmPasswordReset(
   dto: ConfirmPasswordResetDto,
 ): Promise<UserEntity> {
@@ -29,25 +39,16 @@ export async function confirmPasswordReset(
 }
 
 /**
- * Lookup password reset by userId.
- * @param userId
- * @returns {PasswordResetEntity}
+ * Validates a password reset token using a POST request with the token and userId in the request body.
+ * Used to verify the authenticity of the reset link before allowing the user to reset their password.
+ *
+ * @param dto - The DTO containing userId and raw token
+ * @returns {Promise<PasswordResetEntity>} - The matching password reset entry if valid
+ * @throws {Error} - If the token is invalid or expired
  */
-export async function findPasswordResetByUserId(
-  userId: number,
+export async function validatePasswordReset(
+  dto: ValidatePasswordResetDto,
 ): Promise<PasswordResetEntity> {
-  const res = await axiosInstance.get(`/password-reset/byUserId/${userId}`);
-  return res.data;
-}
-
-/**
- * Lookup password reset by email.
- * @param email
- * @returns {PasswordResetEntity}
- */
-export async function findPasswordResetByEmail(
-  email: string,
-): Promise<PasswordResetEntity> {
-  const res = await axiosInstance.get(`/password-reset/byEmail/${email}`);
+  const res = await axiosInstance.post('password-reset/validate', dto);
   return res.data;
 }
