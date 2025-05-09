@@ -6,17 +6,17 @@ import { CookieOptions } from 'express';
  *
  * In development:
  * - `secure: false`
- * - `sameSite` is omitted entirely (required for redirect compatibility on localhost)
- * - `domain` is omitted to avoid `.localhost` rejection
+ * - `sameSite` omitted
+ * - `domain` omitted
  *
  * In production:
  * - `secure: true`
- * - `sameSite: 'none'` for cross-origin compatibility
- * - `domain` is set from `DOMAIN_HOST` (e.g. `.yourdomain.com`)
+ * - `sameSite: 'none'`
+ * - `domain: .yourdomain.com` (based on DOMAIN_HOST)
  *
- * @param isHttpOnly - `true` for `access_token`, `false` for public cookies like `public_session`
- * @param isProd - Whether the app is running in production
- * @param forClear - If true, omit `maxAge` (for use with `res.clearCookie`)
+ * If `forClear` is true:
+ * - `expires` is set instead of `maxAge`
+ * - BUT sameSite and domain are still included to match the original cookie
  */
 function getCookieOptions(
   isHttpOnly: boolean,
@@ -29,16 +29,18 @@ function getCookieOptions(
     path: '/',
   };
 
+  // Ensure proper clearing
   if (forClear) {
     options.expires = new Date(0);
   } else {
-    options.maxAge = 1000 * 60 * 30;
+    options.maxAge = 1000 * 60 * 30; // 30 minutes
+  }
 
-    if (isProd) {
-      options.sameSite = 'none';
-      if (DOMAIN_HOST?.trim()) {
-        options.domain = `.${DOMAIN_HOST.trim()}`;
-      }
+  // Only apply sameSite and domain in production (for both set and clear)
+  if (isProd) {
+    options.sameSite = 'none';
+    if (DOMAIN_HOST?.trim()) {
+      options.domain = `.${DOMAIN_HOST.trim()}`;
     }
   }
 
