@@ -38,6 +38,7 @@ export type { UpdateUserDto } from './models/UpdateUserDto';
 export type { UserEntity } from './models/UserEntity';
 export type { UserRolesDto } from './models/UserRolesDto';
 export type { UserRolesEntity } from './models/UserRolesEntity';
+export type { ValidatePasswordResetDto } from './models/ValidatePasswordResetDto';
 export type { VerifyAccountRequestDto } from './models/VerifyAccountRequestDto';
 
 export { AccountRequestsService } from './services/AccountRequestsService';

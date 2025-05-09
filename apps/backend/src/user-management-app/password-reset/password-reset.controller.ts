@@ -26,6 +26,7 @@ import { RolesGuard } from '../roles-and-permissions-resources/roles.guard';
 import { Roles } from '../roles-and-permissions-resources/roles.decorator';
 import { Throttle } from '@nestjs/throttler';
 import { PASSWORD_RESET_THROTTLE } from 'src/common/constraints';
+import { ValidatePasswordResetDto } from './dto/validate-password-reset.dto';
 
 @Controller('password-reset')
 @ApiTags('password-reset')
@@ -42,6 +43,18 @@ export class PasswordResetController {
       createPasswordResetDto,
     );
     return plainToInstance(PasswordResetEntity, newPasswordReset);
+  }
+
+  @Post('validate')
+  @Throttle(PASSWORD_RESET_THROTTLE)
+  @ApiOkResponse({ type: PasswordResetEntity })
+  async validateResetToken(
+    @Body() validatePasswordResetDto: ValidatePasswordResetDto,
+  ): Promise<PasswordResetEntity> {
+    const reset = await this.passwordResetService.validateResetToken(
+      validatePasswordResetDto,
+    );
+    return plainToInstance(PasswordResetEntity, reset);
   }
 
   @Post('confirm')
@@ -74,30 +87,6 @@ export class PasswordResetController {
   @ApiOkResponse({ type: PasswordResetEntity })
   async findOne(@Param('id') id: string): Promise<PasswordResetEntity> {
     const passwordReset = await this.passwordResetService.findOne(+id);
-    return plainToInstance(PasswordResetEntity, passwordReset);
-  }
-
-  @Get('byUserId/:userId')
-  @Throttle(PASSWORD_RESET_THROTTLE)
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @ApiBearerAuth()
-  @ApiOkResponse({ type: PasswordResetEntity })
-  async findOneByUserId(
-    @Param('userId') userId: string,
-  ): Promise<PasswordResetEntity> {
-    const passwordReset =
-      await this.passwordResetService.findOneByUserId(+userId);
-    return plainToInstance(PasswordResetEntity, passwordReset);
-  }
-
-  @Get('byEmail/:email')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @ApiBearerAuth()
-  @ApiOkResponse({ type: PasswordResetEntity })
-  async findOneByEmail(
-    @Param('email') email: string,
-  ): Promise<PasswordResetEntity> {
-    const passwordReset = await this.passwordResetService.findOneByEmail(email);
     return plainToInstance(PasswordResetEntity, passwordReset);
   }
 

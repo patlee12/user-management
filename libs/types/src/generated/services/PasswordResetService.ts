@@ -7,6 +7,7 @@ import type { CreatePasswordResetDto } from '../models/CreatePasswordResetDto';
 import type { PasswordResetEntity } from '../models/PasswordResetEntity';
 import type { UpdatePasswordResetDto } from '../models/UpdatePasswordResetDto';
 import type { UserEntity } from '../models/UserEntity';
+import type { ValidatePasswordResetDto } from '../models/ValidatePasswordResetDto';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -34,6 +35,21 @@ export class PasswordResetService {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/password-reset',
+        });
+    }
+    /**
+     * @param requestBody
+     * @returns PasswordResetEntity
+     * @throws ApiError
+     */
+    public static passwordResetControllerValidateResetToken(
+        requestBody: ValidatePasswordResetDto,
+    ): CancelablePromise<PasswordResetEntity> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/password-reset/validate',
+            body: requestBody,
+            mediaType: 'application/json',
         });
     }
     /**
@@ -100,38 +116,6 @@ export class PasswordResetService {
             url: '/password-reset/{id}',
             path: {
                 'id': id,
-            },
-        });
-    }
-    /**
-     * @param userId
-     * @returns PasswordResetEntity
-     * @throws ApiError
-     */
-    public static passwordResetControllerFindOneByUserId(
-        userId: string,
-    ): CancelablePromise<PasswordResetEntity> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/password-reset/byUserId/{userId}',
-            path: {
-                'userId': userId,
-            },
-        });
-    }
-    /**
-     * @param email
-     * @returns PasswordResetEntity
-     * @throws ApiError
-     */
-    public static passwordResetControllerFindOneByEmail(
-        email: string,
-    ): CancelablePromise<PasswordResetEntity> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/password-reset/byEmail/{email}',
-            path: {
-                'email': email,
             },
         });
     }
