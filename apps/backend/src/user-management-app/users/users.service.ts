@@ -148,6 +148,16 @@ export class UsersService {
   }
 
   /**
+   * Delete MFA auth by id.
+   * @param id mfa_auth id
+   * @returns {MfaAuthEntity}
+   */
+  async deleteMfaAuth(id: number): Promise<MfaAuthEntity> {
+    const deleteMfaAuth = await this.prisma.mfa_auth.delete({ where: { id } });
+    return deleteMfaAuth;
+  }
+
+  /**
    * Find one MFA auth by user id.
    * @param userId
    * @returns {MfaAuthEntity}

@@ -29,14 +29,16 @@ function getCookieOptions(
     path: '/',
   };
 
-  if (!forClear) {
-    options.maxAge = 1000 * 60 * 30; // 30 minutes
-  }
+  if (forClear) {
+    options.expires = new Date(0);
+  } else {
+    options.maxAge = 1000 * 60 * 30;
 
-  if (isProd) {
-    options.sameSite = 'none';
-    if (DOMAIN_HOST?.trim()) {
-      options.domain = `.${DOMAIN_HOST.trim()}`;
+    if (isProd) {
+      options.sameSite = 'none';
+      if (DOMAIN_HOST?.trim()) {
+        options.domain = `.${DOMAIN_HOST.trim()}`;
+      }
     }
   }
 
