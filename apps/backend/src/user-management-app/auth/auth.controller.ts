@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Post,
+  Req,
   Request,
   Res,
   UnauthorizedException,
@@ -15,7 +16,7 @@ import {
   ApiOperation,
 } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
-import { Response } from 'express';
+import { Response, Request as ExpressRequest } from 'express';
 import { plainToInstance } from 'class-transformer';
 
 import { AuthService } from './auth.service';
@@ -23,13 +24,16 @@ import { AuthResponseDto } from './dto/auth-response.dto';
 import { LoginDto } from './dto/login.dto';
 import { MfaDto } from './dto/mfa.dto';
 import { MfaResponseDto } from './dto/mfa-response.dto';
-import { JwtAuthGuard } from './jwt-auth.guard';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { UsersService } from 'src/user-management-app/users/users.service';
 import { UserEntity } from 'src/user-management-app/users/entities/user.entity';
 import { LOGIN_THROTTLE } from 'src/common/constraints';
 import { JwtService } from '@nestjs/jwt';
 import getCookieOptions from './helpers/get-cookie-options';
 import { EmailMfaDto } from './dto/email-mfa.dto';
+import { GoogleAuthGuard } from './guards/google-auth.guard';
+import { OAuthPayload } from './interfaces/oauth-payload.interface';
+import { FRONTEND_URL, isProd } from '@src/common/constants/environment';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -55,17 +59,91 @@ export class AuthController {
     const result = await this.authService.login(loginDto);
 
     if ('accessToken' in result) {
-      res.cookie('access_token', result.accessToken, getCookieOptions(true));
-
+      res.cookie(
+        'access_token',
+        result.accessToken,
+        getCookieOptions(true, isProd),
+      );
       const user = loginDto.email
         ? await this.userService.findOneByEmail(loginDto.email)
         : await this.userService.findOneByUsername(loginDto.username);
-
       const publicToken = this.authService.generatePublicSessionToken(user.id);
-      res.cookie('public_session', publicToken, getCookieOptions(false));
+      res.cookie(
+        'public_session',
+        publicToken,
+        getCookieOptions(false, isProd),
+      );
     }
 
     return result;
+  }
+
+  @Get('google')
+  @UseGuards(GoogleAuthGuard)
+  @ApiOperation({ summary: 'Redirect to Google for OAuth login' })
+  googleAuth() {
+    // Passport will redirect to Google
+  }
+
+  @Get('google/callback')
+  @UseGuards(GoogleAuthGuard)
+  async googleAuthCallback(
+    @Req() req: ExpressRequest & { user: OAuthPayload; query: any },
+    @Res() res: Response,
+  ): Promise<void> {
+    try {
+      const result = await this.authService.loginWithOAuth(req.user);
+
+      // Direct login success
+      if ('accessToken' in result) {
+        res.cookie(
+          'access_token',
+          result.accessToken,
+          getCookieOptions(true, isProd),
+        );
+
+        try {
+          const { userId } = await this.jwtService.verifyAsync<{
+            userId: number;
+          }>(result.accessToken);
+
+          const publicToken =
+            this.authService.generatePublicSessionToken(userId);
+          res.cookie(
+            'public_session',
+            publicToken,
+            getCookieOptions(false, isProd),
+          );
+        } catch (verifyError) {
+          console.error(
+            'JWT verification failed after Google login:',
+            verifyError?.message || verifyError,
+          );
+          // Optionally still proceed to frontend, or redirect with error
+        }
+      }
+
+      // MFA challenge
+      if ('ticket' in result) {
+        res.cookie('mfa_ticket', result.ticket, getCookieOptions(true, isProd));
+      }
+
+      // Determine safe redirect
+      const raw = Array.isArray(req.query.redirect)
+        ? req.query.redirect[0]
+        : req.query.redirect;
+      const redirect = raw ? raw.toString() : '/';
+
+      return res.redirect(
+        `${FRONTEND_URL}/login?redirect=${encodeURIComponent(redirect)}`,
+      );
+    } catch (err: any) {
+      console.error(
+        'Google Auth Error:',
+        err?.message || err || 'Unknown error',
+      );
+      return res.redirect(`${FRONTEND_URL}/login?error=oauth_failed`);
+    }
   }
 
   @Post('verify-mfa')
@@ -83,17 +161,23 @@ export class AuthController {
     const result = await this.authService.verifyMfaTicket(mfaDto);
 
     if ('accessToken' in result) {
-      res.cookie('access_token', result.accessToken, getCookieOptions(true));
-
+      res.cookie(
+        'access_token',
+        result.accessToken,
+        getCookieOptions(true, isProd),
+      );
       const payload = await this.jwtService.verifyAsync<{
         userId: number | string;
         purpose: string;
       }>(mfaDto.ticket);
-
-      const publicToken = await this.authService.generatePublicSessionToken(
+      const publicToken = this.authService.generatePublicSessionToken(
         +payload.userId,
       );
-      res.cookie('public_session', publicToken, getCookieOptions(false));
+      res.cookie(
+        'public_session',
+        publicToken,
+        getCookieOptions(false, isProd),
+      );
     }
 
     return result;
@@ -114,12 +198,20 @@ export class AuthController {
     const result = await this.authService.verifyEmailMfaCode(emailMfaDto);
 
     if ('accessToken' in result) {
-      res.cookie('access_token', result.accessToken, getCookieOptions(true));
-
-      const publicToken = await this.authService.generatePublicSessionToken(
-        (await this.jwtService.verifyAsync(result.accessToken)).userId,
+      res.cookie(
+        'access_token',
+        result.accessToken,
+        getCookieOptions(true, isProd),
       );
-      res.cookie('public_session', publicToken, getCookieOptions(false));
+      const { userId } = await this.jwtService.verifyAsync<{
+        userId: number;
+      }>(result.accessToken);
+      const publicToken = this.authService.generatePublicSessionToken(userId);
+      res.cookie(
+        'public_session',
+        publicToken,
+        getCookieOptions(false, isProd),
+      );
     }
 
     return result;
@@ -127,19 +219,18 @@ export class AuthController {
 
   @Post('setup-mfa')
   @ApiBearerAuth()
-  @ApiOkResponse({ type: MfaResponseDto })
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: 'Generate MFA secret and QR code for user setup.',
     description:
       'Returns the MFA secret and QR code image to register with an authenticator app.',
   })
-  @UseGuards(JwtAuthGuard)
+  @ApiOkResponse({ type: MfaResponseDto })
   async setupMfa(@Request() req): Promise<MfaResponseDto> {
     const user: UserEntity = req.user;
     if (user.mfaEnabled) {
       throw new UnauthorizedException('User account already has MFA enabled.');
     }
-
     const secret = await this.authService.generateMfaSecret(user);
     await this.userService.createMfaAuth({
       secret,
@@ -175,8 +266,8 @@ export class AuthController {
   @Throttle(LOGIN_THROTTLE)
   @ApiOperation({ summary: 'Log out by clearing the auth cookies' })
   async logout(@Res({ passthrough: true }) res: Response) {
-    res.clearCookie('access_token', getCookieOptions(true));
-    res.clearCookie('public_session', getCookieOptions(false));
+    res.clearCookie('access_token', getCookieOptions(true, isProd, true));
+    res.clearCookie('public_session', getCookieOptions(false, isProd, true));
     return { message: 'Logged out successfully' };
   }
 }

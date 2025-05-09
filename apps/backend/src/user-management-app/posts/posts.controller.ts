@@ -21,7 +21,7 @@ import {
 } from '@nestjs/swagger';
 import { PostEntity } from './entities/post.entity';
 import { plainToInstance } from 'class-transformer';
-import { JwtAuthGuard } from 'src/user-management-app/auth/jwt-auth.guard';
+import { JwtAuthGuard } from '@src/user-management-app/auth/guards/jwt-auth.guard';
 
 @Controller('posts')
 @ApiTags('posts')

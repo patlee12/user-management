@@ -10,6 +10,7 @@ export type UserEntity = {
     mfaEnabled: boolean;
     emailVerified: boolean;
     userRoles?: Array<string> | null;
+    loginType: string;
     createdAt: string;
     updatedAt: string;
 };

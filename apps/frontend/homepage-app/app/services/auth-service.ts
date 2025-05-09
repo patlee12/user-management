@@ -7,13 +7,15 @@ import {
   MfaResponseDto,
 } from '@user-management/types';
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+
 /**
  * Sends a login POST request to the backend `/auth/login` using email and password.
  * If MFA is enabled on the account, the response will include a temporary `ticket`
  * and `mfaRequired: true` instead of an access token.
  *
- * @param loginDto - The login data (email and password).
- * @returns {Promise<AuthResponseDto>}A promise resolving to either an access token or MFA challenge response.
+ * @param loginDto - The login data (email/username and password).
+ * @returns {Promise<AuthResponseDto>} A promise resolving to either an access token or MFA challenge response.
  */
 export async function login(loginDto: LoginDto): Promise<AuthResponseDto> {
   const res = await axiosInstance.post<AuthResponseDto>(
@@ -21,6 +23,29 @@ export async function login(loginDto: LoginDto): Promise<AuthResponseDto> {
     loginDto,
   );
   return res.data;
+}
+
+/**
+ * Only allow simple relative URLs.
+ */
+function sanitizeRedirect(path: string): string {
+  // must start with a single slash, no “//”
+  if (/^\/(?!\/)/.test(path)) {
+    return path;
+  }
+  return '/';
+}
+
+/**
+ * Starts Google OAuth by redirecting the browser
+ * to our backend’s `/auth/google` endpoint.
+ *
+ * @param opts.redirect - Path to return to after OAuth completes.
+ */
+export function oauthLogin(opts: { redirect: string }): void {
+  const safe = sanitizeRedirect(opts.redirect);
+  const url = `${BACKEND_URL}/auth/google?redirect=${encodeURIComponent(safe)}`;
+  window.location.href = url;
 }
 
 /**
@@ -69,7 +94,7 @@ export async function verifyEmailMfa(
  * @returns {Promise<MfaResponseDto>} A promise that resolves with the MFA response data containing the QR code and secret.
  */
 export async function getMfaSetup(): Promise<MfaResponseDto> {
-  const res = await axiosInstance.post('/auth/setup-mfa');
+  const res = await axiosInstance.post<MfaResponseDto>('/auth/setup-mfa');
   return res.data;
 }
 

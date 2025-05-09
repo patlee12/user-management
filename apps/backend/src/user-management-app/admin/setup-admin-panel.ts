@@ -1,6 +1,6 @@
-import express from 'express';
 import { join } from 'path';
 import { PrismaService } from '../../prisma/prisma.service';
+import { isProd } from '@src/common/constants/environment';
 
 export async function setupAdminPanel(prisma: PrismaService) {
   const { default: AdminJS, ComponentLoader } = await import('adminjs');
@@ -11,16 +11,13 @@ export async function setupAdminPanel(prisma: PrismaService) {
   AdminJS.registerAdapter({ Database, Resource });
   const rootPath = '/admin';
   const componentLoader = new ComponentLoader();
-  const dashboardPath =
-    process.env.NODE_ENV === 'production'
-      ? join(
-          process.cwd(),
-          'dist/src/user-management-app/admin/components/Dashboard',
-        )
-      : join(__dirname, 'components/Dashboard');
+  const dashboardPath = isProd
+    ? join(
+        process.cwd(),
+        'dist/src/user-management-app/admin/components/Dashboard',
+      )
+    : join(__dirname, 'components/Dashboard');
   const customDashboard = componentLoader.add('CustomDashboard', dashboardPath);
-
-  const cookieSecret = process.env.COOKIE_SECRET || 'default-secret';
   const adminJs = new AdminJS({
     rootPath,
     componentLoader,
@@ -48,6 +45,7 @@ export async function setupAdminPanel(prisma: PrismaService) {
       'UserRoles',
       'Post',
       'mfa_auth',
+      'OAuthAccount',
     ].map((modelName) => ({
       resource: {
         model: getModelByName(modelName),

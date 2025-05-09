@@ -30,6 +30,27 @@ export class AuthService {
         });
     }
     /**
+     * Redirect to Google for OAuth login
+     * @returns any
+     * @throws ApiError
+     */
+    public static authControllerGoogleAuth(): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/auth/google',
+        });
+    }
+    /**
+     * @returns any
+     * @throws ApiError
+     */
+    public static authControllerGoogleAuthCallback(): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/auth/google/callback',
+        });
+    }
+    /**
      * Verify MFA ticket + 6-digit token to complete login.
      * Use this endpoint after receiving a `ticket` from /login if MFA was required. Returns a final access token if the token is valid.
      * @param requestBody

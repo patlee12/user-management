@@ -8,6 +8,7 @@ import { UpdateMfaDto } from './dto/update-mfa.dto';
 import { encryptSecret } from 'src/helpers/encryption-tools';
 import { UserEntity } from './entities/user.entity';
 import { MfaAuthEntity } from './entities/mfa-auth.entity';
+import { MFA_KEY } from '@src/common/constants/environment';
 
 @Injectable()
 export class UsersService {
@@ -120,10 +121,7 @@ export class UsersService {
    * @returns {MfaAuthEntity}
    */
   async createMfaAuth(createMfaDto: CreateMfaDto): Promise<MfaAuthEntity> {
-    const encryptMfaSecret = await encryptSecret(
-      createMfaDto.secret,
-      process.env.MFA_KEY,
-    );
+    const encryptMfaSecret = await encryptSecret(createMfaDto.secret, MFA_KEY);
     createMfaDto.secret = encryptMfaSecret;
 
     return await this.prisma.mfa_auth.create({ data: createMfaDto });
@@ -140,10 +138,7 @@ export class UsersService {
     updateMfaDto: UpdateMfaDto,
   ): Promise<MfaAuthEntity> {
     if (updateMfaDto.secret) {
-      const encrytMfaSecret = await encryptSecret(
-        updateMfaDto.secret,
-        process.env.MFA_KEY,
-      );
+      const encrytMfaSecret = await encryptSecret(updateMfaDto.secret, MFA_KEY);
       updateMfaDto.secret = encrytMfaSecret;
     }
     return await this.prisma.mfa_auth.update({
@@ -168,5 +163,37 @@ export class UsersService {
    */
   async findOneMfaByEmail(email: string): Promise<MfaAuthEntity> {
     return await this.prisma.mfa_auth.findUnique({ where: { email: email } });
+  }
+
+  /**
+   * Generates a unique, sanitized username.
+   *
+   * - If email is provided, uses the local part (before @) as the base.
+   * - If email is missing (e.g. One from Apple Sign-In with hidden email),
+   *   falls back to using a generic "guestuser" prefix.
+   * - Appends a random 4-digit suffix if the username is already taken.
+   *
+   * @param email - User's email address, or undefined/null.
+   * @param prisma - PrismaService
+   * @returns A unique and safe username string.
+   */
+  async generateUniqueUsername(
+    email: string | undefined | null,
+    prisma: PrismaService,
+  ): Promise<string> {
+    const base = email
+      ? email
+          .split('@')[0]
+          .replace(/[^a-zA-Z0-9]/g, '')
+          .toLowerCase()
+      : 'guestuser';
+
+    let username = base;
+
+    while (await prisma.user.findUnique({ where: { username } })) {
+      username = `${base}${Math.floor(1000 + Math.random() * 9000)}`;
+    }
+
+    return username;
   }
 }

@@ -5,23 +5,29 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { PrismaModule } from '../../prisma/prisma.module';
 import { UsersModule } from 'src/user-management-app/users/users.module';
-import { JwtStrategy } from './jwt.strategy';
+import { JwtStrategy } from './strategies/jwt.strategy';
+import { GoogleStrategy } from './strategies/google.strategy';
 import { MailingService } from '../mailing/mailing.service';
+import { JWT_SECRET } from '@src/common/constants/environment';
 
-//Generate a random secret
-export const jwtSecret = process.env.JWT_SECRET;
+export const ENABLE_OAUTH = process.env.ENABLE_OAUTH === 'true';
 
 @Module({
   imports: [
     PrismaModule,
     PassportModule,
     JwtModule.register({
-      secret: jwtSecret,
+      secret: JWT_SECRET,
       signOptions: { expiresIn: '30m' },
     }),
     UsersModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, MailingService],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    MailingService,
+    ...(ENABLE_OAUTH ? [GoogleStrategy] : []),
+  ],
 })
 export class AuthModule {}

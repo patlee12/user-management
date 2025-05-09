@@ -20,7 +20,7 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { UserEntity } from './entities/user.entity';
-import { JwtAuthGuard } from 'src/user-management-app/auth/jwt-auth.guard';
+import { JwtAuthGuard } from '@src/user-management-app/auth/guards/jwt-auth.guard';
 import { plainToInstance } from 'class-transformer';
 import { RolesGuard } from '../roles-and-permissions-resources/roles.guard';
 import { Roles } from '../roles-and-permissions-resources/roles.decorator';

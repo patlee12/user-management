@@ -7,16 +7,13 @@ dotenv.config(); // Load variables from .env
 const prisma = new PrismaClient();
 
 async function main() {
-  const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
-  const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@example.com';
-
-  if (!ADMIN_PASSWORD) {
+  if (!process.env.ADMIN_PASSWORD) {
     throw new Error(
       '❌ ADMIN_PASSWORD is not defined in the environment variables.',
     );
   }
 
-  const passwordAdmin = await argon2.hash(ADMIN_PASSWORD);
+  const passwordAdmin = await argon2.hash(process.env.ADMIN_PASSWORD);
 
   const user = await prisma.user.upsert({
     where: { username: 'Admin' },
@@ -25,7 +22,7 @@ async function main() {
       username: 'Admin',
       name: 'Admin',
       password: passwordAdmin,
-      email: ADMIN_EMAIL,
+      email: process.env.ADMIN_EMAIL,
     },
   });
 

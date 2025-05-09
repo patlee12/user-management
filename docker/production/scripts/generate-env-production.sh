@@ -36,6 +36,9 @@ fi
 read -rp "Enter DOMAIN_HOST (e.g. example.com): " DOMAIN_HOST
 DOMAIN_HOST=$(echo "$DOMAIN_HOST" | tr -d '\r\n')
 
+echo "🔄 Generated POSTGRES_VOLUME_NAME from domain prefix."
+POSTGRES_VOLUME_NAME=$(echo "${DOMAIN_HOST%%.*}_postgres" | tr '[:upper:]' '[:lower:]')
+
 read -rp "Use manually uploaded certificates instead of Let's Encrypt? (y/N): " manual_cert
 case "$manual_cert" in
   [yY][eE][sS]|[yY]) USE_MANUAL_CERTS=true ;;
@@ -44,11 +47,27 @@ esac
 
 read -rp "Enter ADMIN_EMAIL: " ADMIN_EMAIL
 ADMIN_EMAIL=$(echo "$ADMIN_EMAIL" | tr -d '\r\n')
+
 read -rp "Enter MAIL_SERVICE_PROVIDER: " MAIL_SERVICE_PROVIDER
 read -rp "Enter EMAIL_USER: " EMAIL_USER
 read -rsp "Enter EMAIL_PASS: " EMAIL_PASS && echo
+
 read -rp "Enter NEXT_PUBLIC_SUPPORT_EMAIL (leave blank to use ADMIN_EMAIL): " NEXT_PUBLIC_SUPPORT_EMAIL
 NEXT_PUBLIC_SUPPORT_EMAIL="${NEXT_PUBLIC_SUPPORT_EMAIL:-$ADMIN_EMAIL}"
+
+read -rp "Enable OAuth login? (y/N): " enable_oauth
+case "$enable_oauth" in
+  [yY][eE][sS]|[yY]) ENABLE_OAUTH=true ;;
+  *) ENABLE_OAUTH=false ;;
+esac
+
+if [[ "$ENABLE_OAUTH" == "true" ]]; then
+  read -rp "Enter GOOGLE_CLIENT_ID: " GOOGLE_CLIENT_ID
+  GOOGLE_CLIENT_ID=$(echo "$GOOGLE_CLIENT_ID" | tr -d '\r\n')
+
+  read -rsp "Enter GOOGLE_CLIENT_SECRET: " GOOGLE_CLIENT_SECRET && echo
+  GOOGLE_CLIENT_SECRET=$(echo "$GOOGLE_CLIENT_SECRET" | tr -d '\r\n')
+fi
 
 # === SECRETS ===
 ADMIN_PASSWORD=$(openssl rand -base64 48 | tr -dc 'A-Za-z0-9!@#$%^&*()_+=' | head -c 32)
@@ -56,6 +75,9 @@ JWT_SECRET=$(openssl rand -base64 256)
 MFA_KEY=$(openssl rand -hex 32)
 COOKIE_SECRET=$(openssl rand -base64 256)
 PUBLIC_SESSION_SECRET=$(openssl rand -base64 256)
+
+GOOGLE_CALLBACK_TEMPLATE=$(grep '^GOOGLE_CALLBACK_URL=' "$BACKEND_PROD_TEMPLATE" | cut -d '=' -f2-)
+GOOGLE_CALLBACK_URL=$(eval echo "$GOOGLE_CALLBACK_TEMPLATE")
 
 quote() {
   printf '"%s"' "$(echo "$1" | sed 's/["\\]/\\&/g')"
@@ -71,9 +93,7 @@ resolve_and_merge_templates() {
   local template1="$1"
   local template2="$2"
   local output="$3"
-
   cat /dev/null > "$output"
-
   for template in "$template1" "$template2"; do
     while IFS= read -r line || [[ -n "$line" ]]; do
       [[ "$line" =~ ^#.*$ || -z "$line" ]] && continue
@@ -81,7 +101,6 @@ resolve_and_merge_templates() {
       val="${line#*=}"
       resolved_val=$(eval echo "$val")
       escaped_val=$(quote "$resolved_val")
-
       if grep -q "^${key}=" "$output"; then
         sed -i "s|^${key}=.*|${key}=${escaped_val}|" "$output"
       else
@@ -103,6 +122,7 @@ cp "$SHARED_TEMPLATE" "$SHARED_ENV"
   echo "POSTGRES_USER=$(quote "$POSTGRES_USER")"
   echo "POSTGRES_PASSWORD=$(quote "$POSTGRES_PASSWORD")"
   echo "POSTGRES_DB=$(quote "$POSTGRES_DB")"
+  echo "POSTGRES_VOLUME_NAME=$(quote "$POSTGRES_VOLUME_NAME")"
   echo "ADMIN_EMAIL=$(quote "$ADMIN_EMAIL")"
   echo "ADMIN_PASSWORD=$(quote "$ADMIN_PASSWORD")"
   echo "JWT_SECRET=$(quote "$JWT_SECRET")"
@@ -135,6 +155,15 @@ resolve_and_merge_templates "$BACKEND_TEMPLATE" "$BACKEND_PROD_TEMPLATE" "$BACKE
   echo "COOKIE_SECRET=$(quote "$COOKIE_SECRET")"
   echo "PUBLIC_SESSION_SECRET=$(quote "$PUBLIC_SESSION_SECRET")"
   echo "DOMAIN_HOST=$(quote "$DOMAIN_HOST")"
+  echo "ENABLE_OAUTH=$(quote "$ENABLE_OAUTH")"
+  if [[ "$ENABLE_OAUTH" == "true" ]]; then
+    echo "GOOGLE_CLIENT_ID=$(quote "$GOOGLE_CLIENT_ID")"
+    echo "GOOGLE_CLIENT_SECRET=$(quote "$GOOGLE_CLIENT_SECRET")"
+  else
+    echo "GOOGLE_CLIENT_ID=$(quote "")"
+    echo "GOOGLE_CLIENT_SECRET=$(quote "")"
+  fi
+  echo "GOOGLE_CALLBACK_URL=$(quote "$GOOGLE_CALLBACK_URL")"
 } >> "$BACKEND_ENV"
 dedupe_env_file "$BACKEND_ENV"
 echo "✅ Created $BACKEND_ENV"

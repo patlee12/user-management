@@ -23,7 +23,7 @@ import { UpdatePermissionDto } from './dto/update-permission.dto';
 import { PermissionEntity } from './entities/permission.entity';
 import { UserRolesDto } from './dto/user-roles.dto';
 import { UserRolesEntity } from './entities/user-roles.entity';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Permissions } from './permissions.decorator';
 import { PermissionsGuard } from './permissions.guard';
 import { RolesGuard } from './roles.guard';

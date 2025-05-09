@@ -1,7 +1,7 @@
 // components/ui/wrappers/VerificationResultWrapper.tsx
 import { Loader2, CheckCircle, XCircle } from 'lucide-react';
 import CanvasBackground from '@/components/ui/backgrounds/canvasBackground';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/buttons/button';
 import Link from 'next/link';
 
 export interface VerificationResultWrapperProps {

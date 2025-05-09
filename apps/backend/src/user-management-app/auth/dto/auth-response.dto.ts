@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNumber } from 'class-validator';
+import { IsEmail, IsNumber } from 'class-validator';
 
 export class AuthResponseDto {
   @ApiPropertyOptional({
@@ -16,6 +16,10 @@ export class AuthResponseDto {
   @ApiPropertyOptional({ description: 'Whether email MFA is required' })
   @IsNumber()
   userId?: number;
+
+  @ApiPropertyOptional({ description: 'Whether email MFA is required' })
+  @IsEmail()
+  email?: string;
 
   @ApiPropertyOptional({
     description: 'Temporary JWT ticket used for MFA verification',

@@ -1,18 +1,12 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { jwtSecret } from './auth.module';
+import { JWT_SECRET } from '@src/common/constants/environment';
 import { UsersService } from 'src/user-management-app/users/users.service';
 import { plainToInstance } from 'class-transformer';
-import { UserEntity } from '../users/entities/user.entity';
+import { UserEntity } from '../../users/entities/user.entity';
 import { Request } from 'express';
-
-export interface JwtPayload {
-  userId: number;
-  mfaVerified: boolean;
-  iat?: number;
-  exp?: number;
-}
+import { JwtPayload } from '../interfaces/jwt-payload.interface';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
@@ -23,7 +17,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
           return req?.cookies?.access_token || null;
         },
       ]),
-      secretOrKey: jwtSecret,
+      secretOrKey: JWT_SECRET,
       passReqToCallback: true,
     });
   }

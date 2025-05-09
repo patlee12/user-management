@@ -16,6 +16,7 @@ import { generateToken } from 'src/helpers/encryption-tools';
 import { MailingService } from '../mailing/mailing.service';
 import { EmailVerificationDto } from '../mailing/dto/email-verification.dto';
 import buildEncodedLink from '@src/helpers/build-encoded-link';
+import { FRONTEND_URL } from '@src/common/constants/environment';
 
 @Injectable()
 export class AccountRequestsService {
@@ -94,7 +95,7 @@ export class AccountRequestsService {
 
     // Step 5: Send verification email
     const verificationLink = buildEncodedLink(
-      `${process.env.FRONTEND_URL}/auth/verify-email`,
+      `${FRONTEND_URL}/auth/verify-email`,
       {
         tokenId: tokenId,
         token: rawToken,

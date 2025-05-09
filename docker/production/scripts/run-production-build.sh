@@ -13,7 +13,7 @@ COMPOSE_FILE="$ROOT_DIR/docker/production/docker-compose-production.yml"
 
 # Step 0: Clean up conflicting containers and unused Docker artifacts
 echo "🧼 [0/14] Cleaning up any previously stopped or named containers..."
-CONFLICT_NAMES=("postgres" "nginx" "cert-renewer" "homepage-app" "nestjs")
+CONFLICT_NAMES=("postgres" "nginx" "cert-renewer" "homepage-app" "nestjs" "adminer")
 for name in "${CONFLICT_NAMES[@]}"; do
   if docker ps -a --format '{{.Names}}' | grep -q "^$name$"; then
     echo "⚠️  Removing conflicting container: $name"

@@ -121,7 +121,7 @@ services:
 
 volumes:
   postgres:
-    name: user-management_postgres
+    name: ${POSTGRES_VOLUME_NAME}
 
 networks:
   full-stack-network:
