@@ -55,14 +55,15 @@ export default function LoginComponent() {
         return cookieObject;
       }, {});
 
-    if (cookieMap['mfa_ticket']) {
+    // Only dispatch if we're still in idle state
+    if (cookieMap['mfa_ticket'] && state.status === 'idle') {
       dispatch({ type: 'MFA_REQUIRED', ticket: cookieMap['mfa_ticket'] });
-    } else if (document.cookie.includes('public_session')) {
+    } else if (cookieMap['public_session'] && state.status === 'idle') {
       loadUser().then(() => {
         dispatch({ type: 'OPTIONAL_MFA_PROMPT', qrCodeUrl: '', secret: '' });
       });
     }
-  }, [loadUser]);
+  }, [loadUser, state.status]);
 
   const handleGoogleLogin = () => {
     dispatch({ type: 'START_LOGIN' });
