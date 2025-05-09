@@ -111,3 +111,13 @@ export async function confirmMfaSetup(mfaDto: MfaDto): Promise<boolean> {
   const res = await axiosInstance.post<boolean>('/auth/confirm-mfa', mfaDto);
   return res.data;
 }
+
+/**
+ * Logs out the user by calling the `/auth/logout` endpoint.
+ * This clears all session-related cookies on the backend.
+ *
+ * @returns {Promise<void>} A promise that resolves when the logout is complete.
+ */
+export async function logout(): Promise<void> {
+  await axiosInstance.post('/auth/logout');
+}

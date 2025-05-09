@@ -75,6 +75,10 @@ export class AuthController {
       );
     }
 
+    if ('ticket' in result) {
+      res.cookie('mfa_ticket', result.ticket, getCookieOptions(true, isProd));
+    }
+
     return result;
   }
 
@@ -94,7 +98,6 @@ export class AuthController {
     try {
       const result = await this.authService.loginWithOAuth(req.user);
 
-      // Direct login success
       if ('accessToken' in result) {
         res.cookie(
           'access_token',
@@ -119,16 +122,13 @@ export class AuthController {
             'JWT verification failed after Google login:',
             verifyError?.message || verifyError,
           );
-          // Optionally still proceed to frontend, or redirect with error
         }
       }
 
-      // MFA challenge
       if ('ticket' in result) {
         res.cookie('mfa_ticket', result.ticket, getCookieOptions(true, isProd));
       }
 
-      // Determine safe redirect
       const raw = Array.isArray(req.query.redirect)
         ? req.query.redirect[0]
         : req.query.redirect;
@@ -203,9 +203,9 @@ export class AuthController {
         result.accessToken,
         getCookieOptions(true, isProd),
       );
-      const { userId } = await this.jwtService.verifyAsync<{
-        userId: number;
-      }>(result.accessToken);
+      const { userId } = await this.jwtService.verifyAsync<{ userId: number }>(
+        result.accessToken,
+      );
       const publicToken = this.authService.generatePublicSessionToken(userId);
       res.cookie(
         'public_session',
@@ -265,9 +265,10 @@ export class AuthController {
   @Post('logout')
   @Throttle(LOGIN_THROTTLE)
   @ApiOperation({ summary: 'Log out by clearing the auth cookies' })
-  async logout(@Res({ passthrough: true }) res: Response) {
+  logout(@Res({ passthrough: true }) res: Response) {
     res.clearCookie('access_token', getCookieOptions(true, isProd, true));
     res.clearCookie('public_session', getCookieOptions(false, isProd, true));
-    return { message: 'Logged out successfully' };
+    res.clearCookie('mfa_ticket', getCookieOptions(true, isProd, true));
+    return { success: true };
   }
 }

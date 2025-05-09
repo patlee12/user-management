@@ -36,7 +36,6 @@ export default function LoginComponent() {
   const [password, setPassword] = useState('');
   const [mfaCode, setMfaCode] = useState('');
 
-  // reducer state machine
   const [state, dispatch] = useReducer(loginReducer, initialLoginState);
   const { status, tempToken, email, errorMessage, qrCodeUrl, secret } = state;
   const isLoading = status === 'loading';
@@ -48,7 +47,6 @@ export default function LoginComponent() {
     const redirect = params.get('redirect');
     if (redirect) setRedirectTo(redirect);
 
-    // Check for mfa_ticket cookie issued on OAuth login if MFA is required
     const cookieMap = document.cookie
       .split('; ')
       .reduce<Record<string, string>>((cookieObject, cookieString) => {
@@ -170,9 +168,8 @@ export default function LoginComponent() {
     dispatch({ type: 'START_LOGIN' });
     try {
       await confirmMfaSetup({ token: mfaCode });
-      await fetch('/auth/logout', { method: 'POST', credentials: 'include' });
-      dispatch({ type: 'LOGIN_SUCCESS' });
-      setTimeout(() => (window.location.href = '/login'), 50);
+      window.location.href = '/logout';
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       dispatch({
@@ -228,7 +225,6 @@ export default function LoginComponent() {
             isLoading={isLoading}
           />
         ) : (
-          /* Regular login form */
           <form onSubmit={handleLogin} className="space-y-6">
             <h2 className="text-3xl font-bold mb-6 text-center">Login</h2>
 
