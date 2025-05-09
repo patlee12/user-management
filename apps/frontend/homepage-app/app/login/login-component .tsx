@@ -273,31 +273,41 @@ export default function LoginComponent() {
               {isLoading ? 'Signing in...' : 'Sign In'}
             </Button>
 
-            {status === 'idle' && (
-              <div className="mt-4 flex justify-center">
-                <GoogleLoginButton onClick={handleGoogleLogin} />
+            {['mfa', 'mfa-optional', 'mfa-setup', 'confirm-mfa'].every(
+              (s) => s !== status,
+            ) && (
+              <div className="mt-4 flex flex-col sm:flex-row sm:justify-between gap-2 text-sm text-zinc-400">
+                <button
+                  type="button"
+                  onClick={() => router.push('/account-requests')}
+                  className="text-left hover:text-white underline underline-offset-4 transition"
+                >
+                  Create an account
+                </button>
+                <button
+                  type="button"
+                  onClick={() => router.push('/forgot-password')}
+                  className="text-left sm:text-right hover:text-white underline underline-offset-4 transition"
+                >
+                  Forgot password?
+                </button>
               </div>
             )}
+            {status === 'idle' && (
+              <>
+                <div className="flex items-center my-6">
+                  <div className="flex-grow border-t border-zinc-700" />
+                  <span className="mx-4 text-sm text-zinc-400">
+                    Or continue with
+                  </span>
+                  <div className="flex-grow border-t border-zinc-700" />
+                </div>
+                <div className="mb-2 flex justify-center">
+                  <GoogleLoginButton onClick={handleGoogleLogin} />
+                </div>
+              </>
+            )}
           </form>
-        )}
-
-        {['mfa', 'mfa-optional', 'mfa-setup', 'confirm-mfa'].every(
-          (s) => s !== status,
-        ) && (
-          <div className="mt-6 flex justify-center gap-4">
-            <Button
-              variant="outline"
-              onClick={() => router.push('/account-requests')}
-            >
-              Create an account
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => router.push('/forgot-password')}
-            >
-              Forgot password?
-            </Button>
-          </div>
         )}
       </div>
     </div>
