@@ -1,19 +1,26 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import CanvasBackground from '@/components/ui/backgrounds/canvasBackground';
+import { logout } from '@/app/services/auth-service';
 
 export default function LogoutPage() {
-  const router = useRouter();
-
   useEffect(() => {
-    const timer = setTimeout(() => {
-      router.push('/login');
-    }, 3000); // Redirect after 3 seconds
-    return () => clearTimeout(timer);
-  }, [router]);
+    const runLogout = async () => {
+      try {
+        await logout(); // backend clears cookies
+      } catch (err) {
+        console.error('Logout failed:', err);
+      } finally {
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 3500);
+      }
+    };
+
+    runLogout();
+  }, []);
 
   return (
     <div className="relative h-full flex items-center justify-center overflow-hidden">
@@ -32,7 +39,7 @@ export default function LogoutPage() {
           You have been successfully logged out.
         </p>
         <p className="text-sm text-zinc-400 italic">
-          Redirecting to the login page in 3 seconds...
+          Redirecting to the login page...
         </p>
       </motion.div>
     </div>
