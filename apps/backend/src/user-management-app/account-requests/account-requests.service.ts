@@ -125,7 +125,7 @@ export class AccountRequestsService {
    * 2. If not found, throws `AccountRequestNotFoundError`.
    * 3. If the request is expired, deletes it and throws `TokenExpiredError`.
    * 4. Verifies the provided token against the stored hashed token using Argon2.
-   *    - If invalid, throws `InvalidTokenError`.
+   *    - If invalid, deletes the account request and throws `InvalidTokenError`.
    * 5. Creates a new `User` with the verified request data.
    * 6. Assigns the default "User" role to the new account via `UserRoles`.
    * 7. Deletes the original `AccountRequest` after successful user creation.
@@ -134,7 +134,7 @@ export class AccountRequestsService {
    * @returns A newly created `UserEntity` if the token is valid.
    * @throws `AccountRequestNotFoundError` if no matching request is found.
    * @throws `TokenExpiredError` if the request has expired.
-   * @throws `InvalidTokenError` if the token hash comparison fails.
+   * @throws `InvalidTokenError` if the token hash comparison fails (and the request is removed).
    */
   async verifyAccountRequest(
     dto: VerifyAccountRequestDto,
@@ -160,6 +160,9 @@ export class AccountRequestsService {
     );
 
     if (!isValid) {
+      await this.prisma.accountRequest.delete({
+        where: { id: accountRequest.id },
+      });
       throw new InvalidTokenError();
     }
 
@@ -176,7 +179,6 @@ export class AccountRequestsService {
     });
 
     const role = await this.prisma.role.findUnique({ where: { name: 'User' } });
-
     if (role) {
       await this.prisma.userRoles.create({
         data: {
