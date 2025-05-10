@@ -64,14 +64,12 @@ export default function LoginComponent() {
     const ticketParam = params.get('ticket');
     if (mfaRequired === 'true' && ticketParam) {
       dispatch({ type: 'MFA_REQUIRED', ticket: ticketParam });
-      // Remove params so we don’t re-trigger on hydrate
+
       params.delete('mfaRequired');
       params.delete('ticket');
-      router.replace(
-        window.location.pathname +
-          (params.toString() ? '?' + params.toString() : ''),
-        { scroll: false },
-      );
+      const base = window.location.pathname;
+      const newQs = params.toString();
+      window.history.replaceState(null, '', base + (newQs ? `?${newQs}` : ''));
     } else {
       // fallback to cookie logic for regular login/MFA
       const cookieMap = document.cookie
@@ -92,7 +90,7 @@ export default function LoginComponent() {
     }
 
     setCheckedCookies(true);
-  }, [loadUser, router, status]);
+  }, [loadUser, status]);
 
   // Don’t render until checked URL+cookies
   if (!checkedCookies) return null;
