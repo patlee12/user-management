@@ -28,8 +28,8 @@ import { GoogleLoginButton } from '@/components/ui/buttons/google-login-button';
  * Relies on secure HttpOnly cookies and MFA ticket cookies.
  *
  * Special OAuth redirect logic:
- * - After Google login, the backend sets a short-lived `show_mfa` cookie and a `mfa_ticket` cookie.
- * - This component detects those cookies on load and triggers MFA flow automatically.
+ * - After Google login, backend redirects back with `?mfaRequired=true&ticket=…`
+ * - This component reads those once on mount, dispatches MFA flow, and strips them from the URL.
  */
 export default function LoginComponent() {
   const router = useRouter();
@@ -48,37 +48,54 @@ export default function LoginComponent() {
   const isEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 
   /**
-   * On page load:
-   * - Grab any redirect param
-   * - Detect MFA cookies and trigger flow if present
-   * - Avoid hydration mismatch by delaying render until cookies are read
+   * On mount:
+   * - Read any `redirect` query param
+   * - Attempt OAuth-style MFA flow from URL params
+   * - If not OAuth, fall back to cookie based flows
+   * - Prevent initial render until this check completes
    */
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const redirect = params.get('redirect');
     if (redirect) setRedirectTo(redirect);
 
-    const cookieMap = document.cookie
-      .split('; ')
-      .reduce<Record<string, string>>((acc, curr) => {
-        const [k, v] = curr.split('=');
-        acc[k] = decodeURIComponent(v);
-        return acc;
-      }, {});
+    // OAuth redirect flow
+    const mfaRequired = params.get('mfaRequired');
+    const ticketParam = params.get('ticket');
+    if (mfaRequired === 'true' && ticketParam) {
+      dispatch({ type: 'MFA_REQUIRED', ticket: ticketParam });
+      // Remove params so we don’t re-trigger on hydrate
+      params.delete('mfaRequired');
+      params.delete('ticket');
+      router.replace(
+        window.location.pathname +
+          (params.toString() ? '?' + params.toString() : ''),
+        { scroll: false },
+      );
+    } else {
+      // fallback to cookie logic for regular login/MFA
+      const cookieMap = document.cookie
+        .split('; ')
+        .reduce<Record<string, string>>((acc, curr) => {
+          const [k, v] = curr.split('=');
+          acc[k] = decodeURIComponent(v);
+          return acc;
+        }, {});
 
-    if (cookieMap['show_mfa'] === 'true' && cookieMap['mfa_ticket']) {
-      dispatch({ type: 'MFA_REQUIRED', ticket: cookieMap['mfa_ticket'] });
-      document.cookie = 'show_mfa=; path=/; max-age=0';
-    } else if (cookieMap['mfa_ticket'] && status === 'idle') {
-      dispatch({ type: 'MFA_REQUIRED', ticket: cookieMap['mfa_ticket'] });
-    } else if (cookieMap['public_session'] && status === 'idle') {
-      loadUser().then(() => {
-        dispatch({ type: 'OPTIONAL_MFA_PROMPT', qrCodeUrl: '', secret: '' });
-      });
+      if (cookieMap['mfa_ticket'] && status === 'idle') {
+        dispatch({ type: 'MFA_REQUIRED', ticket: cookieMap['mfa_ticket'] });
+      } else if (cookieMap['public_session'] && status === 'idle') {
+        loadUser().then(() => {
+          dispatch({ type: 'OPTIONAL_MFA_PROMPT', qrCodeUrl: '', secret: '' });
+        });
+      }
     }
 
     setCheckedCookies(true);
-  }, [loadUser, status]);
+  }, [loadUser, router, status]);
+
+  // Don’t render until checked URL+cookies
+  if (!checkedCookies) return null;
 
   const handleGoogleLogin = () => {
     dispatch({ type: 'START_LOGIN' });
@@ -114,7 +131,6 @@ export default function LoginComponent() {
       dispatch({ type: 'MFA_REQUIRED', ticket: resp.ticket });
       return;
     }
-
     if (resp.emailMfaRequired) {
       dispatch({
         type: 'EMAIL_MFA_REQUIRED',
@@ -122,7 +138,6 @@ export default function LoginComponent() {
       });
       return;
     }
-
     await loadUser();
     dispatch({ type: 'OPTIONAL_MFA_PROMPT', qrCodeUrl: '', secret: '' });
   }
@@ -194,8 +209,6 @@ export default function LoginComponent() {
       });
     }
   };
-
-  if (!checkedCookies) return null;
 
   return (
     <div className="relative w-full text-white h-full overflow-hidden flex items-center justify-center">
@@ -307,6 +320,7 @@ export default function LoginComponent() {
                 </button>
               </div>
             )}
+
             {status === 'idle' && (
               <>
                 <div className="flex items-center my-6">

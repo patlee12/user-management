@@ -94,12 +94,18 @@ export class AuthController {
     @Res() res: Response,
   ): Promise<void> {
     if (!req.user) {
-      console.error('Google Auth Error: No user object found in request');
+      console.error('Google Auth Error: No user in request');
       return res.redirect(`${FRONTEND_URL}/login?error=oauth_failed`);
     }
 
     try {
       const result = await this.authService.loginWithOAuth(req.user);
+      const uri = new URL(`${FRONTEND_URL}/login`);
+      // preserve any frontend redirect
+      const raw = Array.isArray(req.query.redirect)
+        ? req.query.redirect[0]
+        : req.query.redirect;
+      if (raw) uri.searchParams.set('redirect', raw.toString());
 
       if ('accessToken' in result) {
         res.cookie(
@@ -107,48 +113,25 @@ export class AuthController {
           result.accessToken,
           getCookieOptions(true, isProd),
         );
-        try {
-          const { userId } = await this.jwtService.verifyAsync<{
-            userId: number;
-          }>(result.accessToken);
-          const publicToken =
-            this.authService.generatePublicSessionToken(userId);
-          res.cookie(
-            'public_session',
-            publicToken,
-            getCookieOptions(false, isProd),
-          );
-        } catch (verifyError) {
-          console.error(
-            'JWT verification failed after Google login:',
-            verifyError,
-          );
-        }
+        const { userId } = await this.jwtService.verifyAsync<{
+          userId: number;
+        }>(result.accessToken);
+        res.cookie(
+          'public_session',
+          this.authService.generatePublicSessionToken(userId),
+          getCookieOptions(false, isProd),
+        );
       }
 
+      // If MFA is required, pass it as query params
       if ('ticket' in result) {
-        res.cookie('mfa_ticket', result.ticket, getCookieOptions(true, isProd));
-        res.cookie('show_mfa', 'true', {
-          ...getCookieOptions(false, isProd),
-          httpOnly: false,
-          maxAge: 1000 * 60,
-        });
+        uri.searchParams.set('mfaRequired', 'true');
+        uri.searchParams.set('ticket', result.ticket);
       }
 
-      const raw = Array.isArray(req.query.redirect)
-        ? req.query.redirect[0]
-        : req.query.redirect;
-      const redirect = raw ? raw.toString() : '/';
-
-      return res.redirect(
-        `${FRONTEND_URL}/login?redirect=${encodeURIComponent(redirect)}`,
-      );
+      return res.redirect(uri.toString());
     } catch (err: any) {
-      console.error('Google Auth Error:', {
-        message: err?.message,
-        stack: err?.stack,
-        raw: err,
-      });
+      console.error('Google Auth Error:', err?.message || err);
       return res.redirect(`${FRONTEND_URL}/login?error=oauth_failed`);
     }
   }
