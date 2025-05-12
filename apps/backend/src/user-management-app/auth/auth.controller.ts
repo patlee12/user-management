@@ -83,11 +83,13 @@ export class AuthController {
   }
 
   @Get('google')
+  @Throttle(LOGIN_THROTTLE)
   @UseGuards(GoogleAuthGuard)
   @ApiOperation({ summary: 'Redirect to Google for OAuth login' })
   googleAuth() {}
 
   @Get('google/callback')
+  @Throttle(LOGIN_THROTTLE)
   @UseGuards(GoogleAuthGuard)
   async googleAuthCallback(
     @Req() req: ExpressRequest & { user?: OAuthPayload; query: any },
