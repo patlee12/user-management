@@ -41,6 +41,7 @@ export class UsersController {
 
   @Get()
   @ApiOkResponse({ type: UserEntity, isArray: true })
+  @Roles('Admin')
   async findAll(): Promise<UserEntity[]> {
     const users = await this.usersService.findAll();
     return await plainToInstance(UserEntity, users);
