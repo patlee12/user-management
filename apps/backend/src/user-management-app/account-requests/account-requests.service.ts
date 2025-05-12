@@ -178,6 +178,13 @@ export class AccountRequestsService {
       },
     });
 
+    await this.prisma.profile.create({
+      data: {
+        userId: newUser.id,
+        name: accountRequest.name || accountRequest.username,
+      },
+    });
+
     const role = await this.prisma.role.findUnique({ where: { name: 'User' } });
     if (role) {
       await this.prisma.userRoles.create({
