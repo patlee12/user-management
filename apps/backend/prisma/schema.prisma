@@ -43,12 +43,30 @@ model User {
 
   userRoles             UserRoles[]
   posts                 Post[]
+  profile               Profile[]
   mfa_auth              mfa_auth[]
   PasswordReset         PasswordReset[]
   OAuthAccount          OAuthAccount[]
 
   @@unique([id, email])
 }
+
+model Profile {
+  id         Int      @id @default(autoincrement())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     Int      @unique
+  avatarUrl  String?
+  name       String?
+  role       String?
+  bio        String?
+  location   String?
+  experience String?
+  github     String?
+  website    String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
 
 enum OAuthProvider {
   google
