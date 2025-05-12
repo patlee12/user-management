@@ -9,7 +9,7 @@ This is a **monorepo** that provides a full-stack application boilerplate with s
 This monorepo is focused on providing boilerplate code for a full-stack application that includes a robust **user management system**, featuring:
 
 - **User login**, **account creation requests**, **email verification**, and **password recovery**
-- **JWT-based authentication**, **multi-factor authentication (MFA)**, and **role-based authorization**
+- **JWT-based authentication**, **OAuth login (Google)**, **multi-factor authentication (MFA)**, and **role-based authorization**
 - An **Admin Panel** powered by **AdminJS** for managing users and roles
 - Integration with **Nginx** as a reverse proxy, supporting both:
   - **LAN-based deployments** with mDNS-based service discovery via **Avahi**
@@ -55,7 +55,7 @@ Used when selecting **"Production Local Area Network (.local) deployment"**.
 - [`apps/backend/.env.localareanetwork`](./apps/backend/.env.localareanetwork)
 - [`apps/frontend/homepage-app/.env.localareanetwork`](./apps/frontend/homepage-app/.env.localareanetwork)
 
-> Note: Avahi is required for `.local` mDNS resolution across the LAN.
+> Note: Avahi is required for `.local` mDNS resolution across the LAN, please see additional steps for non-Ubuntu operating systems below.
 
 ---
 
@@ -67,7 +67,7 @@ Used when selecting **"Production Build (With Domain and Subdomains)"**.
 - [`apps/backend/.env.production.template`](./apps/backend/.env.production.template)
 - [`apps/frontend/homepage-app/.env.production.template`](./apps/frontend/homepage-app/.env.production.template)
 
-> Make sure you set real domain, email, and certificate values before deploying.
+> The deployment script will prompt you to set your real domain, email, certificate, and Google OAuth configuration values before deploying.
 
 ---
 
@@ -132,6 +132,7 @@ This mode deploys the application to a real domain using HTTPS, either via **Let
 It also includes the following automation features:
 
 - **Environment file generation** with dynamic variable resolution and secret validation
+- **Login with Google** configuration prompt.
 - **Snapshot logging** of all generated `.env` files to assist with debugging and auditing
 - **Secure handling of secrets** such as SMTP credentials, JWT keys, and admin passwords
 - **SSL Certificate Support** with two options (prompts for choice) set by `USE_MANUAL_CERTS=true` or `USE_MANUAL_CERTS=false` flags.
