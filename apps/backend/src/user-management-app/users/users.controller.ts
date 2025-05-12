@@ -29,6 +29,7 @@ import { Roles } from '../roles-and-permissions-resources/roles.decorator';
 @ApiTags('users')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth()
+@Roles('Admin')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
@@ -41,7 +42,6 @@ export class UsersController {
 
   @Get()
   @ApiOkResponse({ type: UserEntity, isArray: true })
-  @Roles('Admin')
   async findAll(): Promise<UserEntity[]> {
     const users = await this.usersService.findAll();
     return await plainToInstance(UserEntity, users);
@@ -74,7 +74,6 @@ export class UsersController {
 
   @Delete(':id')
   @ApiOkResponse({ type: UserEntity })
-  @Roles('Admin')
   async remove(@Param('id', ParseIntPipe) id: number): Promise<UserEntity> {
     const deleteUser = await this.usersService.remove(id);
     if (!deleteUser) {
