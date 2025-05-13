@@ -1,4 +1,4 @@
-import { Controller, Get, Put, Body, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Patch, Body, UseGuards, Req } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@src/user-management-app/auth/guards/jwt-auth.guard';
 import { ProfileEntity } from '../entities/profile.entity';
@@ -16,17 +16,14 @@ export class CurrentUserProfileController {
   @Get()
   @ApiOkResponse({ type: ProfileEntity })
   async getOwnProfile(@Req() req) {
-    const profile = await this.profilesService.getProfile(req.user.userId);
+    const profile = await this.profilesService.getProfile(req.user.id);
     return plainToInstance(ProfileEntity, profile);
   }
 
-  @Put()
+  @Patch()
   @ApiOkResponse({ type: ProfileEntity })
   async updateOwnProfile(@Req() req, @Body() dto: UpdateProfileDto) {
-    const updated = await this.profilesService.updateProfile(
-      req.user.userId,
-      dto,
-    );
+    const updated = await this.profilesService.updateProfile(req.user.id, dto);
     return plainToInstance(ProfileEntity, updated);
   }
 }

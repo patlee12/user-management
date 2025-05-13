@@ -1,7 +1,7 @@
 import {
   Controller,
   Get,
-  Put,
+  Patch,
   Body,
   Param,
   ParseIntPipe,
@@ -33,7 +33,7 @@ export class ProfilesController {
     return plainToInstance(ProfileEntity, profile);
   }
 
-  @Put(':userId')
+  @Patch(':userId')
   @ApiOkResponse({ type: ProfileEntity })
   async update(
     @Param('userId', ParseIntPipe) userId: number,

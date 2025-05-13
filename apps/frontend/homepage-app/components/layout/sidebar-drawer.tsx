@@ -62,13 +62,6 @@ export default function SidebarDrawer({ open, onClose }: SidebarDrawerProps) {
 
             <nav className="space-y-3">
               <Link
-                href="/dashboard"
-                onClick={onClose}
-                className="block text-zinc-200 hover:text-white"
-              >
-                Dashboard
-              </Link>
-              <Link
                 href="/user/account/profile"
                 onClick={onClose}
                 className="block text-zinc-200 hover:text-white"
