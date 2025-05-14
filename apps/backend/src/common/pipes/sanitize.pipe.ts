@@ -13,21 +13,10 @@ import * as validator from 'validator';
  * - Special characters like ', ", <, >, &, etc. are escaped
  * - Arrays and deeply nested objects are sanitized recursively
  *
- * Recommended usage:
- * app.useGlobalPipes(new SanitizeInputPipe(), new ValidationPipe(...));
- *
- * @example
- * Input:
- * {
- *   "username": "<script>alert('xss')</script> ",
- *   "profile": { "bio": "<b>Hello</b>" }
- * }
- *
- * Output:
- * {
- *   "username": "&lt;script&gt;alert(&#39;xss&#39;)&lt;/script&gt;",
- *   "profile": { "bio": "&lt;b&gt;Hello&lt;/b&gt;" }
- * }
+ * URL & Avatar Exceptions:
+ * Certain fields like `avatarUrl` and `website` are excluded from HTML escaping
+ * to preserve their valid URL format. These fields are still trimmed and validated
+ * with @IsUrl() in the DTO layer to ensure security.
  */
 @Injectable()
 export class SanitizeInputPipe implements PipeTransform {
@@ -35,15 +24,20 @@ export class SanitizeInputPipe implements PipeTransform {
     return this.sanitize(value);
   }
 
-  private sanitize(value: any): any {
+  private sanitize(value: any, parentKey?: string): any {
+    const skipEscapeFields = ['avatarUrl', 'website'];
+
     if (typeof value === 'string') {
+      if (parentKey && skipEscapeFields.includes(parentKey)) {
+        return value.trim();
+      }
       return validator.escape(value.trim());
     } else if (Array.isArray(value)) {
       return value.map((item) => this.sanitize(item));
     } else if (typeof value === 'object' && value !== null) {
       const sanitizedObject: Record<string, any> = {};
       for (const key in value) {
-        sanitizedObject[key] = this.sanitize(value[key]);
+        sanitizedObject[key] = this.sanitize(value[key], key);
       }
       return sanitizedObject;
     }
