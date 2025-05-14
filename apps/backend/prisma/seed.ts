@@ -26,6 +26,13 @@ async function main() {
     },
   });
 
+  const profile = await prisma.profile.create({
+    data: {
+      userId: user.id,
+      name: user.name || user.email,
+    },
+  });
+
   const createResource = await prisma.resource.upsert({
     where: { name: 'AllResources' },
     update: {},
@@ -104,6 +111,7 @@ async function main() {
 
   console.log('\n✅ Seed completed:', {
     user,
+    profile,
     createResource,
     createAdminRole,
     createUserRole,
