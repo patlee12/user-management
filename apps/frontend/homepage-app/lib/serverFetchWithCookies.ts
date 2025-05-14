@@ -8,6 +8,8 @@ if (!NEXT_PUBLIC_BACKEND_URL) {
 
 if ((process.env.NODE_ENV || '').toLowerCase() === 'development') {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+  // Suppress warning output (only in dev)
+  process.removeAllListeners('warning');
 }
 
 export async function serverFetchWithCookies<T = unknown>(
