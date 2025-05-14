@@ -7,7 +7,7 @@ const execPromise = promisify(exec);
 
 (async () => {
   const email = process.env.ADMIN_EMAIL;
-  const isProd = process.env.NODE_ENV === 'production';
+  const isProd = process.env.NODE_ENV.toLowerCase() === 'production';
 
   if (!email) {
     console.error('❌ ADMIN_EMAIL is not set');
