@@ -17,7 +17,7 @@ export default function Header() {
   const isAuthPage = pathname === '/login' || pathname === '/logout';
 
   return (
-    <header className="sticky top-0 z-50 w-full min-h-[64px] border-b border-white/10 bg-black/60 backdrop-blur-md shadow-md">
+    <header className="sticky glow-box top-0 z-50 w-full min-h-[64px] border-b border-white/10 bg-black/60 backdrop-blur-md shadow-md">
       <div className="max-w-7xl mx-auto px-6 py-6 grid grid-cols-3 items-center animate-fade-in-up">
         <div className="flex items-center justify-start">
           {hasMounted && !isAuthPage && user && (

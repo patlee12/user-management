@@ -40,7 +40,7 @@ export default function ProfileCard({ profile }: ProfileCardProps) {
   const githubClean = state.github?.replace('@', '');
 
   return (
-    <div className="w-full max-w-2xl rounded-[2rem] bg-gradient-to-br from-zinc-900/80 to-black border border-zinc-700/60 p-6 sm:p-10 shadow-[0_0_60px_#00ffcc22] transition-all duration-300 group hover:shadow-[0_0_80px_#00ffcc33] hover:-translate-y-1">
+    <div className="w-full max-w-2xl glow-box rounded-[2rem] p-6 sm:p-10 group">
       <div className="flex flex-col items-center space-y-6">
         <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full border-[3px] border-emerald-500/70 overflow-hidden shadow-[0_0_30px_#10b98166] transition-transform duration-300 group-hover:scale-105">
           <Image

@@ -42,11 +42,11 @@ export default function AboutPage() {
   ];
 
   return (
-    <div className="relative w-full h-full bg-black text-white overflow-x-hidden">
+    <div className="relative glow-box rounded-2xl border-[3px] w-full h-full bg-black text-white overflow-hidden">
       <CanvasBackground />
 
       <section className="relative isolate w-full py-8">
-        <div className="absolute top-0 left-0 right-0 bottom-0 rounded-2xl border-[3px] border-zinc-800 bg-zinc-950/70 backdrop-blur-sm z-0 pointer-events-none h-full" />
+        <div className="absolute inset-0 border-zinc-800 bg-zinc-950/70 backdrop-blur-sm z-0 pointer-events-none h-full" />
 
         <div className="relative z-10 max-w-6xl mx-auto px-2 sm:px-4 text-center">
           <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-zinc-100 mb-12">
@@ -55,10 +55,7 @@ export default function AboutPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {cards.map(({ title, content, list }, idx) => (
-              <Card
-                key={idx}
-                className="bg-zinc-950/80 border border-zinc-800 shadow-xl backdrop-blur-md text-left p-4"
-              >
+              <Card key={idx} className="glow-box text-left p-5">
                 <CardHeader>
                   <CardTitle className="text-zinc-100 text-xl tracking-tight">
                     {title}
@@ -83,7 +80,7 @@ export default function AboutPage() {
           </div>
 
           <div className="flex justify-center pt-16">
-            <Card className="bg-zinc-950/80 border border-zinc-800 shadow-xl backdrop-blur-md text-center max-w-xl p-4">
+            <Card className="glow-box text-center max-w-xl p-5">
               <CardHeader>
                 <CardTitle className="text-white">Project Repository</CardTitle>
               </CardHeader>
