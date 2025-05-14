@@ -55,12 +55,22 @@ export default function ProfileCard({ profile }: ProfileCardProps) {
           className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full border-[3px] border-emerald-500/70 overflow-hidden shadow-[0_0_30px_#10b98166] transition-transform duration-300 group-hover:scale-105 cursor-pointer group/avatar"
           onClick={handleAvatarChange}
         >
-          <Image
-            src={state.avatarUrl || '/images/defaultProfile.svg'}
-            alt="Profile"
-            fill
-            className="object-cover bg-white"
-          />
+          {profile.avatarUrl && !profile.avatarUrl.startsWith('/') ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={state.avatarUrl}
+              alt="Profile"
+              className="object-cover bg-white w-full h-full"
+            />
+          ) : (
+            <Image
+              src={state.avatarUrl || '/images/defaultProfile.svg'}
+              alt="Profile"
+              fill
+              className="object-cover bg-white"
+            />
+          )}
+
           <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity">
             <Pencil className="text-white w-5 h-5" />
           </div>
@@ -112,17 +122,6 @@ export default function ProfileCard({ profile }: ProfileCardProps) {
         />
       </div>
 
-      <div className="flex justify-center pt-8">
-        <Button
-          onClick={saveProfile}
-          disabled={saving}
-          showSuccess={isSaved}
-          className="px-8 py-3 text-base font-semibold bg-emerald-600 hover:bg-emerald-500 hover:shadow-[0_0_12px_#10b98188]"
-        >
-          {saving ? 'Saving...' : 'Save Profile'}
-        </Button>
-      </div>
-
       {githubClean && (
         <div className="flex justify-center pt-6">
           <a
@@ -134,6 +133,16 @@ export default function ProfileCard({ profile }: ProfileCardProps) {
           </a>
         </div>
       )}
+      <div className="flex justify-center pt-8">
+        <Button
+          onClick={saveProfile}
+          disabled={saving}
+          showSuccess={isSaved}
+          className="px-8 py-3 text-base font-semibold bg-emerald-600 hover:bg-emerald-500 hover:shadow-[0_0_12px_#10b98188]"
+        >
+          {saving ? 'Saving...' : 'Save Profile'}
+        </Button>
+      </div>
     </div>
   );
 }
