@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { cn } from '@/lib/utils';
 
@@ -7,6 +9,8 @@ type ButtonSize = 'sm' | 'md' | 'lg';
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
+  showSuccess?: boolean;
+  successLabel?: React.ReactNode;
 }
 
 export const Button = ({
@@ -14,6 +18,12 @@ export const Button = ({
   size = 'md',
   className = '',
   children,
+  showSuccess = false,
+  successLabel = (
+    <span className="flex items-center gap-2 text-green-400">
+      ✓ <span className="text-white">Saved</span>
+    </span>
+  ),
   ...props
 }: ButtonProps) => {
   const baseStyles =
@@ -41,7 +51,7 @@ export const Button = ({
       className={cn(baseStyles, sizeStyles[size], variants[variant], className)}
       {...props}
     >
-      {children}
+      {showSuccess ? successLabel : children}
     </button>
   );
 };
