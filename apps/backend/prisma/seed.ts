@@ -26,8 +26,12 @@ async function main() {
     },
   });
 
-  const profile = await prisma.profile.create({
-    data: {
+  const profile = await prisma.profile.upsert({
+    where: { userId: user.id },
+    update: {
+      name: user.name || user.email,
+    },
+    create: {
       userId: user.id,
       name: user.name || user.email,
     },
