@@ -49,7 +49,7 @@ export default function SidebarDrawer({ open, onClose }: SidebarDrawerProps) {
           leaveFrom="translate-x-0"
           leaveTo="-translate-x-full"
         >
-          <div className="fixed inset-y-0 left-0 w-64 bg-zinc-900 p-6 flex flex-col space-y-4 shadow-lg">
+          <div className="fixed glow-box border-[3px] inset-y-0 left-0 w-64 bg-zinc-900 p-6 flex flex-col space-y-4 shadow-lg">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold text-white">Menu</h2>
               <button
