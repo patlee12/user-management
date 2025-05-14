@@ -17,9 +17,9 @@ export default function Header() {
   const isAuthPage = pathname === '/login' || pathname === '/logout';
 
   return (
-    <header className="sticky glow-box top-0 z-50 w-full min-h-[64px] border-b border-white/10 bg-black/60 backdrop-blur-md shadow-md">
-      <div className="max-w-7xl mx-auto px-6 py-6 grid grid-cols-3 items-center animate-fade-in-up">
-        <div className="flex items-center justify-start">
+    <header className="sticky glow-box top-0 z-50 w-full border-b border-white/10 bg-black/60 backdrop-blur-md shadow-md">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-4 animate-fade-in-up overflow-hidden">
+        <div className="flex items-center min-w-0">
           {hasMounted && !isAuthPage && user && (
             <>
               <Tooltip.Provider>
@@ -53,17 +53,19 @@ export default function Header() {
           )}
         </div>
 
-        <div className="flex justify-center items-center gap-3">
-          <ShieldCheck className="h-8 w-8 text-white animate-bounce-slow" />
-          <h1 className="text-3xl font-extrabold tracking-tight text-white">
+        <div className="flex items-center justify-center flex-1 min-w-0 gap-2 truncate">
+          <ShieldCheck className="h-7 w-7 text-white animate-bounce-slow shrink-0" />
+          <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white truncate">
             User Management
           </h1>
         </div>
 
-        <div className="flex justify-end items-center">
+        <div className="flex items-center justify-end min-w-0">
           {hasMounted && !isAuthPage && !user && (
             <Link href="/login">
-              <Button variant="primary">Login</Button>
+              <Button variant="primary" className="whitespace-nowrap">
+                Login
+              </Button>
             </Link>
           )}
         </div>
