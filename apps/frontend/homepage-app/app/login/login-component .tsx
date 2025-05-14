@@ -165,9 +165,9 @@ export default function LoginComponent() {
       await verifyMfa({ token: mfaCode, ticket: tempToken });
       await loadUser();
       dispatch({ type: 'LOGIN_SUCCESS' });
-      setTimeout(() => {
-        window.location.href = redirectTo.startsWith('/') ? redirectTo : '/';
-      }, 50);
+
+      window.location.href = redirectTo.startsWith('/') ? redirectTo : '/';
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       dispatch({
@@ -294,7 +294,11 @@ export default function LoginComponent() {
               </div>
             )}
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button
+              type="submit"
+              className="w-full rounded-full"
+              disabled={isLoading}
+            >
               {isLoading ? 'Signing in...' : 'Sign In'}
             </Button>
 
