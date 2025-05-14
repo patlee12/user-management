@@ -68,13 +68,6 @@ export default function SidebarDrawer({ open, onClose }: SidebarDrawerProps) {
               >
                 Profile
               </Link>
-              <Link
-                href="/user/account/settings"
-                onClick={onClose}
-                className="block text-zinc-200 hover:text-white"
-              >
-                Settings
-              </Link>
               <button
                 onClick={handleLogout}
                 className="block w-full text-left text-red-400 hover:text-red-300 mt-4"
