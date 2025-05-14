@@ -6,6 +6,7 @@ import { ProfileEntity } from '@user-management/types';
 import EditableField from '@/components/ui/forms/editable-field';
 import { updateCurrentUserProfile } from '@/app/services/profile-service';
 import { Button } from '@/components/ui/buttons/button';
+import { Pencil } from 'lucide-react';
 
 interface ProfileCardProps {
   profile: ProfileEntity;
@@ -20,6 +21,7 @@ export default function ProfileCard({ profile }: ProfileCardProps) {
     experience: profile.experience,
     github: profile.github,
     website: profile.website,
+    avatarUrl: profile.avatarUrl,
   });
 
   const [saving, setSaving] = useState(false);
@@ -37,18 +39,31 @@ export default function ProfileCard({ profile }: ProfileCardProps) {
     setTimeout(() => setIsSaved(false), 2000);
   };
 
+  const handleAvatarChange = () => {
+    const newUrl = prompt('Enter a new image URL for your avatar:');
+    if (newUrl) {
+      updateField('avatarUrl', newUrl);
+    }
+  };
+
   const githubClean = state.github?.replace('@', '');
 
   return (
     <div className="w-full max-w-2xl glow-box rounded-[2rem] p-6 sm:p-10 group">
       <div className="flex flex-col items-center space-y-6">
-        <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full border-[3px] border-emerald-500/70 overflow-hidden shadow-[0_0_30px_#10b98166] transition-transform duration-300 group-hover:scale-105">
+        <div
+          className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full border-[3px] border-emerald-500/70 overflow-hidden shadow-[0_0_30px_#10b98166] transition-transform duration-300 group-hover:scale-105 cursor-pointer group/avatar"
+          onClick={handleAvatarChange}
+        >
           <Image
-            src={profile.avatarUrl || '/images/defaultProfile.svg'}
+            src={state.avatarUrl || '/images/defaultProfile.svg'}
             alt="Profile"
             fill
             className="object-cover bg-white"
           />
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity">
+            <Pencil className="text-white w-5 h-5" />
+          </div>
         </div>
 
         <div className="text-center w-full max-w-sm mx-auto space-y-2">
