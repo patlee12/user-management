@@ -24,16 +24,16 @@
         "name": "next"
       }
     ],
-    "baseUrl": ".",                
+    "baseUrl": ".",
     "paths": {
       "@/*": ["./*"],
     }
   },
   "include": [
-    "next-env.d.ts", 
-    "**/*.ts", 
-    "**/*.tsx", 
-    ".next/types/**/*.ts", 
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
     "tailwind.config.js"
   ],
   "exclude": ["node_modules"]
