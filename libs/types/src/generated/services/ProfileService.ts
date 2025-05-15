@@ -27,7 +27,7 @@ export class ProfileService {
         requestBody: UpdateProfileDto,
     ): CancelablePromise<ProfileEntity> {
         return __request(OpenAPI, {
-            method: 'PUT',
+            method: 'PATCH',
             url: '/user/profile',
             body: requestBody,
             mediaType: 'application/json',
