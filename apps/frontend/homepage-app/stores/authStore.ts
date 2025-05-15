@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { UserEntity } from '@user-management/types';
+import { ProfileEntity, UserEntity } from '@user-management/types';
+import { fetchCurrentUserProfile } from '@/app/services/profile-service';
 import axiosInstance from '@/lib/axiosInstance';
 
 interface AuthState {
@@ -7,6 +8,11 @@ interface AuthState {
    * Currently authenticated user, or null if not logged in.
    */
   user: UserEntity | null;
+
+  /**
+   * User's profile.
+   */
+  profile: ProfileEntity | null;
 
   /**
    * Whether the user's session has been checked and `user` is known to be valid or null.
@@ -33,8 +39,14 @@ interface AuthState {
   /**
    * Loads the current session by calling `/auth/me`.
    * If the HttpOnly cookie is valid, sets the user; otherwise clears it.
+   * Also loads the user's profile from the profile service.
+   * Returns the updated state if successful, or null on failure.
    */
-  loadUser: () => Promise<UserEntity | null>;
+  loadUser: () => Promise<{
+    user: UserEntity;
+    profile: ProfileEntity;
+    hasLoaded: true;
+  } | null>;
 
   /**
    * Resets the store to its default initial state (empty).
@@ -49,6 +61,7 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
+  profile: null,
   hasLoaded: false,
   hasMounted: false,
 
@@ -56,22 +69,31 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   logout: async () => {
     await axiosInstance.post('/auth/logout');
-    set({ user: null, hasLoaded: true });
+    set({ user: null, profile: null, hasLoaded: true });
   },
 
   loadUser: async () => {
     try {
-      const res = await axiosInstance.get<UserEntity>('/auth/me'); // cookie automatically sent
-      set({ user: res.data, hasLoaded: true });
-      return res.data;
+      const userRes = await axiosInstance.get<UserEntity>('/auth/me');
+      const profile = await fetchCurrentUserProfile();
+
+      const user = userRes.data;
+
+      set({ user, profile, hasLoaded: true });
+
+      return {
+        user,
+        profile,
+        hasLoaded: true as const,
+      };
     } catch {
-      set({ user: null, hasLoaded: true });
+      set({ user: null, profile: null, hasLoaded: true });
       return null;
     }
   },
 
   initialize: () => {
-    set({ user: null, hasLoaded: false });
+    set({ user: null, profile: null, hasLoaded: false });
   },
 
   markMounted: () => {

@@ -7,12 +7,14 @@ import EditableField from '@/components/ui/forms/editable-field';
 import { updateCurrentUserProfile } from '@/app/services/profile-service';
 import { Button } from '@/components/ui/buttons/button';
 import { Pencil } from 'lucide-react';
+import { useAuthStore } from '@/stores/authStore';
 
 interface ProfileCardProps {
   profile: ProfileEntity;
 }
 
 export default function ProfileCard({ profile }: ProfileCardProps) {
+  const { loadUser } = useAuthStore();
   const [state, setState] = useState<Partial<ProfileEntity>>({
     name: profile.name,
     role: profile.role,
@@ -36,6 +38,7 @@ export default function ProfileCard({ profile }: ProfileCardProps) {
     await updateCurrentUserProfile(state);
     setSaving(false);
     setIsSaved(true);
+    await loadUser();
     setTimeout(() => setIsSaved(false), 2000);
   };
 

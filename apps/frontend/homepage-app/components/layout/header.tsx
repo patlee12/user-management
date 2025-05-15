@@ -8,10 +8,11 @@ import { useAuthStore } from '@/stores/authStore';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import { useState } from 'react';
 import SidebarDrawer from './sidebar-drawer';
+import Image from 'next/image';
 
 export default function Header() {
   const pathname = usePathname();
-  const { user, hasMounted } = useAuthStore();
+  const { user, profile, hasMounted } = useAuthStore();
   const [isDrawerOpen, setDrawerOpen] = useState(false);
 
   const isAuthPage = pathname === '/login' || pathname === '/logout';
@@ -66,6 +67,45 @@ export default function Header() {
               <Button variant="primary" className="whitespace-nowrap px-4 py-2">
                 Login
               </Button>
+            </Link>
+          )}
+
+          {hasMounted && profile && (
+            <Link href="/user/account/profile">
+              <Tooltip.Provider>
+                <Tooltip.Root>
+                  <Tooltip.Trigger asChild>
+                    <div className="w-10 h-10 relative rounded-full overflow-hidden border border-white/20 hover:scale-105 transition-transform bg-white">
+                      {profile.avatarUrl &&
+                      !profile.avatarUrl.startsWith('/') ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={profile.avatarUrl}
+                          alt="Profile"
+                          className="object-cover w-full h-full"
+                        />
+                      ) : (
+                        <Image
+                          src={
+                            profile.avatarUrl || '/images/defaultProfile.svg'
+                          }
+                          alt="Profile"
+                          fill
+                          className="object-cover"
+                        />
+                      )}
+                    </div>
+                  </Tooltip.Trigger>
+                  <Tooltip.Portal>
+                    <Tooltip.Content
+                      side="bottom"
+                      className="bg-zinc-800 text-white text-xs rounded px-2 py-1 shadow-sm z-50"
+                    >
+                      Profile
+                    </Tooltip.Content>
+                  </Tooltip.Portal>
+                </Tooltip.Root>
+              </Tooltip.Provider>
             </Link>
           )}
         </div>
