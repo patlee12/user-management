@@ -19,7 +19,7 @@ export default function Header() {
   return (
     <header className="sticky glow-box top-0 z-50 w-full border-b border-white/10 bg-black/60 backdrop-blur-md shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-4 animate-fade-in-up overflow-hidden">
-        <div className="flex items-center min-w-0">
+        <div className="flex items-center min-w-[40px] flex-shrink-0">
           {hasMounted && !isAuthPage && user && (
             <>
               <Tooltip.Provider>
@@ -60,10 +60,10 @@ export default function Header() {
           </h1>
         </div>
 
-        <div className="flex items-center justify-end min-w-0">
+        <div className="flex items-center justify-end min-w-[40px] flex-shrink-0">
           {hasMounted && !isAuthPage && !user && (
             <Link href="/login">
-              <Button variant="primary" className="whitespace-nowrap">
+              <Button variant="primary" className="whitespace-nowrap px-4 py-2">
                 Login
               </Button>
             </Link>
