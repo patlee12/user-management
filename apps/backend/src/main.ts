@@ -17,6 +17,7 @@ import { setupAdminPanel } from './user-management-app/admin/setup-admin-panel';
 import { getHttpsOptions } from './helpers/https-options';
 import type { RequestHandler } from 'express';
 import { SanitizeInputPipe } from './common/pipes/sanitize.pipe';
+import { DOMAIN_HOST } from './common/constants/environment';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -98,12 +99,15 @@ async function bootstrap() {
       logger.log(`🔐 Swagger middleware bound on: ${swaggerPath}`);
     }
 
-    const swaggerConfig = new DocumentBuilder()
+    const builder = new DocumentBuilder()
       .setTitle('User-Management')
       .setDescription('User management & authentication microservice')
       .setVersion('1.0')
-      .addBearerAuth()
-      .build();
+      .addBearerAuth();
+    if (isProd) {
+      builder.addServer(`https://api.${domainHost}`);
+    }
+    const swaggerConfig = builder.build();
     const document = SwaggerModule.createDocument(app, swaggerConfig);
     SwaggerModule.setup(swaggerPath, app, document);
   }
