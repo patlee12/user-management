@@ -147,6 +147,13 @@ export class AuthService {
         },
       });
 
+      await this.prisma.profile.create({
+        data: {
+          userId: user.id,
+          name: user.name || user.username,
+        },
+      });
+
       const role = await this.prisma.role.findUnique({
         where: { name: 'User' },
       });

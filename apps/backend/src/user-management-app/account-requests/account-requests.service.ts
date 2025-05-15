@@ -126,7 +126,7 @@ export class AccountRequestsService {
    * 3. If the request is expired, deletes it and throws `TokenExpiredError`.
    * 4. Verifies the provided token against the stored hashed token using Argon2.
    *    - If invalid, deletes the account request and throws `InvalidTokenError`.
-   * 5. Creates a new `User` with the verified request data.
+   * 5. Creates a new `User` and `Profile` with the verified request data.
    * 6. Assigns the default "User" role to the new account via `UserRoles`.
    * 7. Deletes the original `AccountRequest` after successful user creation.
    *
@@ -175,6 +175,13 @@ export class AccountRequestsService {
         password: accountRequest.password,
         createdAt: new Date(),
         updatedAt: new Date(),
+      },
+    });
+
+    await this.prisma.profile.create({
+      data: {
+        userId: newUser.id,
+        name: accountRequest.name || accountRequest.username,
       },
     });
 

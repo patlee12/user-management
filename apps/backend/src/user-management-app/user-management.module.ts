@@ -7,6 +7,7 @@ import { RolesPermissionsResourcesModule } from './roles-and-permissions-resourc
 import { AccountRequestsModule } from './account-requests/account-requests.module';
 import { PasswordResetModule } from './password-reset/password-reset.module';
 import { MailingModule } from './mailing/mailing.module';
+import { ProfilesModule } from './profiles/profiles.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { MailingModule } from './mailing/mailing.module';
     UsersModule,
     PostsModule,
     RolesPermissionsResourcesModule,
+    ProfilesModule,
   ],
 })
 export class UserManagementModule {}

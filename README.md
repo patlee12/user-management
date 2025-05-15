@@ -8,7 +8,7 @@ This is a **monorepo** that provides a full-stack application boilerplate with s
 
 This monorepo is focused on providing boilerplate code for a full-stack application that includes a robust **user management system**, featuring:
 
-- **User login**, **account creation requests**, **email verification**, and **password recovery**
+- **User login**, **User Profiles**, **account creation requests**, **email verification**, and **password recovery**
 - **JWT-based authentication**, **OAuth login (Google)**, **multi-factor authentication (MFA)**, and **role-based authorization**
 - An **Admin Panel** powered by **AdminJS** for managing users and roles
 - Integration with **Nginx** as a reverse proxy, supporting both:

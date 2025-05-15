@@ -108,7 +108,7 @@ export default function HomePage() {
   }, [emblaApi, clearTimer]);
 
   return (
-    <div className="relative w-full h-full bg-black text-white overflow-x-hidden">
+    <div className="glow-box rounded-[2rem] relative w-full h-full bg-black text-white overflow-hidden">
       <CanvasBackground />
 
       <section className="relative isolate py-12 sm:py-24 md:py-32 w-full">
@@ -124,13 +124,16 @@ export default function HomePage() {
             preconfigured with Docker environments (for both development and
             production), Avahi service discovery, and an Nginx reverse‑proxy.
           </p>
-          <div className="mt-16 relative" ref={containerRef}>
-            <div className="overflow-hidden sm:px-2 px-1" ref={emblaRef}>
+          <div
+            className="mt-16 glow-box rounded-[2rem] border-none relative"
+            ref={containerRef}
+          >
+            <div className="overflow-hidden" ref={emblaRef}>
               <div className="flex gap-6">
                 {slides.map((slide, idx) => (
                   <div
                     key={idx}
-                    className="flex-[0_0_100%] box-border px-6 py-10 bg-black/80 border border-white/10 rounded-2xl backdrop-blur-md shadow-xl text-center"
+                    className="flex-[0_0_100%] py-10 bg-black/80 border border-white/10 rounded-2xl backdrop-blur-md shadow-xl text-center"
                   >
                     <slide.icon className="w-10 h-10 mx-auto text-emerald-400 mb-4" />
                     <h2 className="text-2xl sm:text-3xl font-semibold text-zinc-100">

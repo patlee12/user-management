@@ -7,6 +7,8 @@ const execPromise = promisify(exec);
 
 (async () => {
   const email = process.env.ADMIN_EMAIL;
+  const isProd = process.env.NODE_ENV.toLowerCase() === 'production';
+
   if (!email) {
     console.error('❌ ADMIN_EMAIL is not set');
     process.exit(1);
@@ -14,13 +16,28 @@ const execPromise = promisify(exec);
 
   const admin = await prisma.user.findFirst({ where: { email } });
 
-  if (admin) {
+  if (admin && isProd) {
     console.log('ℹ️  Admin already exists → skipping full seed.');
-  } else {
-    console.log('⚙️  No admin found → running prisma db seed …');
-    await execPromise('yarn prisma db seed');
-    console.log('✅  Seed finished.');
+    await prisma.$disconnect();
+    process.exit(0);
   }
 
-  await prisma.$disconnect();
+  console.log(
+    `⚙️  Running seed in ${isProd ? 'production' : 'development'}...`,
+  );
+
+  try {
+    if (isProd) {
+      await execPromise('yarn prisma db seed');
+    } else {
+      await execPromise('ts-node -P ./tsconfig.json ./prisma/seed.ts');
+    }
+
+    console.log('✅ Seed finished.');
+  } catch (e) {
+    console.error('❌ Seed failed:', e);
+    process.exit(1);
+  } finally {
+    await prisma.$disconnect();
+  }
 })();

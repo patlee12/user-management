@@ -71,18 +71,21 @@ export class RolesPermissionsResourcesController {
 
   //########################### Get many Roles and many Permissions #################################
   @Get('roles')
+  @Roles('Admin')
   @ApiOkResponse({ type: RoleEntity, isArray: true })
   async getAllRoles(): Promise<RoleEntity[]> {
     return await this.rolesPermissionsResourcesService.findAllRoles();
   }
 
   @Get('roles-and-permissions')
+  @Roles('Admin')
   @ApiOkResponse({ type: RoleEntity, isArray: true })
   async getAllRolesWithPermissions(): Promise<RoleEntity[]> {
     return await this.rolesPermissionsResourcesService.findAllRolesWithPermissions();
   }
 
   @Get('permissions')
+  @Roles('Admin')
   @ApiOkResponse({ type: PermissionEntity, isArray: true })
   async getAllPermissions(): Promise<PermissionEntity[]> {
     return await this.rolesPermissionsResourcesService.findAllPermissions();
@@ -91,18 +94,21 @@ export class RolesPermissionsResourcesController {
   //########################### Get unique Roles and unique Permissions #################################
 
   @Get('role/:id')
+  @Roles('Admin')
   @ApiOkResponse({ type: RoleEntity })
   async findOneRole(@Param('id') id: string): Promise<RoleEntity> {
     return await this.rolesPermissionsResourcesService.findOneRole(+id);
   }
 
   @Get('permission/:id')
+  @Roles('Admin')
   @ApiOkResponse({ type: PermissionEntity })
   async findOnePermission(@Param('id') id: string): Promise<PermissionEntity> {
     return await this.rolesPermissionsResourcesService.findOnePermission(+id);
   }
 
   @Get('user-roles/:userId')
+  @Roles('Admin')
   @ApiOkResponse({ type: UserRolesEntity, isArray: true })
   async getAllUserRolesByUserId(
     @Param('userId') userId: string,

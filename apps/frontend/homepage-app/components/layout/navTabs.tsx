@@ -14,7 +14,7 @@ export default function NavTabs() {
   const pathname = usePathname();
 
   return (
-    <nav className="w-full flex justify-center gap-6 sm:gap-10 py-4 border-t border-white/10 bg-black/60 backdrop-blur-md shadow-inner">
+    <nav className="glow-box w-full flex justify-center gap-6 sm:gap-10 py-4 bg-black/60 backdrop-blur-md shadow-inner">
       {navLinks.map(({ label, href, icon: Icon }) => {
         const isActive = pathname === href;
 

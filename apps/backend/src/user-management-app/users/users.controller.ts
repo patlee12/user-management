@@ -29,6 +29,7 @@ import { Roles } from '../roles-and-permissions-resources/roles.decorator';
 @ApiTags('users')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth()
+@Roles('Admin')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
@@ -73,7 +74,6 @@ export class UsersController {
 
   @Delete(':id')
   @ApiOkResponse({ type: UserEntity })
-  @Roles('Admin')
   async remove(@Param('id', ParseIntPipe) id: number): Promise<UserEntity> {
     const deleteUser = await this.usersService.remove(id);
     if (!deleteUser) {

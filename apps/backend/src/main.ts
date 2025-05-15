@@ -17,6 +17,7 @@ import { setupAdminPanel } from './user-management-app/admin/setup-admin-panel';
 import { getHttpsOptions } from './helpers/https-options';
 import type { RequestHandler } from 'express';
 import { SanitizeInputPipe } from './common/pipes/sanitize.pipe';
+import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -59,8 +60,30 @@ async function bootstrap() {
         ? frontendUrl
         : 'localhost:3000';
 
-  const corsOrigin = `https://${hostValue}`;
-  logger.log(`🔐 CORS Origin: ${corsOrigin}`);
+  let corsOrigin: CorsOptions['origin'];
+
+  if (isProd && domainHost) {
+    const base = domainHost.replace(/^https?:\/\//, '');
+    const allowedOrigins = [
+      `https://${base}`,
+      `https://api.${base}`,
+      `https://swagger.${base}`,
+      `https://admin.${base}`,
+    ];
+
+    logger.log(`🔐 CORS Origins (prod): ${allowedOrigins.join(', ')}`);
+
+    corsOrigin = (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS blocked: ${origin}`));
+      }
+    };
+  } else {
+    corsOrigin = `https://${hostValue}`;
+    logger.log(`🔐 CORS Origin (dev): ${corsOrigin}`);
+  }
 
   app.enableCors({
     origin: corsOrigin,
@@ -98,12 +121,15 @@ async function bootstrap() {
       logger.log(`🔐 Swagger middleware bound on: ${swaggerPath}`);
     }
 
-    const swaggerConfig = new DocumentBuilder()
+    const builder = new DocumentBuilder()
       .setTitle('User-Management')
       .setDescription('User management & authentication microservice')
       .setVersion('1.0')
-      .addBearerAuth()
-      .build();
+      .addBearerAuth();
+    if (isProd) {
+      builder.addServer(`https://api.${domainHost}`);
+    }
+    const swaggerConfig = builder.build();
     const document = SwaggerModule.createDocument(app, swaggerConfig);
     SwaggerModule.setup(swaggerPath, app, document);
   }

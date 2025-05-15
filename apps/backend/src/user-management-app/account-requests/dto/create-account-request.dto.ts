@@ -17,6 +17,7 @@ export class CreateAccountRequestDto {
   @IsString()
   @IsOptional()
   @MinLength(3)
+  @Transform(({ value }) => (value === '' ? undefined : value))
   @ApiPropertyOptional()
   name?: string;
 

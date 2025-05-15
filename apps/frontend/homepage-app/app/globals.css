@@ -15,6 +15,16 @@ body {
   background-color: var(--background);
 }
 
+@layer utilities {
+  .glow-box {
+    @apply border-emerald-500/20
+           bg-zinc-950/70
+           shadow-[0_0_60px_#10b98122]
+           hover:shadow-[0_0_80px_#10b98133]
+           transition-all duration-300;
+  }
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

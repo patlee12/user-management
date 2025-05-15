@@ -6,19 +6,18 @@ export function GoogleLoginButton({ onClick }: { onClick: () => void }) {
     <Button
       onClick={onClick}
       className="
+        w-full max-w-md
         flex items-center justify-center
-        w-full max-w
-        bg-white text-gray-700
-        border border-gray-300
-        hover:bg-gray-100
-        shadow-sm
+        gap-3
         rounded-full
-        px-4 py-2
-        gap-2
+        text-white
+        transition-all duration-150
       "
     >
-      <FcGoogle size={24} />
-      <span className="font-medium">Sign in with Google</span>
+      <span className="bg-zinc-800 rounded-full">
+        <FcGoogle size={24} />
+      </span>
+      <span>Sign in with Google</span>
     </Button>
   );
 }

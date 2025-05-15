@@ -104,7 +104,7 @@ export default function ProductsPage() {
                   rel="noopener noreferrer"
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.98 }}
-                  className="relative rounded-2xl shadow-lg border border-border bg-background p-6 flex flex-col justify-between hover:shadow-xl transition-all overflow-hidden"
+                  className="relative rounded-2xl shadow-lg border border-border bg-background p-6 flex flex-col justify-between hover:shadow-xl hover:glow-box hover:border-[3px] transition-all overflow-hidden"
                 >
                   <div>
                     <div className="text-5xl mb-4">{app.icon}</div>
