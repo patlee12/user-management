@@ -150,8 +150,7 @@ export class SwaggerAuthMiddleware implements NestMiddleware {
       <body>
         <div class="card">
           <div class="site-name">${siteName}</div>
-          <h1>401</h1>
-          <p>Unauthorized – Swagger docs are admin-only.</p>
+          <p>Admin Role Required for Swagger docs</p>
           <div class="actions">
             <a href="${homeUrl}">Return to Homepage</a>
             <a href="mailto:${supportEmail}">✉️ Contact Support</a>

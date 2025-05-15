@@ -153,8 +153,7 @@ export class AdminAuthMiddleware implements NestMiddleware {
       <body>
         <div class="card">
           <div class="site-name">${siteName}</div>
-          <h1>401</h1>
-          <p>Unauthorized access – Admins only</p>
+          <p> Admin Role Required for Admin Panel</p>
           <div class="actions">
             <a href="${homeUrl}">Return to Homepage</a>
             <a href="mailto:${supportEmail}">✉️ Contact Support</a>
