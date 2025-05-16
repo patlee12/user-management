@@ -38,6 +38,7 @@ export async function setupAdminPanel(prisma: PrismaService) {
     resources: [
       'AccountRequest',
       'User',
+      'Profile',
       'PasswordReset',
       'Role',
       'Resource',
