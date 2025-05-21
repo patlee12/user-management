@@ -2,20 +2,21 @@
 
 import Image from 'next/image';
 import { useState } from 'react';
-import { ProfileEntity } from '@user-management/types';
+import { UpdateProfileDto } from '@user-management/types';
 import EditableField from '@/components/ui/forms/editable-field';
 import { updateCurrentUserProfile } from '@/app/services/profile-service';
 import { Button } from '@/components/ui/buttons/button';
 import { Pencil } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
+import FormModal, { FieldConfig } from '../ui/modals/form-modal';
 
 interface ProfileCardProps {
-  profile: ProfileEntity;
+  profile: UpdateProfileDto;
 }
 
 export default function ProfileCard({ profile }: ProfileCardProps) {
   const { loadUser } = useAuthStore();
-  const [state, setState] = useState<Partial<ProfileEntity>>({
+  const [state, setState] = useState<UpdateProfileDto>({
     name: profile.name,
     role: profile.role,
     bio: profile.bio,
@@ -25,11 +26,14 @@ export default function ProfileCard({ profile }: ProfileCardProps) {
     website: profile.website,
     avatarUrl: profile.avatarUrl,
   });
-
+  const [showAvatarModal, setAvatarModal] = useState(false);
+  const fields: FieldConfig[] = [
+    { key: 'avatarUrl', label: 'Avatar URL', type: 'url' },
+  ];
   const [saving, setSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
 
-  const updateField = (key: keyof ProfileEntity, value: string) => {
+  const updateField = (key: keyof UpdateProfileDto, value: string | null) => {
     setState((prev) => ({ ...prev, [key]: value }));
   };
 
@@ -43,10 +47,7 @@ export default function ProfileCard({ profile }: ProfileCardProps) {
   };
 
   const handleAvatarChange = () => {
-    const newUrl = prompt('Enter a new image URL for your avatar:');
-    if (newUrl) {
-      updateField('avatarUrl', newUrl);
-    }
+    setAvatarModal(!showAvatarModal);
   };
 
   const githubClean = state.github?.replace('@', '');
@@ -58,7 +59,7 @@ export default function ProfileCard({ profile }: ProfileCardProps) {
           className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full border-[3px] border-emerald-500/70 overflow-hidden shadow-[0_0_30px_#10b98166] transition-transform duration-300 group-hover:scale-105 cursor-pointer group/avatar"
           onClick={handleAvatarChange}
         >
-          {profile.avatarUrl && !profile.avatarUrl.startsWith('/') ? (
+          {state.avatarUrl && !state.avatarUrl.startsWith('/') ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={state.avatarUrl}
@@ -70,7 +71,19 @@ export default function ProfileCard({ profile }: ProfileCardProps) {
               src={state.avatarUrl || '/images/defaultProfile.svg'}
               alt="Profile"
               fill
+              priority
               className="object-cover bg-white"
+            />
+          )}
+          {showAvatarModal && (
+            <FormModal
+              className="bg-gray/400"
+              title="Update Profile Avatar"
+              isOpen={showAvatarModal}
+              onClose={handleAvatarChange}
+              onSubmit={({ avatarUrl }) => updateField('avatarUrl', avatarUrl)}
+              fields={fields}
+              initialValues={{ avatarUrl: state.avatarUrl || '' }}
             />
           )}
 
