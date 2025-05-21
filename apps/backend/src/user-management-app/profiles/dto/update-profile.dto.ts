@@ -1,44 +1,52 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString, IsUrl } from 'class-validator';
+import { IsOptional, IsString, IsUrl, ValidateIf } from 'class-validator';
 
 export class UpdateProfileDto {
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ nullable: true })
   @IsOptional()
+  @ValidateIf((o) => o.name !== null)
   @IsString()
-  name?: string;
+  name?: string | null;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ nullable: true })
   @IsOptional()
+  @ValidateIf((o) => o.role !== null)
   @IsString()
-  role?: string;
+  role?: string | null;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ nullable: true })
   @IsOptional()
+  @ValidateIf((o) => o.bio !== null)
   @IsString()
-  bio?: string;
+  bio?: string | null;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ nullable: true })
   @IsOptional()
+  @ValidateIf((o) => o.location !== null)
   @IsString()
-  location?: string;
+  location?: string | null;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ nullable: true })
   @IsOptional()
+  @ValidateIf((o) => o.experience !== null)
   @IsString()
-  experience?: string;
+  experience?: string | null;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ nullable: true })
   @IsOptional()
+  @ValidateIf((o) => o.github !== null)
   @IsString()
-  github?: string;
+  github?: string | null;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ nullable: true })
   @IsOptional()
+  @ValidateIf((o) => o.website !== null)
   @IsUrl()
-  website?: string;
+  website?: string | null;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ nullable: true })
   @IsOptional()
+  @ValidateIf((o) => o.avatarUrl !== null)
   @IsUrl()
-  avatarUrl?: string;
+  avatarUrl?: string | null;
 }
