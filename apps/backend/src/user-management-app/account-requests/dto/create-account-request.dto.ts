@@ -7,8 +7,9 @@ import {
   MaxLength,
   Matches,
   IsEmail,
+  IsDate,
 } from 'class-validator';
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 
 /**
  * Data transfer object used to create a new account request.
@@ -42,4 +43,14 @@ export class CreateAccountRequestDto {
   @Transform(({ value }) => value.toLowerCase())
   @ApiProperty()
   email: string;
+
+  @IsDate()
+  @Type(() => Date)
+  @ApiProperty({ description: 'The datetime the user accepted the terms' })
+  acceptedTermsAt: Date;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({ description: 'Version of the terms the user accepted' })
+  termsVersion: string;
 }
