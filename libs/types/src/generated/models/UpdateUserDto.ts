@@ -11,6 +11,14 @@ export type UpdateUserDto = {
     email?: string;
     emailVerified?: boolean;
     /**
+     * DateTime when user accepted Terms of Use
+     */
+    acceptedTermsAt?: string;
+    /**
+     * Version of the Terms of Use the user accepted
+     */
+    termsVersion?: string;
+    /**
      * Array of UserRoles associated with the user
      */
     userRoles?: Array<UserRolesDto>;

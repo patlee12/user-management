@@ -7,5 +7,13 @@ export type CreateAccountRequestDto = {
     username: string;
     password: string;
     email: string;
+    /**
+     * The datetime the user accepted the terms
+     */
+    acceptedTermsAt: string;
+    /**
+     * Version of the terms the user accepted
+     */
+    termsVersion: string;
 };
 
