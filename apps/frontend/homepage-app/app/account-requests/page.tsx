@@ -7,6 +7,8 @@ import { useState } from 'react';
 import { CreateAccountRequestDto } from '@user-management/types';
 import { submitAccountRequest } from '@/app/services/account-request-service';
 import { useRouter } from 'next/navigation';
+import { TermsPrompt, CURRENT_TERMS_VERSION } from '@user-management/shared';
+import { supportEmail } from '@/lib/config';
 
 export default function AccountRequestsPage() {
   const router = useRouter();
@@ -15,8 +17,11 @@ export default function AccountRequestsPage() {
     username: '',
     email: '',
     password: '',
+    acceptedTermsAt: '',
+    termsVersion: '',
   });
 
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
@@ -54,7 +59,14 @@ export default function AccountRequestsPage() {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
-
+  const handleAcceptedTerms = () => {
+    setAcceptedTerms(true);
+    setFormData((prev) => ({
+      ...prev,
+      acceptedTermsAt: new Date().toISOString(),
+      termsVersion: CURRENT_TERMS_VERSION,
+    }));
+  };
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
@@ -88,133 +100,143 @@ export default function AccountRequestsPage() {
   return (
     <div className="relative w-full text-white h-full overflow-hidden flex items-center justify-center">
       <CanvasBackground />
+      <TermsPrompt
+        mode="submit"
+        requiresTermsAcceptance={!acceptedTerms}
+        supportEmail={supportEmail}
+        onClose={() => router.push('/')}
+        onSubmitAccept={handleAcceptedTerms}
+      />
+      {acceptedTerms && (
+        <div className="bg-zinc-900 bg-opacity-70 backdrop-blur-md border border-zinc-700 rounded-2xl shadow-xl max-w-md w-full p-8 animate-fade-in">
+          <h2 className="text-3xl font-bold mb-6 text-center">
+            Request an Account
+          </h2>
 
-      <div className="bg-zinc-900 bg-opacity-70 backdrop-blur-md border border-zinc-700 rounded-2xl shadow-xl max-w-md w-full p-8 animate-fade-in">
-        <h2 className="text-3xl font-bold mb-6 text-center">
-          Request an Account
-        </h2>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-zinc-300 mb-1"
+              >
+                Full Name (optional)
+              </label>
+              <input
+                id="name"
+                name="name"
+                type="text"
+                value={formData.name}
+                onChange={handleChange}
+                className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-4 py-2 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
+              />
+            </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label
-              htmlFor="name"
-              className="block text-sm font-medium text-zinc-300 mb-1"
-            >
-              Full Name (optional)
-            </label>
-            <input
-              id="name"
-              name="name"
-              type="text"
-              value={formData.name}
-              onChange={handleChange}
-              className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-4 py-2 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
-            />
-          </div>
+            <div>
+              <label
+                htmlFor="username"
+                className="block text-sm font-medium text-zinc-300 mb-1"
+              >
+                Username
+              </label>
+              <input
+                id="username"
+                name="username"
+                type="text"
+                required
+                value={formData.username}
+                onChange={handleChange}
+                className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-4 py-2 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
+              />
+              {errors.username && (
+                <p className="text-sm text-red-400 mt-1">{errors.username}</p>
+              )}
+            </div>
 
-          <div>
-            <label
-              htmlFor="username"
-              className="block text-sm font-medium text-zinc-300 mb-1"
-            >
-              Username
-            </label>
-            <input
-              id="username"
-              name="username"
-              type="text"
-              required
-              value={formData.username}
-              onChange={handleChange}
-              className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-4 py-2 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
-            />
-            {errors.username && (
-              <p className="text-sm text-red-400 mt-1">{errors.username}</p>
-            )}
-          </div>
+            <div>
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-zinc-300 mb-1"
+              >
+                Email address
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                required
+                value={formData.email}
+                onChange={handleChange}
+                className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-4 py-2 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
+              />
+              {errors.email && (
+                <p className="text-sm text-red-400 mt-1">{errors.email}</p>
+              )}
+            </div>
 
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-zinc-300 mb-1"
-            >
-              Email address
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              required
-              value={formData.email}
-              onChange={handleChange}
-              className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-4 py-2 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
-            />
-            {errors.email && (
-              <p className="text-sm text-red-400 mt-1">{errors.email}</p>
-            )}
-          </div>
+            <div>
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-zinc-300 mb-1"
+              >
+                Password
+              </label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="new-password"
+                required
+                value={formData.password}
+                onChange={handleChange}
+                className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-4 py-2 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
+              />
+              {errors.password && (
+                <p className="text-sm text-red-400 mt-1">{errors.password}</p>
+              )}
+            </div>
 
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-zinc-300 mb-1"
-            >
-              Password
-            </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="new-password"
-              required
-              value={formData.password}
-              onChange={handleChange}
-              className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-4 py-2 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
-            />
-            {errors.password && (
-              <p className="text-sm text-red-400 mt-1">{errors.password}</p>
-            )}
-          </div>
+            <div>
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-zinc-300 mb-1"
+              >
+                Confirm Password
+              </label>
+              <input
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                autoComplete="new-password"
+                required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-4 py-2 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
+              />
+              {errors.confirmPassword && (
+                <p className="text-sm text-red-400 mt-1">
+                  {errors.confirmPassword}
+                </p>
+              )}
+            </div>
 
-          <div>
-            <label
-              htmlFor="confirmPassword"
-              className="block text-sm font-medium text-zinc-300 mb-1"
-            >
-              Confirm Password
-            </label>
-            <input
-              id="confirmPassword"
-              name="confirmPassword"
-              type="password"
-              autoComplete="new-password"
-              required
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-4 py-2 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
-            />
-            {errors.confirmPassword && (
-              <p className="text-sm text-red-400 mt-1">
-                {errors.confirmPassword}
+            {errors.server && (
+              <p className="text-sm text-red-400 text-center">
+                {errors.server}
               </p>
             )}
+
+            <Button type="submit" className="w-full">
+              Submit Request
+            </Button>
+          </form>
+
+          <div className="mt-6 text-sm text-zinc-400 text-center">
+            <Link href="/login" className="hover:underline">
+              Already have an account? Sign In
+            </Link>
           </div>
-
-          {errors.server && (
-            <p className="text-sm text-red-400 text-center">{errors.server}</p>
-          )}
-
-          <Button type="submit" className="w-full">
-            Submit Request
-          </Button>
-        </form>
-
-        <div className="mt-6 text-sm text-zinc-400 text-center">
-          <Link href="/login" className="hover:underline">
-            Already have an account? Sign In
-          </Link>
         </div>
-      </div>
+      )}
     </div>
   );
 }
