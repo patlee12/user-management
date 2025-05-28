@@ -1,0 +1,1 @@
+export const CURRENT_TERMS_VERSION = '2024-05-28';

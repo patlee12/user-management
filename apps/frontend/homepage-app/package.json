@@ -18,6 +18,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@user-management/types": "*",
+    "@user-management/shared": "*",
     "autoprefixer": "10.4.14",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
