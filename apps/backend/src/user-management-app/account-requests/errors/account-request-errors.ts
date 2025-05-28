@@ -25,3 +25,9 @@ export class VerificationEmailFailed extends Error {
     this.name = 'VerificationEmailFailedError';
   }
 }
+export class MissingTermsAcceptanceError extends Error {
+  constructor(message = 'Account request is missing terms acceptance data') {
+    super(message);
+    this.name = 'MissingTermsAcceptanceError';
+  }
+}
