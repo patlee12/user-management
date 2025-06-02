@@ -1,1 +1,1 @@
-export * from './constants';
+export { CURRENT_TERMS_VERSION } from './constants';

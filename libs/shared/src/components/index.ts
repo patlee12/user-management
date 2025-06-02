@@ -1,1 +1,1 @@
-export * from './terms-prompt';
+export { TermsPrompt } from './terms-prompt';
