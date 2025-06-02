@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { CURRENT_TERMS_VERSION } from '../constants';
+import { CURRENT_TERMS_VERSION } from '../constants/constants';
 
 type TermsPromptProps = {
   /**
