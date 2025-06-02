@@ -7,6 +7,7 @@ export { CancelablePromise, CancelError } from './core/CancelablePromise';
 export { OpenAPI } from './core/OpenAPI';
 export type { OpenAPIConfig } from './core/OpenAPI';
 
+export type { AcceptTermsDto } from './models/AcceptTermsDto';
 export type { AccountRequestEntity } from './models/AccountRequestEntity';
 export type { AuthResponseDto } from './models/AuthResponseDto';
 export type { ConfirmPasswordResetDto } from './models/ConfirmPasswordResetDto';
