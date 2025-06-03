@@ -45,6 +45,7 @@ export default function LoginComponent() {
   const [checkedCookies, setCheckedCookies] = useState(false);
   const [termsTicket, setTermsTicket] = useState('');
   const [completedEmailMfa, setCompletedEmailMfa] = useState(false);
+  const [completedMfa, setCompletedMfa] = useState(false);
 
   const [state, dispatch] = useReducer(loginReducer, initialLoginState);
   const { status, tempToken, email, errorMessage, qrCodeUrl, secret } = state;
@@ -172,6 +173,13 @@ export default function LoginComponent() {
       const resp = await verifyEmailMfa({ email: email, token: mfaCode });
       setCompletedEmailMfa(true);
       await handleAuthResponse(resp);
+      if (resp.accessToken && !resp.termsRequired) {
+        dispatch({
+          type: 'OPTIONAL_MFA_PROMPT',
+          qrCodeUrl: '',
+          secret: '',
+        });
+      }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       dispatch({
@@ -180,6 +188,7 @@ export default function LoginComponent() {
       });
     } finally {
       setMfaCode('');
+      setPassword('');
     }
   };
 
@@ -188,6 +197,7 @@ export default function LoginComponent() {
     dispatch({ type: 'START_LOGIN' });
     try {
       const resp = await verifyMfa({ token: mfaCode, ticket: tempToken });
+      setCompletedMfa(true);
       await handleAuthResponse(resp);
 
       if (resp.accessToken && !resp.termsRequired) {
@@ -242,7 +252,7 @@ export default function LoginComponent() {
     try {
       const resp = await acceptTerms({ ticket: termsTicket, accepted: true });
       await handleAuthResponse(resp);
-      if (completedEmailMfa) {
+      if (completedEmailMfa || !completedMfa) {
         dispatch({ type: 'OPTIONAL_MFA_PROMPT', qrCodeUrl: '', secret: '' });
         return;
       }
