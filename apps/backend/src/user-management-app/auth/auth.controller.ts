@@ -127,8 +127,12 @@ export class AuthController {
       }
 
       // If MFA is required, pass it as query params
-      if ('ticket' in result) {
+      if ('ticket' in result && 'mfaRequired' in result) {
         uri.searchParams.set('mfaRequired', 'true');
+        uri.searchParams.set('ticket', result.ticket);
+      }
+      if ('ticket' in result && 'termsRequired' in result) {
+        uri.searchParams.set('termsRequired', 'true');
         uri.searchParams.set('ticket', result.ticket);
       }
 

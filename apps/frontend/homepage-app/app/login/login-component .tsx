@@ -55,7 +55,7 @@ export default function LoginComponent() {
   /**
    * On mount:
    * - Read any `redirect` query param
-   * - Attempt OAuth-style MFA flow from URL params
+   * - Attempt OAuth-style MFA or Terms flow from URL params
    * - If not OAuth, fall back to cookie based flows
    * - Prevent initial render until this check completes
    */
@@ -66,8 +66,20 @@ export default function LoginComponent() {
 
     // OAuth redirect flow
     const mfaRequired = params.get('mfaRequired');
+    const termsRequired = params.get('termsRequired');
     const ticketParam = params.get('ticket');
-    if (mfaRequired === 'true' && ticketParam) {
+
+    if (termsRequired === 'true' && ticketParam) {
+      // Handle OAuth redirect requiring Terms of Use acceptance
+      setTermsTicket(ticketParam);
+      dispatch({ type: 'TERMS_REQUIRED', ticket: ticketParam });
+
+      params.delete('termsRequired');
+      params.delete('ticket');
+      const base = window.location.pathname;
+      const newQs = params.toString();
+      window.history.replaceState(null, '', base + (newQs ? `?${newQs}` : ''));
+    } else if (mfaRequired === 'true' && ticketParam) {
       dispatch({ type: 'MFA_REQUIRED', ticket: ticketParam });
 
       params.delete('mfaRequired');
