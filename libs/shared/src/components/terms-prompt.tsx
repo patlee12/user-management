@@ -90,52 +90,95 @@ export function TermsPrompt({
   };
 
   const defaultTerms = (
-    <div className="text-sm text-zinc-300 max-h-64 overflow-y-auto space-y-4 text-left px-1">
-      <p>
-        <strong className="text-white">1. Acceptance of Terms</strong>
-        <br />
-        By using this application, you agree to be bound by these Terms of Use.
-      </p>
-      <p>
-        <strong className="text-white">2. Use of the Service</strong>
-        <br />
-        You agree to use this service lawfully and not infringe on others’
-        rights.
-      </p>
-      <p>
-        <strong className="text-white">3. Privacy</strong>
-        <br />
-        We respect your privacy and will handle your data accordingly.
-      </p>
-      <p>
-        <strong className="text-white">4. Intellectual Property</strong>
-        <br />
-        Content and software are property of the provider or licensors.
-      </p>
-      <p>
-        <strong className="text-white">5. Limitation of Liability</strong>
-        <br />
-        This service is provided "as is". We are not liable for damages.
-      </p>
-      <p>
-        <strong className="text-white">6. Changes</strong>
-        <br />
-        Terms may change. Continued use means you accept any updates.
-      </p>
-      {supportEmail && (
+    <div className="text-sm text-zinc-300 space-y-6">
+      <div className="max-h-60 overflow-y-auto px-1 space-y-4">
         <p>
-          <strong className="text-white">7. Contact</strong>
+          <strong className="text-white">1. Acceptance of Terms</strong>
           <br />
-          For support, contact us at{' '}
-          <a
-            href={`mailto:${supportEmail}`}
-            className="underline hover:text-white"
-          >
-            {supportEmail}
-          </a>
-          .
+          By using this application, you agree to be bound by these Terms of
+          Use.
         </p>
-      )}
+        <p>
+          <strong className="text-white">2. Use of the Service</strong>
+          <br />
+          You agree to use this service lawfully and not infringe on others’
+          rights.
+        </p>
+        <p>
+          <strong className="text-white">3. Privacy</strong>
+          <br />
+          We respect your privacy and handle your data in accordance with our
+          Privacy Policy.
+        </p>
+        <p>
+          <strong className="text-white">4. Intellectual Property</strong>
+          <br />
+          Content and software are the property of the provider or licensors.
+        </p>
+        <p>
+          <strong className="text-white">5. Limitation of Liability</strong>
+          <br />
+          This service is provided "as is". We are not liable for damages
+          arising from use of the service.
+        </p>
+        <p>
+          <strong className="text-white">6. Changes to Terms</strong>
+          <br />
+          We may update these Terms from time to time. Continued use means you
+          accept any updates.
+        </p>
+        {supportEmail && (
+          <p>
+            <strong className="text-white">7. Contact</strong>
+            <br />
+            For support, contact us at{' '}
+            <a
+              href={`mailto:${supportEmail}`}
+              className="underline hover:text-white"
+            >
+              {supportEmail}
+            </a>
+            .
+          </p>
+        )}
+      </div>
+
+      <hr className="border-zinc-700" />
+
+      <div>
+        <h3 className="text-lg font-semibold text-white mb-2">MIT License</h3>
+        <div className="max-h-60 overflow-y-auto bg-zinc-800 p-4 rounded-lg border border-zinc-700">
+          <p>MIT License</p>
+          <p>&nbsp;</p>
+          <p>Copyright (c) 2025 Patrick Lee</p>
+          <p>&nbsp;</p>
+          <p>
+            Permission is hereby granted, free of charge, to any person
+            obtaining a copy of this software and associated documentation files
+            (the "Software"), to deal in the Software without restriction,
+            including without limitation the rights to use, copy, modify, merge,
+            publish, distribute, sublicense, and/or sell copies of the Software,
+            and to permit persons to whom the Software is furnished to do so,
+            subject to the following conditions:
+          </p>
+          <p>&nbsp;</p>
+          <p>
+            The above copyright notice and this permission notice shall be
+            included in all copies or substantial portions of the Software.
+          </p>
+          <p>&nbsp;</p>
+          <p>
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+            EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+            MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+            NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+            BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+            ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+            CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+            SOFTWARE.
+          </p>
+        </div>
+      </div>
     </div>
   );
 
