@@ -62,13 +62,17 @@ export default function Header() {
         </div>
 
         <div className="flex items-center justify-end min-w-[40px] flex-shrink-0">
-          {hasMounted && !isAuthPage && !user && (
+          <div className="flex items-center justify-end">
             <Link href="/login">
-              <Button variant="primary" className="whitespace-nowrap px-4 py-2">
+              <Button
+                variant="primary"
+                visible={hasMounted && !isAuthPage && !user}
+                className="whitespace-nowrap px-4 py-2"
+              >
                 Login
               </Button>
             </Link>
-          )}
+          </div>
 
           {hasMounted && profile && (
             <Link href="/user/account/profile">
