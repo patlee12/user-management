@@ -12,6 +12,7 @@
   COPY package.json ./
   COPY apps/backend/package.json ./apps/backend/package.json
   COPY libs/types/package.json   ./libs/types/package.json
+  COPY libs/shared/package.json ./libs/shared/package.json
   
   # Copy source code and configs
   COPY apps/backend  ./apps/backend
@@ -43,6 +44,7 @@
   COPY --from=builder /src/app/package.json                     ./
   COPY --from=builder /src/app/apps/backend/package.json        ./apps/backend/package.json
   COPY --from=builder /src/app/libs/types/package.json          ./libs/types/package.json
+  COPY --from=builder /src/app/libs/shared/package.json          ./libs/shared/package.json
   COPY --from=builder /src/app/node_modules                     ./node_modules
   COPY --from=builder /src/app/node_modules/.prisma             ./node_modules/.prisma
   
