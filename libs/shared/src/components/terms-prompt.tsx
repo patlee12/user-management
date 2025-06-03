@@ -179,7 +179,11 @@ export function TermsPrompt({
         <button
           disabled={!accepted || submitting}
           onClick={handleAccept}
-          className="w-full py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 transition font-medium text-white"
+          className={`w-full py-2 rounded-xl font-medium transition ${
+            !accepted || submitting
+              ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed border border-zinc-700'
+              : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+          }`}
         >
           {submitting ? 'Submitting...' : 'Accept and Continue'}
         </button>

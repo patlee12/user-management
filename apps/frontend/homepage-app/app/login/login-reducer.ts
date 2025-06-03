@@ -9,6 +9,7 @@ export type AuthStatus =
   | 'mfa-optional'
   | 'mfa-setup'
   | 'confirm-mfa'
+  | 'terms'
   | 'error';
 
 /**
@@ -19,7 +20,7 @@ export interface LoginState {
   status: AuthStatus;
   /** Error message in case of a failure. */
   errorMessage: string;
-  /** Temporary token used for MFA verification. */
+  /** Temporary token used for MFA verification or “terms” acceptance. */
   tempToken: string;
   /** Email used for MFA verification. */
   email: string;
@@ -36,6 +37,7 @@ export type LoginAction =
   | { type: 'START_LOGIN' }
   | { type: 'LOGIN_SUCCESS' }
   | { type: 'MFA_REQUIRED'; ticket: string }
+  | { type: 'TERMS_REQUIRED'; ticket: string }
   | { type: 'EMAIL_MFA_REQUIRED'; email: string }
   | { type: 'OPTIONAL_MFA_PROMPT'; qrCodeUrl: string; secret: string }
   | { type: 'BEGIN_MFA_SETUP' }
@@ -73,7 +75,17 @@ export function loginReducer(
     case 'LOGIN_SUCCESS':
       return { ...initialLoginState };
     case 'MFA_REQUIRED':
-      return { ...state, status: 'mfa', tempToken: action.ticket };
+      return {
+        ...state,
+        status: 'mfa',
+        tempToken: action.ticket,
+      };
+    case 'TERMS_REQUIRED':
+      return {
+        ...state,
+        status: 'terms',
+        tempToken: action.ticket,
+      };
     case 'EMAIL_MFA_REQUIRED':
       return {
         ...state,
