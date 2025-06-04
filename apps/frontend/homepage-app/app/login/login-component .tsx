@@ -269,12 +269,16 @@ export default function LoginComponent() {
       <CanvasBackground />
 
       {status === 'terms' ? (
-        <TermsPrompt
-          mode="enforce"
-          requiresTermsAcceptance={true}
-          onEnforceAccept={handleAcceptTerms}
-          onClose={() => router.push('/')}
-        />
+        <div className="fixed inset-0 z-50 bg-black/80 overflow-y-auto">
+          <div className="flex min-h-screen items-center justify-center px-4 py-10">
+            <TermsPrompt
+              mode="enforce"
+              requiresTermsAcceptance={true}
+              onEnforceAccept={handleAcceptTerms}
+              onClose={() => router.push('/')}
+            />
+          </div>
+        </div>
       ) : (
         <div className="baseCard">
           {status === 'mfa-optional' ? (
