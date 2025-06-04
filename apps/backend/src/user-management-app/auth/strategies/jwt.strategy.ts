@@ -28,6 +28,9 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
    * @returns {UserEntity}
    */
   async validate(req: Request, payload: JwtPayload): Promise<UserEntity> {
+    if (payload.purpose !== 'access') {
+      throw new UnauthorizedException('Invalid token purpose');
+    }
     const user = await this.usersService.findOne(payload.userId);
 
     if (!user) {

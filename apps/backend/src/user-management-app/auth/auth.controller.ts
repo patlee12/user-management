@@ -9,6 +9,7 @@ import {
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
+import { Response, Request as ExpressRequest } from 'express';
 import {
   ApiOkResponse,
   ApiTags,
@@ -16,13 +17,13 @@ import {
   ApiOperation,
 } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
-import { Response, Request as ExpressRequest } from 'express';
 import { plainToInstance } from 'class-transformer';
 
 import { AuthService } from './auth.service';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { LoginDto } from './dto/login.dto';
 import { MfaDto } from './dto/mfa.dto';
+import { AcceptTermsDto } from './dto/accepted-terms.dto';
 import { MfaResponseDto } from './dto/mfa-response.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { UsersService } from 'src/user-management-app/users/users.service';
@@ -126,8 +127,12 @@ export class AuthController {
       }
 
       // If MFA is required, pass it as query params
-      if ('ticket' in result) {
+      if ('ticket' in result && 'mfaRequired' in result) {
         uri.searchParams.set('mfaRequired', 'true');
+        uri.searchParams.set('ticket', result.ticket);
+      }
+      if ('ticket' in result && 'termsRequired' in result) {
+        uri.searchParams.set('termsRequired', 'true');
         uri.searchParams.set('ticket', result.ticket);
       }
 
@@ -252,6 +257,39 @@ export class AuthController {
   @ApiOkResponse({ type: UserEntity })
   async getMe(@Request() req): Promise<UserEntity> {
     return plainToInstance(UserEntity, req.user);
+  }
+
+  @Post('accept-terms')
+  @Throttle(LOGIN_THROTTLE)
+  @ApiOperation({
+    summary: 'Accept Terms of Use using a valid ticket',
+    description:
+      'Accepts the Terms of Use using a temporary JWT ticket. Returns an access token if valid.',
+  })
+  @ApiOkResponse({ type: AuthResponseDto })
+  async acceptTerms(
+    @Body() dto: AcceptTermsDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<AuthResponseDto> {
+    const result = await this.authService.acceptTerms(dto);
+
+    if ('accessToken' in result) {
+      res.cookie(
+        'access_token',
+        result.accessToken,
+        getCookieOptions(true, isProd),
+      );
+      const { userId } = await this.jwtService.verifyAsync<{ userId: number }>(
+        result.accessToken,
+      );
+      res.cookie(
+        'public_session',
+        this.authService.generatePublicSessionToken(userId),
+        getCookieOptions(false, isProd),
+      );
+    }
+
+    return result;
   }
 
   @Post('logout')

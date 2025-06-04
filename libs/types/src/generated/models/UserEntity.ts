@@ -9,9 +9,17 @@ export type UserEntity = {
     email: string;
     mfaEnabled: boolean;
     emailVerified: boolean;
+    acceptedTermsAt?: string | null;
+    termsVersion?: string | null;
     userRoles?: Array<string> | null;
-    loginType: string;
+    loginType: UserEntity.loginType;
     createdAt: string;
     updatedAt: string;
 };
+export namespace UserEntity {
+    export enum loginType {
+        LOCAL = 'local',
+        OAUTH = 'oauth',
+    }
+}
 

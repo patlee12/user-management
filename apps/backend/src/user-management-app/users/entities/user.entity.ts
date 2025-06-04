@@ -38,9 +38,15 @@ export class UserEntity implements User {
   emailMfaTempExpiresAt: Date;
 
   @ApiProperty({ required: false, nullable: true })
+  acceptedTermsAt: Date | null;
+
+  @ApiProperty({ required: false, nullable: true })
+  termsVersion: string | null;
+
+  @ApiProperty({ required: false, nullable: true })
   userRoles?: number[];
 
-  @ApiProperty()
+  @ApiProperty({ enum: LoginType })
   loginType: LoginType;
 
   @ApiProperty()

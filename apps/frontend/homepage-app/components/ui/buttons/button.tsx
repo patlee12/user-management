@@ -11,6 +11,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   size?: ButtonSize;
   showSuccess?: boolean;
   successLabel?: React.ReactNode;
+  visible?: boolean;
 }
 
 export const Button = ({
@@ -24,6 +25,7 @@ export const Button = ({
       ✓ <span className="text-white">Saved</span>
     </span>
   ),
+  visible = true,
   ...props
 }: ButtonProps) => {
   const baseStyles =
@@ -48,7 +50,13 @@ export const Button = ({
 
   return (
     <button
-      className={cn(baseStyles, sizeStyles[size], variants[variant], className)}
+      className={cn(
+        baseStyles,
+        sizeStyles[size],
+        variants[variant],
+        !visible && 'invisible',
+        className,
+      )}
       {...props}
     >
       {showSuccess ? successLabel : children}

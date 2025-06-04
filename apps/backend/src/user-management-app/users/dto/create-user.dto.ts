@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsArray,
   IsNotEmpty,
@@ -9,9 +9,10 @@ import {
   Matches,
   IsEmail,
   IsBoolean,
+  IsDate,
 } from 'class-validator';
 import { UserRolesDto } from 'src/user-management-app/roles-and-permissions-resources/dto/user-roles.dto';
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 
 /**
  * Data transfer object used to create a unique user in database.
@@ -54,6 +55,21 @@ export class CreateUserDto {
   @IsOptional()
   @ApiProperty({ required: false })
   emailVerified?: boolean;
+
+  @IsDate()
+  @IsOptional()
+  @Type(() => Date)
+  @ApiPropertyOptional({
+    description: 'DateTime when user accepted Terms of Use',
+  })
+  acceptedTermsAt?: Date;
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional({
+    description: 'Version of the Terms of Use the user accepted',
+  })
+  termsVersion?: string;
 
   @IsArray()
   @IsOptional()

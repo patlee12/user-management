@@ -10,6 +10,7 @@ import {
   getMfaSetup,
   confirmMfaSetup,
   verifyEmailMfa,
+  acceptTerms,
 } from '@/app/services/auth-service';
 import { LoginDto, AuthResponseDto } from '@user-management/types';
 import { useAuthStore } from '@/stores/authStore';
@@ -20,12 +21,14 @@ import { MfaSetup } from './mfa/mfa-setup';
 import { ConfirmMfa } from './mfa/confirm-mfa';
 import { MfaVerify } from './mfa/mfa-verify';
 import { GoogleLoginButton } from '@/components/ui/buttons/google-login-button';
+import { TermsPrompt } from '@user-management/shared';
 
 /**
  * LoginComponent
  *
- * Handles login via credentials and Google OAuth, supporting MFA and email-based login codes.
- * Relies on secure HttpOnly cookies and MFA ticket cookies.
+ * Handles login via credentials and Google OAuth, supporting MFA, email-based login codes,
+ * and versioned Terms of Use enforcement.
+ * Relies on secure HttpOnly cookies and MFA/terms challenge tickets stored in local state.
  *
  * Special OAuth redirect logic:
  * - After Google login, backend redirects back with `?mfaRequired=true&ticket=…`
@@ -40,6 +43,9 @@ export default function LoginComponent() {
   const [password, setPassword] = useState('');
   const [mfaCode, setMfaCode] = useState('');
   const [checkedCookies, setCheckedCookies] = useState(false);
+  const [termsTicket, setTermsTicket] = useState('');
+  const [completedEmailMfa, setCompletedEmailMfa] = useState(false);
+  const [completedMfa, setCompletedMfa] = useState(false);
 
   const [state, dispatch] = useReducer(loginReducer, initialLoginState);
   const { status, tempToken, email, errorMessage, qrCodeUrl, secret } = state;
@@ -50,7 +56,7 @@ export default function LoginComponent() {
   /**
    * On mount:
    * - Read any `redirect` query param
-   * - Attempt OAuth-style MFA flow from URL params
+   * - Attempt OAuth-style MFA or Terms flow from URL params
    * - If not OAuth, fall back to cookie based flows
    * - Prevent initial render until this check completes
    */
@@ -61,8 +67,20 @@ export default function LoginComponent() {
 
     // OAuth redirect flow
     const mfaRequired = params.get('mfaRequired');
+    const termsRequired = params.get('termsRequired');
     const ticketParam = params.get('ticket');
-    if (mfaRequired === 'true' && ticketParam) {
+
+    if (termsRequired === 'true' && ticketParam) {
+      // Handle OAuth redirect requiring Terms of Use acceptance
+      setTermsTicket(ticketParam);
+      dispatch({ type: 'TERMS_REQUIRED', ticket: ticketParam });
+
+      params.delete('termsRequired');
+      params.delete('ticket');
+      const base = window.location.pathname;
+      const newQs = params.toString();
+      window.history.replaceState(null, '', base + (newQs ? `?${newQs}` : ''));
+    } else if (mfaRequired === 'true' && ticketParam) {
       dispatch({ type: 'MFA_REQUIRED', ticket: ticketParam });
 
       params.delete('mfaRequired');
@@ -84,7 +102,11 @@ export default function LoginComponent() {
         dispatch({ type: 'MFA_REQUIRED', ticket: cookieMap['mfa_ticket'] });
       } else if (cookieMap['public_session'] && status === 'idle') {
         loadUser().then(() => {
-          dispatch({ type: 'OPTIONAL_MFA_PROMPT', qrCodeUrl: '', secret: '' });
+          dispatch({
+            type: 'OPTIONAL_MFA_PROMPT',
+            qrCodeUrl: '',
+            secret: '',
+          });
         });
       }
     }
@@ -92,7 +114,7 @@ export default function LoginComponent() {
     setCheckedCookies(true);
   }, [loadUser, status]);
 
-  // Don’t render until checked URL+cookies
+  // Don’t render until we have checked URL and cookies
   if (!checkedCookies) return null;
 
   const handleGoogleLogin = () => {
@@ -136,17 +158,28 @@ export default function LoginComponent() {
       });
       return;
     }
+    if (resp.termsRequired && resp.ticket) {
+      setTermsTicket(resp.ticket);
+      dispatch({ type: 'TERMS_REQUIRED', ticket: resp.ticket });
+      return;
+    }
     await loadUser();
-    dispatch({ type: 'OPTIONAL_MFA_PROMPT', qrCodeUrl: '', secret: '' });
   }
 
   const handleEmailMfaSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     dispatch({ type: 'START_LOGIN' });
     try {
-      await verifyEmailMfa({ email: email, token: mfaCode });
-      await loadUser();
-      dispatch({ type: 'OPTIONAL_MFA_PROMPT', qrCodeUrl: '', secret: '' });
+      const resp = await verifyEmailMfa({ email: email, token: mfaCode });
+      setCompletedEmailMfa(true);
+      await handleAuthResponse(resp);
+      if (resp.accessToken && !resp.termsRequired) {
+        dispatch({
+          type: 'OPTIONAL_MFA_PROMPT',
+          qrCodeUrl: '',
+          secret: '',
+        });
+      }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       dispatch({
@@ -155,6 +188,7 @@ export default function LoginComponent() {
       });
     } finally {
       setMfaCode('');
+      setPassword('');
     }
   };
 
@@ -162,12 +196,14 @@ export default function LoginComponent() {
     e.preventDefault();
     dispatch({ type: 'START_LOGIN' });
     try {
-      await verifyMfa({ token: mfaCode, ticket: tempToken });
-      await loadUser();
-      dispatch({ type: 'LOGIN_SUCCESS' });
+      const resp = await verifyMfa({ token: mfaCode, ticket: tempToken });
+      setCompletedMfa(true);
+      await handleAuthResponse(resp);
 
-      window.location.href = redirectTo.startsWith('/') ? redirectTo : '/';
-
+      if (resp.accessToken && !resp.termsRequired) {
+        dispatch({ type: 'LOGIN_SUCCESS' });
+        window.location.href = redirectTo.startsWith('/') ? redirectTo : '/';
+      }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       dispatch({
@@ -182,7 +218,11 @@ export default function LoginComponent() {
   const handleBeginMfaSetup = async () => {
     try {
       const { qrCode, secret } = await getMfaSetup();
-      dispatch({ type: 'OPTIONAL_MFA_PROMPT', qrCodeUrl: qrCode, secret });
+      dispatch({
+        type: 'OPTIONAL_MFA_PROMPT',
+        qrCodeUrl: qrCode,
+        secret,
+      });
       dispatch({ type: 'BEGIN_MFA_SETUP' });
     } catch (error) {
       console.error('Error fetching MFA setup details:', error);
@@ -208,138 +248,168 @@ export default function LoginComponent() {
     }
   };
 
+  const handleAcceptTerms = async () => {
+    try {
+      const resp = await acceptTerms({ ticket: termsTicket, accepted: true });
+      await handleAuthResponse(resp);
+      if (completedEmailMfa || !completedMfa) {
+        dispatch({ type: 'OPTIONAL_MFA_PROMPT', qrCodeUrl: '', secret: '' });
+        return;
+      }
+      dispatch({ type: 'LOGIN_SUCCESS' });
+      window.location.href = redirectTo.startsWith('/') ? redirectTo : '/';
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      console.error('Error accepting terms:', err);
+    }
+  };
+
   return (
     <div className="relative w-full text-white h-full overflow-hidden flex items-center justify-center">
       <CanvasBackground />
-      <div className="bg-zinc-900 bg-opacity-70 backdrop-blur-md border border-zinc-700 rounded-2xl shadow-xl max-w-md w-full p-8 animate-fade-in">
-        {status === 'mfa-optional' ? (
-          <OptionalMfaPrompt
-            onSetup={handleBeginMfaSetup}
-            onSkip={() =>
-              (window.location.href = redirectTo.startsWith('/')
-                ? redirectTo
-                : '/')
-            }
-          />
-        ) : status === 'mfa-setup' ? (
-          <MfaSetup
-            qrCodeUrl={qrCodeUrl}
-            secret={secret}
-            onNext={handleTransitionToConfirmMfa}
-          />
-        ) : status === 'confirm-mfa' ? (
-          <ConfirmMfa
-            mfaCode={mfaCode}
-            errorMessage={errorMessage}
-            onChange={setMfaCode}
-            onSubmit={handleConfirmMfaSetup}
-            isLoading={isLoading}
-          />
-        ) : status === 'mfa' ? (
-          <MfaVerify
-            mfaCode={mfaCode}
-            errorMessage={errorMessage}
-            onChange={setMfaCode}
-            onSubmit={handleMfaSubmit}
-            isLoading={isLoading}
-          />
-        ) : status === 'email-mfa' ? (
-          <MfaVerify
-            title="Enter Your Login Code"
-            description="Enter the 6-digit code we emailed to you."
-            mfaCode={mfaCode}
-            errorMessage={errorMessage}
-            onChange={setMfaCode}
-            onSubmit={handleEmailMfaSubmit}
-            isLoading={isLoading}
-          />
-        ) : (
-          <form onSubmit={handleLogin} className="space-y-6">
-            <h2 className="text-3xl font-bold mb-6 text-center">Login</h2>
 
-            <div>
-              <label className="block text-sm mb-1 text-zinc-300">
-                Email or Username
-              </label>
-              <input
-                type="text"
-                autoComplete="username"
-                required
-                value={identifier}
-                onChange={(e) => setIdentifier(e.target.value)}
-                onFocus={() => dispatch({ type: 'CLEAR_ERROR' })}
-                placeholder="Enter your email or username"
-                className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-4 py-2 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
-              />
-            </div>
+      {status === 'terms' ? (
+        <div className="fixed inset-0 z-50 bg-black/80 overflow-y-auto">
+          <div className="flex min-h-screen items-center justify-center px-4 py-10">
+            <TermsPrompt
+              mode="enforce"
+              requiresTermsAcceptance={true}
+              onEnforceAccept={handleAcceptTerms}
+              onClose={() => router.push('/')}
+            />
+          </div>
+        </div>
+      ) : (
+        <div className="baseCard">
+          {status === 'mfa-optional' ? (
+            <OptionalMfaPrompt
+              onSetup={handleBeginMfaSetup}
+              onSkip={() =>
+                (window.location.href = redirectTo.startsWith('/')
+                  ? redirectTo
+                  : '/')
+              }
+            />
+          ) : status === 'mfa-setup' ? (
+            <MfaSetup
+              qrCodeUrl={qrCodeUrl}
+              secret={secret}
+              onNext={handleTransitionToConfirmMfa}
+            />
+          ) : status === 'confirm-mfa' ? (
+            <ConfirmMfa
+              mfaCode={mfaCode}
+              errorMessage={errorMessage}
+              onChange={setMfaCode}
+              onSubmit={handleConfirmMfaSetup}
+              isLoading={isLoading}
+            />
+          ) : status === 'mfa' ? (
+            <MfaVerify
+              mfaCode={mfaCode}
+              errorMessage={errorMessage}
+              onChange={setMfaCode}
+              onSubmit={handleMfaSubmit}
+              isLoading={isLoading}
+            />
+          ) : status === 'email-mfa' ? (
+            <MfaVerify
+              title="Enter Your Login Code"
+              description="Enter the 6-digit code we emailed to you."
+              mfaCode={mfaCode}
+              errorMessage={errorMessage}
+              onChange={setMfaCode}
+              onSubmit={handleEmailMfaSubmit}
+              isLoading={isLoading}
+            />
+          ) : (
+            <form onSubmit={handleLogin} className="space-y-6">
+              <h2 className="text-3xl font-bold mb-6 text-center">Login</h2>
 
-            <div>
-              <label className="block text-sm mb-1 text-zinc-300">
-                Password
-              </label>
-              <input
-                type="password"
-                autoComplete="current-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onFocus={() => dispatch({ type: 'CLEAR_ERROR' })}
-                className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-4 py-2 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
-              />
-            </div>
-
-            {status === 'error' && (
-              <div className="text-sm text-red-400 text-center">
-                {errorMessage}
+              <div>
+                <label className="block text-sm mb-1 text-zinc-300">
+                  Email or Username
+                </label>
+                <input
+                  type="text"
+                  autoComplete="username"
+                  required
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
+                  onFocus={() => dispatch({ type: 'CLEAR_ERROR' })}
+                  placeholder="Enter your email or username"
+                  className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-4 py-2 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                />
               </div>
-            )}
 
-            <Button
-              type="submit"
-              className="w-full rounded-full"
-              disabled={isLoading}
-            >
-              {isLoading ? 'Signing in...' : 'Sign In'}
-            </Button>
-
-            {['mfa', 'mfa-optional', 'mfa-setup', 'confirm-mfa'].every(
-              (s) => s !== status,
-            ) && (
-              <div className="mt-4 flex flex-col sm:flex-row sm:justify-between gap-2 text-sm text-zinc-400">
-                <button
-                  type="button"
-                  onClick={() => router.push('/account-requests')}
-                  className="text-left hover:text-white underline underline-offset-4 transition"
-                >
-                  Create an account
-                </button>
-                <button
-                  type="button"
-                  onClick={() => router.push('/forgot-password')}
-                  className="text-left sm:text-right hover:text-white underline underline-offset-4 transition"
-                >
-                  Forgot password?
-                </button>
+              <div>
+                <label className="block text-sm mb-1 text-zinc-300">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  autoComplete="current-password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onFocus={() => dispatch({ type: 'CLEAR_ERROR' })}
+                  className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-4 py-2 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                />
               </div>
-            )}
 
-            {status === 'idle' && (
-              <>
-                <div className="flex items-center my-6">
-                  <div className="flex-grow border-t border-zinc-700" />
-                  <span className="mx-4 text-sm text-zinc-400">
-                    Or continue with
-                  </span>
-                  <div className="flex-grow border-t border-zinc-700" />
+              {status === 'error' && (
+                <div className="text-sm text-red-400 text-center">
+                  {errorMessage}
                 </div>
-                <div className="mb-2 flex justify-center">
-                  <GoogleLoginButton onClick={handleGoogleLogin} />
+              )}
+
+              <Button
+                type="submit"
+                className="w-full rounded-full"
+                disabled={isLoading}
+              >
+                {isLoading ? 'Signing in...' : 'Sign In'}
+              </Button>
+
+              {['mfa', 'mfa-optional', 'mfa-setup', 'confirm-mfa'].every(
+                (s) => s !== status,
+              ) && (
+                <div className="mt-4 flex flex-col sm:flex-row sm:justify-between gap-2 text-sm text-zinc-400">
+                  <button
+                    type="button"
+                    onClick={() => router.push('/account-requests')}
+                    className="text-left hover:text-white underline underline-offset-4 transition"
+                  >
+                    Create an account
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => router.push('/forgot-password')}
+                    className="text-left sm:text-right hover:text-white underline underline-offset-4 transition"
+                  >
+                    Forgot password?
+                  </button>
                 </div>
-              </>
-            )}
-          </form>
-        )}
-      </div>
+              )}
+
+              {status === 'idle' && (
+                <>
+                  <div className="flex items-center my-6">
+                    <div className="flex-grow border-t border-zinc-700" />
+                    <span className="mx-4 text-sm text-zinc-400">
+                      Or continue with
+                    </span>
+                    <div className="flex-grow border-t border-zinc-700" />
+                  </div>
+                  <div className="mb-2 flex justify-center">
+                    <GoogleLoginButton onClick={handleGoogleLogin} />
+                  </div>
+                </>
+              )}
+            </form>
+          )}
+        </div>
+      )}
     </div>
   );
 }

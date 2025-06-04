@@ -13,6 +13,7 @@ COPY package.json ./
 # Copy workspace-level package.json files
 COPY apps/backend/package.json ./apps/backend/package.json
 COPY libs/types/package.json ./libs/types/package.json
+COPY libs/shared/package.json ./libs/shared/package.json
 
 # Install dependencies from scratch
 RUN yarn install --frozen-lockfile
@@ -49,6 +50,7 @@ WORKDIR /src/app
 COPY --from=builder /src/app/package.json ./
 COPY --from=builder /src/app/apps/backend/package.json ./apps/backend/package.json
 COPY --from=builder /src/app/libs/types/package.json ./libs/types/package.json
+COPY --from=builder /src/app/libs/shared/package.json ./libs/shared/package.json
 
 # Install runtime dependencies only (no devDependencies)
 RUN yarn install --production --frozen-lockfile

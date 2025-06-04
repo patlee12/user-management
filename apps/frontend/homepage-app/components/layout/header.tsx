@@ -19,8 +19,8 @@ export default function Header() {
 
   return (
     <header className="sticky glow-box top-0 z-50 w-full border-b border-white/10 bg-black/60 backdrop-blur-md shadow-md">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-4 animate-fade-in-up overflow-hidden">
-        <div className="flex items-center min-w-[40px] flex-shrink-0">
+      <div className="relative w-full px-4 sm:px-6 py-4 flex items-center justify-between overflow-hidden">
+        <div className="flex items-center flex-shrink-0 min-w-[40px]">
           {hasMounted && !isAuthPage && user && (
             <>
               <Tooltip.Provider>
@@ -53,22 +53,27 @@ export default function Header() {
             </>
           )}
         </div>
-
-        <div className="flex items-center justify-center flex-1 min-w-0 gap-2 truncate">
-          <ShieldCheck className="h-7 w-7 text-white animate-bounce-slow shrink-0" />
-          <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white truncate">
-            User Management
-          </h1>
+        <div className="absolute inset-0 flex justify-center items-center pointer-events-none">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="h-7 w-7 text-white animate-bounce-slow shrink-0" />
+            <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white truncate">
+              User Management
+            </h1>
+          </div>
         </div>
 
-        <div className="flex items-center justify-end min-w-[40px] flex-shrink-0">
-          {hasMounted && !isAuthPage && !user && (
+        <div className="flex items-center justify-end flex-shrink-0 min-w-[40px] gap-4">
+          <div className="flex items-center justify-end">
             <Link href="/login">
-              <Button variant="primary" className="whitespace-nowrap px-4 py-2">
+              <Button
+                variant="primary"
+                visible={hasMounted && !isAuthPage && !user}
+                className="whitespace-nowrap px-4 py-2"
+              >
                 Login
               </Button>
             </Link>
-          )}
+          </div>
 
           {hasMounted && profile && (
             <Link href="/user/account/profile">

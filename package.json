@@ -27,6 +27,7 @@
   },
   "scripts": {
     "build:types": "yarn workspace @user-management/types build",
+    "build:shared": "yarn workspace @user-management/shared build",
     "env:generate:files": "./scripts/generate-env-files.sh",
     "certs:generate:nginx": "./scripts/generate-nginx-certs.sh",
     "env:backend": "yarn workspace user-management-backend generate:env",
@@ -39,7 +40,7 @@
     "dev": "bash ./scripts/run-dev.sh",
     "build:frontend": "yarn build:types && yarn workspace homepage-app build",
     "build:backend": "yarn workspace user-management-backend build",
-    "build": "yarn build:types && concurrently \"yarn build:frontend\" \"yarn build:backend\"",
+    "build": "yarn build:types && yarn build:shared && concurrently \"yarn build:frontend\" \"yarn build:backend\"",
     "localareanetwork:prod": "docker compose -f docker/docker-compose-local-area-network.yml up --build",
     "reset:localareanetwork": "docker compose -f docker/docker-compose-local-area-network.yml down --volumes --remove-orphans",
     "tunnel": "yarn workspace localtunnel tunnel:with-password"

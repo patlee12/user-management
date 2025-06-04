@@ -8,7 +8,7 @@
   "scripts": {
     "generate:env": "ts-node -P tsconfig.json scripts/generate-backend-env.ts",
     "generate:types": "curl -k https://localhost:3001/api-json -o ../../libs/types/swagger.json && NODE_TLS_REJECT_UNAUTHORIZED=0 npx openapi-typescript-codegen --input ../../libs/types/swagger.json --output ../../libs/types/src/generated && rm ../../libs/types/swagger.json",
-    "build": "yarn prisma generate && nest build --path tsconfig.build.json",
+    "build": "yarn prisma generate && yarn workspace @user-management/shared build && yarn workspace @user-management/types build && nest build --path tsconfig.build.json",
     "copy-mailing-templates": "mkdir -p dist/src/user-management-app/mailing/templates && cp -R src/user-management-app/mailing/templates/. dist/src/user-management-app/mailing/templates",
     "start": "nest start",
     "start:dev": "yarn prisma generate && yarn prisma migrate dev && yarn seed:admin:dev && yarn build && nest start",
@@ -40,6 +40,7 @@
     "@nestjs/jwt": "^10.2.0",
     "@nestjs/passport": "^10.0.3",
     "@nestjs/platform-express": "^10.0.0",
+    "@user-management/shared": "*",
     "@nestjs/schematics": "^10.0.0",
     "@nestjs/swagger": "^7.2.0",
     "@nestjs/testing": "^10.0.0",

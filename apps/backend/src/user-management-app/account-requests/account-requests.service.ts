@@ -9,6 +9,7 @@ import { VerifyAccountRequestDto } from './dto/verify-account-request.dto';
 import {
   AccountRequestNotFoundError,
   InvalidTokenError,
+  MissingTermsAcceptanceError,
   TokenExpiredError,
   VerificationEmailFailed,
 } from './errors/account-request-errors';
@@ -126,15 +127,18 @@ export class AccountRequestsService {
    * 3. If the request is expired, deletes it and throws `TokenExpiredError`.
    * 4. Verifies the provided token against the stored hashed token using Argon2.
    *    - If invalid, deletes the account request and throws `InvalidTokenError`.
-   * 5. Creates a new `User` and `Profile` with the verified request data.
-   * 6. Assigns the default "User" role to the new account via `UserRoles`.
-   * 7. Deletes the original `AccountRequest` after successful user creation.
+   * 5. Runs a database transaction to:
+   *    - Create a new `User` and `Profile` with the verified request data.
+   *    - Assign the default "User" role to the new account via `UserRoles`.
+   *    - Delete the original `AccountRequest`.
+   * 6. Returns the newly created `UserEntity`.
    *
    * @param dto - Data Transfer Object containing `tokenId` and `providedToken`.
    * @returns A newly created `UserEntity` if the token is valid.
    * @throws `AccountRequestNotFoundError` if no matching request is found.
    * @throws `TokenExpiredError` if the request has expired.
    * @throws `InvalidTokenError` if the token hash comparison fails (and the request is removed).
+   * @throws `MissingTermsAcceptanceError` if the request is missing terms acceptance data.
    */
   async verifyAccountRequest(
     dto: VerifyAccountRequestDto,
@@ -154,11 +158,17 @@ export class AccountRequestsService {
       throw new TokenExpiredError();
     }
 
+    if (!accountRequest.acceptedTermsAt) {
+      await this.prisma.accountRequest.delete({
+        where: { id: accountRequest.id },
+      });
+      throw new MissingTermsAcceptanceError();
+    }
+
     const isValid = await argon2.verify(
       accountRequest.token,
       dto.providedToken,
     );
-
     if (!isValid) {
       await this.prisma.accountRequest.delete({
         where: { id: accountRequest.id },
@@ -166,38 +176,45 @@ export class AccountRequestsService {
       throw new InvalidTokenError();
     }
 
-    const newUser = await this.prisma.user.create({
-      data: {
-        username: accountRequest.username,
-        name: accountRequest.name,
-        email: accountRequest.email,
-        emailVerified: true,
-        password: accountRequest.password,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    });
-
-    await this.prisma.profile.create({
-      data: {
-        userId: newUser.id,
-        name: accountRequest.name || accountRequest.username,
-      },
-    });
-
     const role = await this.prisma.role.findUnique({ where: { name: 'User' } });
-    if (role) {
-      await this.prisma.userRoles.create({
+
+    const newUser = await this.prisma.$transaction(async (tx) => {
+      const createdUser = await tx.user.create({
         data: {
-          userId: newUser.id,
-          roleId: role.id,
-          assignedBy: newUser.id,
+          username: accountRequest.username,
+          name: accountRequest.name,
+          email: accountRequest.email,
+          emailVerified: true,
+          password: accountRequest.password,
+          acceptedTermsAt: accountRequest.acceptedTermsAt,
+          termsVersion: accountRequest.termsVersion,
+          createdAt: new Date(),
+          updatedAt: new Date(),
         },
       });
-    }
 
-    await this.prisma.accountRequest.delete({
-      where: { id: accountRequest.id },
+      await tx.profile.create({
+        data: {
+          userId: createdUser.id,
+          name: accountRequest.name || accountRequest.username,
+        },
+      });
+
+      if (role) {
+        await tx.userRoles.create({
+          data: {
+            userId: createdUser.id,
+            roleId: role.id,
+            assignedBy: createdUser.id,
+          },
+        });
+      }
+
+      await tx.accountRequest.delete({
+        where: { id: accountRequest.id },
+      });
+
+      return createdUser;
     });
 
     return newUser;

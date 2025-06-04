@@ -12,7 +12,7 @@ Live Demo:
 This monorepo is focused on providing boilerplate code for a full-stack application that includes a robust **user management system**, featuring:
 
 - **User login**, **User Profiles**, **account creation requests**, **email verification**, and **password recovery**
-- **JWT-based authentication**, **OAuth login (Google)**, **multi-factor authentication (MFA)**, and **role-based authorization**
+- **JWT-based authentication**, **OAuth login (Google)**, **Terms of Use Tracking**, **multi-factor authentication (MFA)**, and **role-based authorization**
 - An **Admin Panel** powered by **AdminJS** for managing users and roles
 - Integration with **Nginx** as a reverse proxy, supporting both:
   - **LAN-based deployments** with mDNS-based service discovery via **Avahi**

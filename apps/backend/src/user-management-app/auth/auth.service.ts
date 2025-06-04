@@ -27,6 +27,9 @@ import {
   PUBLIC_SESSION_SECRET,
   MFA_KEY,
 } from '@src/common/constants/environment';
+import { CURRENT_TERMS_VERSION } from '@user-management/shared';
+import { JwtPayload } from './interfaces/jwt-payload.interface';
+import { AcceptTermsDto } from './dto/accepted-terms.dto';
 
 const getIssuer = DOMAIN_HOST || AVAHI_HOSTNAME || 'User-Management';
 
@@ -40,19 +43,67 @@ export class AuthService {
   ) {}
 
   /**
+   * Generates a standardized access token for authenticated access to the api.
+   * @param userId The User's ID
+   * @param mfaVerified MFA verified?
+   * @returns {string} Signed access token
+   */
+  private generateAccessToken(userId: number, mfaVerified?: boolean): string {
+    const jwt: JwtPayload = {
+      userId,
+      mfaVerified,
+      purpose: 'access',
+    };
+    return this.jwtService.sign(jwt);
+  }
+
+  /**
+   * Generates a public-session JWT token.
+   * @param userId The User's ID
+   * @returns {string} Signed session token.
+   */
+  generatePublicSessionToken(userId: number): string {
+    const jwt: JwtPayload = {
+      userId: userId,
+      purpose: 'session',
+    };
+
+    return this.jwtService.sign(jwt, {
+      secret: PUBLIC_SESSION_SECRET,
+      expiresIn: '30m',
+    });
+  }
+
+  /**
+   * Generates a standardized temp ticket for things like accepting terms after login.
+   * @param userId The user ID
+   * @returns Signed short-lived JWT ticket
+   */
+  private generateTempTicket(userId: number, mfaVerified: boolean): string {
+    const jwt: JwtPayload = {
+      userId,
+      mfaVerified,
+      purpose: 'temp',
+    };
+    return this.jwtService.sign(jwt, { expiresIn: '5m' });
+  }
+
+  /**
    * Generates a standardized MFA challenge ticket for TOTP verification.
    * @param userId The user ID
    * @returns Signed short-lived JWT ticket
    */
   private generateMfaChallengeTicket(userId: number): string {
-    return this.jwtService.sign(
-      { userId, purpose: 'mfa-challenge' },
-      { expiresIn: '5m' },
-    );
+    const jwt: JwtPayload = {
+      userId: userId,
+      purpose: 'mfa-challenge',
+    };
+    return this.jwtService.sign(jwt, { expiresIn: '5m' });
   }
 
   /**
    * Authenticates a user with credentials and handles MFA or fallback email MFA if enabled.
+   * Also verifies if user has accepted most updated terms of use.
    */
   async login(loginDto: LoginDto): Promise<AuthResponseDto> {
     let user = null;
@@ -88,11 +139,16 @@ export class AuthService {
         );
         if (!isMfaValid) throw new UnauthorizedException('Invalid MFA token');
 
+        if (user.termsVersion !== CURRENT_TERMS_VERSION) {
+          return {
+            termsRequired: true,
+            termsVersion: CURRENT_TERMS_VERSION,
+            ticket: this.generateTempTicket(user.id, true),
+          };
+        }
+
         return {
-          accessToken: this.jwtService.sign({
-            userId: user.id,
-            mfaVerified: true,
-          }),
+          accessToken: this.generateAccessToken(user.id, true),
         };
       }
       const ticket = this.generateMfaChallengeTicket(user.id);
@@ -168,31 +224,25 @@ export class AuthService {
 
   /**
    * Issues an access token or MFA ticket depending on user settings.
+   * Also verifies they have updated terms of use acceptance.
    */
   private finalizeOAuthLogin(user: UserEntity): AuthResponseDto {
     if (user.mfaEnabled) {
       const ticket = this.generateMfaChallengeTicket(user.id);
       return { mfaRequired: true, ticket };
     }
-    return {
-      accessToken: this.jwtService.sign({
-        userId: user.id,
-        mfaVerified: false,
-      }),
-    };
-  }
 
-  /**
-   * Generates a public-session JWT token.
-   */
-  generatePublicSessionToken(userId: number): string {
-    return this.jwtService.sign(
-      { userId, publicSession: true },
-      {
-        secret: PUBLIC_SESSION_SECRET,
-        expiresIn: '30m',
-      },
-    );
+    if (user.termsVersion !== CURRENT_TERMS_VERSION) {
+      return {
+        termsRequired: true,
+        termsVersion: CURRENT_TERMS_VERSION,
+        ticket: this.generateTempTicket(user.id, false),
+      };
+    }
+
+    return {
+      accessToken: this.generateAccessToken(user.id, false),
+    };
   }
 
   /**
@@ -200,7 +250,7 @@ export class AuthService {
    */
   async generateMfaSecret(user: UserEntity): Promise<string> {
     const secret = await speakeasy.generateSecret({
-      name: `User Management (${user.email})`,
+      name: `${getIssuer} (${user.email})`,
     });
     return secret.base32;
   }
@@ -237,10 +287,9 @@ export class AuthService {
    * Verifies a TOTP MFA token using the `mfa_ticket`.
    */
   async verifyMfaTicket(mfaDto: MfaDto): Promise<AuthResponseDto> {
-    const payload = await this.jwtService.verifyAsync<{
-      userId: number | string;
-      purpose: string;
-    }>(mfaDto.ticket);
+    const payload = await this.jwtService.verifyAsync<JwtPayload>(
+      mfaDto.ticket,
+    );
 
     if (payload.purpose !== 'mfa-challenge') {
       throw new UnauthorizedException('Invalid MFA ticket');
@@ -257,13 +306,22 @@ export class AuthService {
     const isMfaValid = await this.verifyTotp(userMfa.secret, mfaDto.token);
     if (!isMfaValid) throw new UnauthorizedException('Invalid MFA token');
 
+    if (user.termsVersion !== CURRENT_TERMS_VERSION) {
+      const ticket = this.generateTempTicket(user.id, true);
+      return {
+        termsRequired: true,
+        termsVersion: CURRENT_TERMS_VERSION,
+        ticket,
+      };
+    }
     return {
-      accessToken: this.jwtService.sign({ userId: user.id, mfaVerified: true }),
+      accessToken: this.generateAccessToken(user.id, true),
     };
   }
 
   /**
    * Verifies a fallback 6-digit email MFA code and returns an access token.
+   * Will also return a temp ticket if terms version isn't current.
    */
   async verifyEmailMfaCode(emailMfaDto: EmailMfaDto): Promise<AuthResponseDto> {
     const user = await this.prisma.user.findUnique({
@@ -288,8 +346,17 @@ export class AuthService {
       data: { emailMfaTempCode: null, emailMfaTempExpiresAt: null },
     });
 
+    if (user.termsVersion !== CURRENT_TERMS_VERSION) {
+      const ticket = this.generateTempTicket(user.id, false);
+      return {
+        termsRequired: true,
+        termsVersion: CURRENT_TERMS_VERSION,
+        ticket,
+      };
+    }
+
     return {
-      accessToken: this.jwtService.sign({ userId: user.id, mfaVerified: true }),
+      accessToken: this.generateAccessToken(user.id, true),
     };
   }
 
@@ -311,5 +378,40 @@ export class AuthService {
    */
   private generateSixDigitCode(): string {
     return Math.floor(100000 + Math.random() * 900000).toString();
+  }
+
+  /**
+   * Updates the user's accepted terms version using a valid temp token
+   * and returns a new access token for the session.
+   * @param dto The accept terms DTO
+   * @returns {AuthResponseDto}
+   */
+  async acceptTerms(dto: AcceptTermsDto): Promise<AuthResponseDto> {
+    if (!dto.accepted) {
+      throw new BadRequestException('Terms must be explicitly accepted');
+    }
+    const payload = await this.jwtService.verifyAsync<JwtPayload>(dto.ticket);
+
+    if (payload.purpose !== 'temp') {
+      throw new UnauthorizedException('Invalid temp token');
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: payload.userId },
+    });
+
+    if (!user) throw new UnauthorizedException('User not found');
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        termsVersion: CURRENT_TERMS_VERSION,
+        acceptedTermsAt: new Date(),
+      },
+    });
+
+    return {
+      accessToken: this.generateAccessToken(user.id, payload.mfaVerified),
+    };
   }
 }

@@ -2,6 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { AcceptTermsDto } from '../models/AcceptTermsDto';
 import type { AuthResponseDto } from '../models/AuthResponseDto';
 import type { EmailMfaDto } from '../models/EmailMfaDto';
 import type { LoginDto } from '../models/LoginDto';
@@ -122,6 +123,23 @@ export class AuthService {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/auth/me',
+        });
+    }
+    /**
+     * Accept Terms of Use using a valid ticket
+     * Accepts the Terms of Use using a temporary JWT ticket. Returns an access token if valid.
+     * @param requestBody
+     * @returns AuthResponseDto
+     * @throws ApiError
+     */
+    public static authControllerAcceptTerms(
+        requestBody: AcceptTermsDto,
+    ): CancelablePromise<AuthResponseDto> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/auth/accept-terms',
+            body: requestBody,
+            mediaType: 'application/json',
         });
     }
     /**

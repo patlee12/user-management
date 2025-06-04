@@ -31,6 +31,12 @@ export class AccountRequestEntity implements AccountRequest {
   token: string;
 
   @ApiProperty()
+  acceptedTermsAt: Date;
+
+  @ApiProperty()
+  termsVersion: string;
+
+  @ApiProperty()
   expiresAt: Date;
 
   @ApiProperty()

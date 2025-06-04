@@ -5,6 +5,7 @@ import {
   LoginDto,
   MfaDto,
   MfaResponseDto,
+  AcceptTermsDto,
 } from '@user-management/types';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
@@ -53,7 +54,7 @@ export function oauthLogin(opts: { redirect: string }): void {
  * to complete the authentication process after login.
  *
  * @param mfaDto - The MFA token and ticket from the previous login step.
- * @returns {Promise<AuthResponseDto>} A promise resolving to the final access token if verification succeeds.
+ * @returns {Promise<AuthResponseDto>} A promise resolving to an access token or temp token for terms.
  */
 export async function verifyMfa(mfaDto: MfaDto): Promise<AuthResponseDto> {
   const res = await axiosInstance.post<AuthResponseDto>(
@@ -73,7 +74,7 @@ export async function verifyMfa(mfaDto: MfaDto): Promise<AuthResponseDto> {
  * to complete the fallback email MFA authentication process after login.
  *
  * @param emailMfaDto - The email and 6-digit code sent to the user.
- * @returns {Promise<AuthResponseDto>} A promise resolving to the final access token if verification succeeds.
+ * @returns {Promise<AuthResponseDto>} A promise resolving to the final access token if verification succeeds or terms required and temp token.
  */
 export async function verifyEmailMfa(
   emailMfaDto: EmailMfaDto,
@@ -120,4 +121,24 @@ export async function confirmMfaSetup(mfaDto: MfaDto): Promise<boolean> {
  */
 export async function logout(): Promise<void> {
   await axiosInstance.post('/auth/logout');
+}
+
+/**
+ * Sends a POST request to `/auth/accept-terms` with a temporary JWT ticket and an explicit acceptance.
+ * The backend will validate the `ticket` and, if valid, update the user's `termsVersion`.
+ * On success, an updated access token is returned.
+ *
+ * @param acceptTermsDto - The `AcceptTermsDto` containing:
+ *   - `ticket`: Temporary JWT ticket authorizing the user to accept the latest terms
+ *   - `accepted`: Must be `true` to confirm acceptance
+ * @returns {Promise<AuthResponseDto>} A promise resolving to a new access token after terms have been accepted.
+ */
+export async function acceptTerms(
+  acceptTermsDto: AcceptTermsDto,
+): Promise<AuthResponseDto> {
+  const res = await axiosInstance.post<AuthResponseDto>(
+    '/auth/accept-terms',
+    acceptTermsDto,
+  );
+  return res.data;
 }

@@ -8,6 +8,8 @@ export type AccountRequestEntity = {
     username: string;
     email: string;
     tokenId: string;
+    acceptedTermsAt: string;
+    termsVersion: string;
     expiresAt: string;
     createdAt: string;
 };
