@@ -8,8 +8,8 @@ RUN apk add --no-cache bash openssl libressl curl
 
 WORKDIR /src/app
 
-# 1) Copy root level package.json & yarn.lock
-COPY package.json yarn.lock ./
+# 1) Copy root level package.json
+COPY package.json ./
 
 # 2) Copy backend’s package.json and tsconfig files
 COPY apps/backend/package.json ./apps/backend/package.json

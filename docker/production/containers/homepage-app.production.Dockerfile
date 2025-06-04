@@ -6,7 +6,7 @@ FROM node:22.14.0-alpine AS builder
 WORKDIR /app
 
 # 1) Copy root and workspace package files
-COPY package.json yarn.lock ./
+COPY package.json ./
 COPY apps/frontend/homepage-app/package.json apps/frontend/homepage-app/package.json
 COPY libs/types/package.json libs/types/package.json
 COPY libs/shared/package.json libs/shared/package.json
