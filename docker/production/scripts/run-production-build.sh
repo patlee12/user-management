@@ -4,14 +4,19 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 
+# ────────────────────────────────────────────────────────
+# Paths and configuration
+# ────────────────────────────────────────────────────────
 ENV_FILE="$ROOT_DIR/docker/production/.env.production"
 LIVE_CERT_DIR="$ROOT_DIR/docker/production/nginx/certs/live"
 NGINX_CONF_OUTPUT="$ROOT_DIR/docker/production/nginx/nginx.production.conf"
 CERTBOT_SCRIPT="$SCRIPT_DIR/request-certbot-cert.sh"
 NGINX_SERVICE_NAME="nginx"
-COMPOSE_FILE="$ROOT_DIR/docker/production/docker-compose-production.yml"
+COMPOSE_FILE="$ROOT_DIR/docker/production/compose.production.yml"
 
-# Step 0: Clean up conflicting containers and unused Docker artifacts
+# ────────────────────────────────────────────────────────
+# Step 0: Cleanup
+# ────────────────────────────────────────────────────────
 echo "🧼 [0/14] Cleaning up any previously stopped or named containers..."
 CONFLICT_NAMES=("postgres" "nginx" "cert-renewer" "homepage-app" "nestjs" "adminer")
 for name in "${CONFLICT_NAMES[@]}"; do
@@ -30,17 +35,23 @@ docker image prune -f
 echo "🧹 Removing unused networks..."
 docker network prune -f
 
-# Step 1: Ensure permissions
+# ────────────────────────────────────────────────────────
+# Step 1: Setup permissions
+# ────────────────────────────────────────────────────────
 echo ""
 echo "🔧 [1/14] Running setup.sh to ensure permissions…"
 bash "$SCRIPT_DIR/setup.sh"
 
-# Step 2–6: Setup environment, config, and fallback certs
+# ────────────────────────────────────────────────────────
+# Step 2–6: Env, config, fallback certs
+# ────────────────────────────────────────────────────────
 echo ""
 echo "🔄 [2–6] Running generate-production.sh to set up env and fallback certs…"
 "$SCRIPT_DIR/generate-production.sh"
 
-# Step 7: Load environment
+# ────────────────────────────────────────────────────────
+# Step 7: Load env
+# ────────────────────────────────────────────────────────
 echo ""
 echo "📦 [7/14] Sourcing environment variables from .env.production..."
 if [[ -f "$ENV_FILE" ]]; then
@@ -52,14 +63,25 @@ else
   exit 1
 fi
 
-# Step 8: Start nginx container
+# ────────────────────────────────────────────────────────
+# Step 8: Build backend services
+# ────────────────────────────────────────────────────────
 echo ""
-echo "🚀 [8/14] Starting nginx container for initial TLS routing..."
+echo "📦 [8/14] Building backend services (nestjs, homepage-app)…"
+docker compose -f "$COMPOSE_FILE" build nestjs homepage-app
+
+# ────────────────────────────────────────────────────────
+# Step 9: Boot nginx
+# ────────────────────────────────────────────────────────
+echo ""
+echo "🚀 [9/14] Starting nginx container for initial TLS routing..."
 docker compose -f "$COMPOSE_FILE" up -d "$NGINX_SERVICE_NAME"
 
-# Step 9: Wait for nginx to be reachable only if using Let's Encrypt
+# ────────────────────────────────────────────────────────
+# Step 10: Wait for nginx HTTP if LE certs
+# ────────────────────────────────────────────────────────
 if [[ "${USE_MANUAL_CERTS:-false}" != "true" ]]; then
-  echo "🌐 [9/14] Waiting for Nginx to respond on http://$DOMAIN_HOST…"
+  echo "🌐 [10/14] Waiting for Nginx to respond on http://$DOMAIN_HOST…"
   for i in {1..30}; do
     if curl -s --head "http://$DOMAIN_HOST" | grep -q "HTTP/1.1 301"; then
       echo "✅ Nginx is reachable (HTTP 301)"
@@ -68,23 +90,27 @@ if [[ "${USE_MANUAL_CERTS:-false}" != "true" ]]; then
     sleep 2
   done
 else
-  echo "⏩ [9/14] Skipping HTTP check — manual cert mode enabled."
+  echo "⏩ [10/14] Skipping HTTP check — manual cert mode enabled."
 fi
 
-# Step 10: Attempt Let's Encrypt cert (unless manually overridden)
+# ────────────────────────────────────────────────────────
+# Step 11: Request cert
+# ────────────────────────────────────────────────────────
 echo ""
 if [[ "${USE_MANUAL_CERTS:-false}" == "true" ]]; then
-  echo "📦 [10/14] Manual certificate override enabled — skipping Certbot request."
+  echo "📦 [11/14] Manual certificate override enabled — skipping Certbot request."
 else
-  echo "🔐 [10/14] Attempting Let's Encrypt certificate request…"
+  echo "🔐 [11/14] Attempting Let's Encrypt certificate request…"
   if ! bash "$CERTBOT_SCRIPT"; then
     echo "❌ Certbot failed (possibly due to rate limits or other errors), falling back to self-signed certificates."
   fi
 fi
 
-# Step 11: Rebuild nginx config with proper cert path
+# ────────────────────────────────────────────────────────
+# Step 12: Rebuild config and reload nginx
+# ────────────────────────────────────────────────────────
 echo ""
-echo "🧱 [11/14] Rebuilding Nginx config with correct cert paths…"
+echo "🧱 [12/14] Rebuilding Nginx config with correct cert paths…"
 CERT_DIR_PATH="$LIVE_CERT_DIR/$DOMAIN_HOST"
 LE_CERT="$CERT_DIR_PATH/fullchain.pem"
 LE_KEY="$CERT_DIR_PATH/privkey.pem"
@@ -112,9 +138,11 @@ docker compose -f "$COMPOSE_FILE" exec "$NGINX_SERVICE_NAME" nginx -s reload || 
   docker compose -f "$COMPOSE_FILE" restart "$NGINX_SERVICE_NAME"
 }
 
-# Step 12: Build and run all services (without cert-renewer if using manual certs)
+# ────────────────────────────────────────────────────────
+# Step 13–14: Launch stack
+# ────────────────────────────────────────────────────────
 echo ""
-echo "🔄 [12/14] Building and launching all containers..."
+echo "🔄 [13/14] Building and launching all containers…"
 
 if [[ "${USE_MANUAL_CERTS:-false}" == "true" ]]; then
   echo "❌ USE_MANUAL_CERTS=true detected — cert-renewer will be disabled."
