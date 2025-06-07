@@ -102,7 +102,7 @@ Ensure these values are set in your `.env`:
 - `NODE_ENV=Development`
 - `ENABLE_SWAGGER=true`
 
-> When running Dev mode two windows will open for both the next.js and nest.js apps you must proceed with accepting the self signed certs for both before trying to use them. The Next.js app will not be able to make api calls without you accepting the nest.js certificate in the browser.
+> When running Dev mode two windows will open for both the Next.js and NestJS apps you must proceed with accepting the self signed certs for both before trying to use them. The Next.js app will not be able to make api calls without you accepting the NestJS app's certificate in the browser.
 
 ```bash
 # From repo root, choose "Dev (dev mode)" when prompted
