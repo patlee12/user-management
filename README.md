@@ -28,7 +28,7 @@ This project is structured as a **monorepo**, where both frontend and backend ap
 
 ### Workspaces
 
-- [`apps/backend`](./apps/backend): Nest.js-based backend
+- [`apps/backend`](./apps/backend): NestJS-based backend
 - [`apps/frontend`](./apps/frontend): Frontend apps, currently includes a Next.js homepage
 - [`docker`](./docker): Contains all Docker-related files and deployment configs
 
