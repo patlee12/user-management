@@ -1,18 +1,20 @@
+version: '3.9'
+
 services:
   postgres:
-    image: postgres:13.5
     container_name: postgres
-    restart: always
+    image: postgres:13.5
+    restart: on-failure
     env_file:
       - .env
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: '${POSTGRES_USER}'
+      POSTGRES_PASSWORD: '${POSTGRES_PASSWORD}'
+      POSTGRES_DB: '${POSTGRES_DB}'
     volumes:
       - dev_postgres_data:/var/lib/postgresql/data
     ports:
-      - 5432:5432
+      - '5432:5432'
     networks:
       - full-stack-network
     healthcheck:
@@ -22,9 +24,9 @@ services:
       retries: 5
 
   adminer:
-    image: adminer
     container_name: adminer
-    restart: always
+    image: adminer
+    restart: on-failure
     depends_on:
       postgres:
         condition: service_healthy
@@ -34,9 +36,9 @@ services:
       - .env
     environment:
       ADMINER_DEFAULT_SERVER: postgres
-      ADMINER_DEFAULT_USER: ${POSTGRES_USER}
-      ADMINER_DEFAULT_PASSWORD: ${POSTGRES_PASSWORD}
-      ADMINER_DEFAULT_DB: ${POSTGRES_DB}
+      ADMINER_DEFAULT_USER: '${POSTGRES_USER}'
+      ADMINER_DEFAULT_PASSWORD: '${POSTGRES_PASSWORD}'
+      ADMINER_DEFAULT_DB: '${POSTGRES_DB}'
     networks:
       - full-stack-network
     healthcheck:
@@ -50,5 +52,4 @@ volumes:
 
 networks:
   full-stack-network:
-    name: full-stack-network
     driver: bridge
