@@ -184,9 +184,10 @@ if [[ "$setup_email" =~ ^[yY]$ ]]; then
   echo ""
 
   if [[ -f "$BACKEND_ENV_FILE" ]]; then
-    sed -i '' -e "/^MAIL_SERVICE_PROVIDER=/d" "$BACKEND_ENV_FILE"
-    sed -i '' -e "/^EMAIL_USER=/d" "$BACKEND_ENV_FILE"
-    sed -i '' -e "/^EMAIL_PASS=/d" "$BACKEND_ENV_FILE"
+    # Delete existing email settings
+    sed -i -e "/^MAIL_SERVICE_PROVIDER=/d" "$BACKEND_ENV_FILE"
+    sed -i -e "/^EMAIL_USER=/d" "$BACKEND_ENV_FILE"
+    sed -i -e "/^EMAIL_PASS=/d" "$BACKEND_ENV_FILE"
 
     {
       echo ""
