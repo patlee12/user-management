@@ -3,6 +3,7 @@ set +e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+COMPOSE_DEV_FILE="$ROOT_DIR/docker/compose.development.yml"
 BACKEND_ENV_FILE="$ROOT_DIR/apps/backend/.env"
 GENERATE_SCRIPT="$SCRIPT_DIR/generate-env-files.sh"
 
@@ -104,7 +105,7 @@ if [[ "$production_detected" == true ]]; then
   read -rp "🧹 Do you also want to reset the dev Postgres database volume 'dev_postgres_data'? This will DELETE ALL DATA. (y/N): " reset_pg_on_prod
   if [[ "$reset_pg_on_prod" =~ ^[yY]$ ]]; then
     echo "🛑 Stopping containers and removing volume..."
-    docker compose -f "$ROOT_DIR/docker/docker-compose-development.yml" down -v
+    docker compose -f "$COMPOSE_DEV_FILE" down -v
     echo "✅ Volume 'dev_postgres_data' has been reset."
     pg_volume_handled=true
   else
@@ -144,7 +145,7 @@ if [[ "$pg_volume_handled" != true ]]; then
   read -rp "🧹 Do you want to reset the dev Postgres database volume 'dev_postgres_data'? This will DELETE ALL DATA. (y/N): " reset_pg
   if [[ "$reset_pg" =~ ^[yY]$ ]]; then
     echo "🛑 Stopping containers and removing volume..."
-    docker compose -f "$ROOT_DIR/docker/docker-compose-development.yml" down -v
+    docker compose -f "$COMPOSE_DEV_FILE" down -v
     echo "✅ Volume 'dev_postgres_data' has been reset."
   else
     echo "↩️  Skipping Postgres volume reset."
