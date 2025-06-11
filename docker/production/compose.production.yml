@@ -1,10 +1,10 @@
 services:
   nginx:
+    container_name: nginx
     build:
       context: ../..
       dockerfile: ./docker/production/containers/nginx.production.Dockerfile
     image: user-management-nginx
-    container_name: nginx
     restart: on-failure
     ports:
       - '80:80'
@@ -18,12 +18,14 @@ services:
     networks:
       - full-stack-network
     depends_on:
-      - homepage-app
-      - nestjs
+      homepage-app:
+        condition: service_started
+      nestjs:
+        condition: service_started
 
   certbot:
-    image: certbot/certbot:latest
     container_name: certbot
+    image: certbot/certbot:latest
     restart: unless-stopped
     volumes:
       - ../../docker/production/nginx/certs/live:/etc/letsencrypt/live
@@ -31,10 +33,10 @@ services:
     entrypoint: ['sleep', 'infinity']
 
   cert-renewer:
+    container_name: cert-renewer
     build:
       context: ../..
       dockerfile: ./docker/production/containers/cert-renewer.Dockerfile
-    container_name: cert-renewer
     restart: unless-stopped
     volumes:
       - ../../docker/production/nginx/certs/live:/etc/letsencrypt/live
@@ -45,16 +47,16 @@ services:
       - full-stack-network
 
   postgres:
-    image: postgres:13.5
     container_name: postgres
+    image: postgres:13.5
     restart: on-failure
     env_file:
       - ../../docker/production/.env.production
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-      DATABASE_URL: 'postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}'
+      POSTGRES_USER: '${POSTGRES_USER}'
+      POSTGRES_PASSWORD: '${POSTGRES_PASSWORD}'
+      POSTGRES_DB: '${POSTGRES_DB}'
+      DATABASE_URL: 'postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}'
     volumes:
       - postgres:/var/lib/postgresql/data
     networks:
@@ -66,8 +68,8 @@ services:
       retries: 10
 
   adminer:
-    image: adminer
     container_name: adminer
+    image: adminer
     restart: on-failure
     env_file:
       - ../../docker/production/.env.production
@@ -76,18 +78,19 @@ services:
     networks:
       - full-stack-network
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     environment:
       ADMINER_DEFAULT_SERVER: postgres
-      ADMINER_DEFAULT_DB: ${POSTGRES_DB}
-      ADMINER_DEFAULT_USER: ${POSTGRES_USER}
-      ADMINER_DEFAULT_PASSWORD: ${POSTGRES_PASSWORD}
+      ADMINER_DEFAULT_DB: '${POSTGRES_DB}'
+      ADMINER_DEFAULT_USER: '${POSTGRES_USER}'
+      ADMINER_DEFAULT_PASSWORD: '${POSTGRES_PASSWORD}'
 
   nestjs:
+    container_name: nestjs
     build:
       context: ../..
       dockerfile: ./docker/production/containers/nest.production.Dockerfile
-    container_name: nestjs
     restart: on-failure
     env_file:
       - ../../docker/production/.env.production
@@ -99,10 +102,10 @@ services:
         condition: service_healthy
 
   homepage-app:
+    container_name: homepage-app
     build:
       context: ../..
       dockerfile: ./docker/production/containers/homepage-app.production.Dockerfile
-    container_name: homepage-app
     restart: on-failure
     ports:
       - '3001:3000'
@@ -112,7 +115,8 @@ services:
     networks:
       - full-stack-network
     depends_on:
-      - nestjs
+      nestjs:
+        condition: service_started
     healthcheck:
       test: ['CMD', 'wget', '--spider', '-q', 'http://localhost:3000']
       interval: 30s
@@ -121,7 +125,7 @@ services:
 
 volumes:
   postgres:
-    name: ${POSTGRES_VOLUME_NAME}
+    name: '${POSTGRES_VOLUME_NAME}'
 
 networks:
   full-stack-network:
