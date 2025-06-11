@@ -7,7 +7,7 @@ echo "🔧 Preparing your local environment..."
 # ────────────────────────────────────────────────────────────────
 # Centralized Path Variables
 # ────────────────────────────────────────────────────────────────
-COMPOSE_FILE="./docker/docker-compose-local-area-network.yml"
+COMPOSE_FILE="./docker/compose.localareanetwork.yml"
 POSTGRES_VOLUME_NAME="localareanetwork-production-postgres"
 
 ENV_FILE_DOCKER="./docker/.env"

@@ -41,8 +41,8 @@
     "build:frontend": "yarn build:types && yarn workspace homepage-app build",
     "build:backend": "yarn workspace user-management-backend build",
     "build": "yarn build:types && yarn build:shared && concurrently \"yarn build:frontend\" \"yarn build:backend\"",
-    "localareanetwork:prod": "docker compose -f docker/docker-compose-local-area-network.yml up --build",
-    "reset:localareanetwork": "docker compose -f docker/docker-compose-local-area-network.yml down --volumes --remove-orphans",
+    "localareanetwork:prod": "docker compose -f docker/compose.localareanetwork.yml up --build",
+    "reset:localareanetwork": "docker compose -f docker/compose.localareanetwork.yml down --volumes --remove-orphans",
     "tunnel": "yarn workspace localtunnel tunnel:with-password"
   }
 }

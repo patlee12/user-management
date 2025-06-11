@@ -15,7 +15,7 @@ ENV_DOCKER="$ROOT_DIR/docker/.env"
 ENV_BACKEND="$ROOT_DIR/apps/backend/.env.localareanetwork"
 ENV_FRONTEND="$ROOT_DIR/apps/frontend/homepage-app/.env.localareanetwork"
 
-LAN_COMPOSE_FILE="$ROOT_DIR/docker/docker-compose-local-area-network.yml"
+LAN_COMPOSE_FILE="$ROOT_DIR/docker/compose.localareanetwork.yml"
 
 # ────────────────────────────────────────────────────────────────
 # VM Detection
