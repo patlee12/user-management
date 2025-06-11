@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 
 echo "[Homepage] Waiting for resolved hostname..."
 while [ ! -f /avahi/resolved-hostname.env ]; do
@@ -12,7 +13,6 @@ done
 export NEXT_PUBLIC_BACKEND_URL="${RESOLVED_HOST}/nestjs"
 echo "[Homepage] NEXT_PUBLIC_BACKEND_URL resolved to: $NEXT_PUBLIC_BACKEND_URL"
 
-# Ensure we're already in the right directory (WORKDIR in Dockerfile)
 echo "[Homepage] Building Next.js frontend (rebuild with updated env)..."
 yarn build:docker
 
