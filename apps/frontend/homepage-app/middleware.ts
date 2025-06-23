@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
 
+const publicSessionSecret = process.env.PUBLIC_SESSION_SECRET!;
+
 const publicPaths = [
   '/',
   '/about',
@@ -19,8 +21,11 @@ export async function middleware(req: NextRequest) {
   // Ignore static files and public routes
   if (
     pathname.startsWith('/_next') ||
-    pathname.startsWith('/favicon.ico') ||
     pathname.startsWith('/assets') ||
+    pathname === '/favicon.ico' ||
+    pathname === '/favicon.png' ||
+    pathname === '/robots.txt' ||
+    pathname.match(/\.(png|jpg|jpeg|gif|svg|ico|css|js|woff2?)$/) ||
     publicPaths.some(
       (path) => pathname === path || pathname.startsWith(`${path}/`),
     )
@@ -39,7 +44,7 @@ export async function middleware(req: NextRequest) {
 
   try {
     // Convert secret string to a Uint8Array using TextEncoder
-    const secret = new TextEncoder().encode(process.env.PUBLIC_SESSION_SECRET!);
+    const secret = new TextEncoder().encode(publicSessionSecret);
     await jwtVerify(token, secret);
   } catch (err) {
     console.warn('🚫 Invalid token in middleware:', err);
