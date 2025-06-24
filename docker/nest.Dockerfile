@@ -1,6 +1,17 @@
 # ─── Stage 1: Builder ─────────────────────────────────
-FROM node:22.13.1-alpine AS builder
-RUN apk add --no-cache bash openssl libressl curl
+FROM node:22-alpine AS builder
+
+# Install required build tools
+RUN apk add --no-cache \
+    bash \
+    curl \
+    openssl \
+    ca-certificates \
+    libc6-compat \
+    python3 \
+    make \
+    g++
+
 WORKDIR /src/app
 
 # 1) Copy manifests & root TS config
@@ -34,8 +45,17 @@ RUN yarn workspace user-management-backend prisma generate
 RUN yarn workspace user-management-backend build
 
 # ─── Stage 2: Runner ──────────────────────────────────
-FROM node:22.13.1-alpine AS runner
-RUN apk add --no-cache bash curl libressl
+FROM node:22-alpine AS runner
+
+# Install runtime tools
+RUN apk add --no-cache \
+    bash \
+    curl \
+    openssl \
+    ca-certificates \
+    libc6-compat
+
+
 WORKDIR /src/app
 
 # Copy runtime manifests
