@@ -8,5 +8,5 @@
   "files.associations": {
     "*.css": "tailwindcss"
   },
-  "cSpell.words": ["embla"]
+  "cSpell.words": ["cuid", "embla"]
 }
