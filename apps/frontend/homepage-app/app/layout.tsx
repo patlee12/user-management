@@ -8,6 +8,9 @@ import SessionLoader from '@/components/layout/session-loader';
 
 export const metadata = {
   title: 'User Management',
+  icons: {
+    icon: '/favicon.png',
+  },
   description: 'Modern full-stack authentication and management system',
 };
 

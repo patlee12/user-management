@@ -4,7 +4,7 @@ set -euo pipefail
 echo ""
 echo "🧹 Stopping and removing dev containers..."
 
-DEV_COMPOSE_FILE="./docker/docker-compose-development.yml"
+DEV_COMPOSE_FILE="./docker/compose.development.yml"
 
 # Step 1: Standard compose down
 if [ -f "$DEV_COMPOSE_FILE" ]; then

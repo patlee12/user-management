@@ -7,7 +7,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 LOG_DIR="$ROOT_DIR/docker/production/nginx/logs"
-COMPOSE_FILE="$ROOT_DIR/docker/production/docker-compose-production.yml"
+COMPOSE_FILE="$ROOT_DIR/docker/production/compose.production.yml"
 NGINX_CONTAINER="nginx"
 
 # ────────────────────────────────────────────────────────
