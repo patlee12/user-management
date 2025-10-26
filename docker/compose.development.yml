@@ -14,7 +14,7 @@ services:
     volumes:
       - dev_postgres_data:/var/lib/postgresql/data
     ports:
-      - '5432:5432'
+      - '5435:5432'
     networks:
       - full-stack-network
     healthcheck:
