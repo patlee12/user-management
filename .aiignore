@@ -1,0 +1,23 @@
+
+# Environment files
+.env
+.env.*
+*.env
+
+# Node modules
+node_modules/
+
+# Build output
+dist/
+build/
+.next/
+
+# Log files
+*.log
+
+# Docker secrets
+docker/secrets/
+
+# IDE/Editor specific
+.vscode/
+.idea/
