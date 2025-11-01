@@ -18,6 +18,13 @@ build/
 # Docker secrets
 docker/secrets/
 
+# Certificates
+certs/
+*.zip
+*.cert
+*.crt
+*.csr
+
 # IDE/Editor specific
 .vscode/
 .idea/
