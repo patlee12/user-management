@@ -1,3 +1,4 @@
+
 services:
   nginx:
     container_name: nginx
@@ -19,9 +20,9 @@ services:
       - full-stack-network
     depends_on:
       homepage-app:
-        condition: service_started
+        condition: service_healthy
       nestjs:
-        condition: service_started
+        condition: service_healthy
 
   certbot:
     container_name: certbot
@@ -50,8 +51,6 @@ services:
     container_name: postgres
     image: postgres:13.5
     restart: on-failure
-    env_file:
-      - ../../docker/production/.env.production
     environment:
       POSTGRES_USER: '${POSTGRES_USER}'
       POSTGRES_PASSWORD: '${POSTGRES_PASSWORD}'
@@ -71,8 +70,6 @@ services:
     container_name: adminer
     image: adminer
     restart: on-failure
-    env_file:
-      - ../../docker/production/.env.production
     ports:
       - '8080:8080'
     networks:
@@ -92,14 +89,16 @@ services:
       context: ../..
       dockerfile: ./docker/production/containers/nest.production.Dockerfile
     restart: on-failure
-    env_file:
-      - ../../docker/production/.env.production
-      - ../../apps/backend/.env
     networks:
       - full-stack-network
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'wget', '--spider', '-q', 'http://localhost:3001/health']
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
   homepage-app:
     container_name: homepage-app
@@ -109,14 +108,11 @@ services:
     restart: on-failure
     ports:
       - '3001:3000'
-    env_file:
-      - ../../docker/production/.env.production
-      - ../../apps/frontend/homepage-app/.env
     networks:
       - full-stack-network
     depends_on:
       nestjs:
-        condition: service_started
+        condition: service_healthy
     healthcheck:
       test: ['CMD', 'wget', '--spider', '-q', 'http://localhost:3000']
       interval: 30s

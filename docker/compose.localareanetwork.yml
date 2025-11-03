@@ -1,3 +1,4 @@
+
 services:
   nginx:
     build:
@@ -53,7 +54,7 @@ services:
     volumes:
       - localareanetwork-production-postgres:/var/lib/postgresql/data
     ports:
-      - '5432:5432'
+      - '5435:5432'
     networks:
       - full-stack-network
     healthcheck:
@@ -81,47 +82,33 @@ services:
       ADMINER_DEFAULT_PASSWORD: '${POSTGRES_PASSWORD}'
 
   nestjs:
+    container_name: nestjs
     build:
       context: ..
-      dockerfile: ./docker/nest.Dockerfile
-    container_name: nestjs
-    restart: always
+      dockerfile: docker/nest.Dockerfile
     env_file:
-      - .env
-      - ../apps/backend/.env
-      - ../apps/backend/.env.localareanetwork
-    networks:
-      - full-stack-network
+      - ../${BACKEND_ENV_FILE:-apps/backend/.env.localareanetwork}
     depends_on:
       postgres:
         condition: service_healthy
-      hostname-printer:
-        condition: service_completed_successfully
-    volumes:
-      - avahi-logs:/avahi
-    entrypoint: /usr/local/bin/wait-and-start-nest.sh
-
-  homepage-app:
-    build:
-      context: ..
-      dockerfile: ./docker/homepage-app.Dockerfile
-    container_name: homepage-app
-    restart: always
-    ports:
-      - '3001:3000'
-    env_file:
-      - .env
-      - ../apps/frontend/homepage-app/.env
     networks:
       - full-stack-network
-    depends_on:
-      hostname-printer:
-        condition: service_completed_successfully
-      nestjs:
-        condition: service_started
     volumes:
       - avahi-logs:/avahi
-    entrypoint: /usr/local/bin/wait-and-build-frontend.sh
+
+  homepage-app:
+    container_name: homepage-app
+    build:
+      context: ..
+      dockerfile: docker/homepage-app.Dockerfile
+    env_file:
+      - ../${FRONTEND_ENV_FILE:-apps/frontend/homepage-app/.env.localareanetwork}
+    depends_on:
+      - nestjs
+    networks:
+      - full-stack-network
+    volumes:
+      - avahi-logs:/avahi
 
   hostname-printer:
     image: ubuntu:22.04

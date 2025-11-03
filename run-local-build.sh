@@ -101,6 +101,10 @@ if [[ "$1" == "--vm-mode" || "$IS_VM" == "true" ]]; then
   [ -f "$ENV_FRONTEND" ] && source "$ENV_FRONTEND"
   set +a
 
+  # Set env file paths for docker-compose
+  export BACKEND_ENV_FILE="apps/backend/.env.localareanetwork"
+  export FRONTEND_ENV_FILE="apps/frontend/homepage-app/.env.localareanetwork"
+
   echo "🚀 Starting Docker Compose for VM/production..."
   docker compose -f "$LAN_COMPOSE_FILE" up --build
   exit 0
@@ -125,6 +129,10 @@ if [ "$IS_UBUNTU" == "true" ]; then
   [ -f "$ENV_BACKEND" ] && source "$ENV_BACKEND"
   [ -f "$ENV_FRONTEND" ] && source "$ENV_FRONTEND"
   set +a
+
+  # Set env file paths for docker-compose
+  export BACKEND_ENV_FILE="apps/backend/.env.localareanetwork"
+  export FRONTEND_ENV_FILE="apps/frontend/homepage-app/.env.localareanetwork"
 
   echo "🚀 Running on Ubuntu. Proceeding with local production build..."
   docker compose -f "$LAN_COMPOSE_FILE" build --no-cache

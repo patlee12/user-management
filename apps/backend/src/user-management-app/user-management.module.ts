@@ -8,9 +8,11 @@ import { AccountRequestsModule } from './account-requests/account-requests.modul
 import { PasswordResetModule } from './password-reset/password-reset.module';
 import { MailingModule } from './mailing/mailing.module';
 import { ProfilesModule } from './profiles/profiles.module';
+import { HealthModule } from '../health/health.module';
 
 @Module({
   imports: [
+    HealthModule,
     AuthModule,
     MailingModule,
     PrismaModule,

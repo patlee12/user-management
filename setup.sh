@@ -10,6 +10,10 @@ echo "🔧 Preparing your local environment..."
 COMPOSE_FILE="./docker/compose.localareanetwork.yml"
 POSTGRES_VOLUME_NAME="localareanetwork-production-postgres"
 
+# Set env file paths for docker-compose
+export BACKEND_ENV_FILE="apps/backend/.env.localareanetwork"
+export FRONTEND_ENV_FILE="apps/frontend/homepage-app/.env.localareanetwork"
+
 ENV_FILE_DOCKER="./docker/.env"
 ENV_FILE_BACKEND="./apps/backend/.env"
 ENV_FILE_FRONTEND="./frontend/homepage-app/.env"
