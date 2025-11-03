@@ -2,11 +2,14 @@
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "cSpell.blockCheckingWhenTextChunkSizeGreaterThan": 2000,
+  "tabnine.telemetry": false,
+  "tabnine.experimentalAutoImports": true,
+  "tabnine.experimentalAutoComplete": true,
   "editor.quickSuggestions": {
     "strings": true
   },
   "files.associations": {
     "*.css": "tailwindcss"
   },
-  "cSpell.words": ["embla"]
+  "cSpell.words": ["cuid", "embla"]
 }

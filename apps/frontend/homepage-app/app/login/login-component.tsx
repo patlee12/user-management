@@ -36,6 +36,7 @@ import { TermsPrompt } from '@user-management/shared';
  */
 export default function LoginComponent() {
   const router = useRouter();
+  const enableOAuth = process.env.NEXT_PUBLIC_ENABLE_OAUTH === 'true';
   const { loadUser } = useAuthStore((s) => s);
 
   const [redirectTo, setRedirectTo] = useState('/');
@@ -65,31 +66,36 @@ export default function LoginComponent() {
     const redirect = params.get('redirect');
     if (redirect) setRedirectTo(redirect);
 
-    // OAuth redirect flow
-    const mfaRequired = params.get('mfaRequired');
-    const termsRequired = params.get('termsRequired');
-    const ticketParam = params.get('ticket');
+    const handleOAuthRedirect = () => {
+      const mfaRequired = params.get('mfaRequired');
+      const termsRequired = params.get('termsRequired');
+      const ticketParam = params.get('ticket');
 
-    if (termsRequired === 'true' && ticketParam) {
-      // Handle OAuth redirect requiring Terms of Use acceptance
-      setTermsTicket(ticketParam);
-      dispatch({ type: 'TERMS_REQUIRED', ticket: ticketParam });
+      if (termsRequired === 'true' && ticketParam) {
+        // Handle OAuth redirect requiring Terms of Use acceptance
+        setTermsTicket(ticketParam);
+        dispatch({ type: 'TERMS_REQUIRED', ticket: ticketParam });
+        cleanupUrlParams(['termsRequired', 'ticket']);
+        return true;
+      }
 
-      params.delete('termsRequired');
-      params.delete('ticket');
+      if (mfaRequired === 'true' && ticketParam) {
+        dispatch({ type: 'MFA_REQUIRED', ticket: ticketParam });
+        cleanupUrlParams(['mfaRequired', 'ticket']);
+        return true;
+      }
+
+      return false;
+    };
+
+    const cleanupUrlParams = (keysToDelete: string[]) => {
+      keysToDelete.forEach((key) => params.delete(key));
       const base = window.location.pathname;
       const newQs = params.toString();
       window.history.replaceState(null, '', base + (newQs ? `?${newQs}` : ''));
-    } else if (mfaRequired === 'true' && ticketParam) {
-      dispatch({ type: 'MFA_REQUIRED', ticket: ticketParam });
+    };
 
-      params.delete('mfaRequired');
-      params.delete('ticket');
-      const base = window.location.pathname;
-      const newQs = params.toString();
-      window.history.replaceState(null, '', base + (newQs ? `?${newQs}` : ''));
-    } else {
-      // fallback to cookie logic for regular login/MFA
+    const handleCookieBasedAuth = () => {
       const cookieMap = document.cookie
         .split('; ')
         .reduce<Record<string, string>>((acc, curr) => {
@@ -109,6 +115,11 @@ export default function LoginComponent() {
           });
         });
       }
+    };
+
+    // Try OAuth redirect flow first, fallback to cookie-based auth
+    if (!handleOAuthRedirect()) {
+      handleCookieBasedAuth();
     }
 
     setCheckedCookies(true);
@@ -252,10 +263,13 @@ export default function LoginComponent() {
     try {
       const resp = await acceptTerms({ ticket: termsTicket, accepted: true });
       await handleAuthResponse(resp);
+
+      // Show optional MFA prompt if email MFA was completed or regular MFA wasn't completed
       if (completedEmailMfa || !completedMfa) {
         dispatch({ type: 'OPTIONAL_MFA_PROMPT', qrCodeUrl: '', secret: '' });
         return;
       }
+
       dispatch({ type: 'LOGIN_SUCCESS' });
       window.location.href = redirectTo.startsWith('/') ? redirectTo : '/';
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -371,8 +385,8 @@ export default function LoginComponent() {
                 {isLoading ? 'Signing in...' : 'Sign In'}
               </Button>
 
-              {['mfa', 'mfa-optional', 'mfa-setup', 'confirm-mfa'].every(
-                (s) => s !== status,
+              {!['mfa', 'mfa-optional', 'mfa-setup', 'confirm-mfa'].includes(
+                status,
               ) && (
                 <div className="mt-4 flex flex-col sm:flex-row sm:justify-between gap-2 text-sm text-zinc-400">
                   <button
@@ -392,7 +406,7 @@ export default function LoginComponent() {
                 </div>
               )}
 
-              {status === 'idle' && (
+              {status === 'idle' && enableOAuth && (
                 <>
                   <div className="flex items-center my-6">
                     <div className="flex-grow border-t border-zinc-700" />

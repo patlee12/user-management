@@ -155,6 +155,8 @@ resolve_and_merge_templates "$BACKEND_TEMPLATE" "$BACKEND_PROD_TEMPLATE" "$BACKE
   echo "COOKIE_SECRET=$(quote "$COOKIE_SECRET")"
   echo "PUBLIC_SESSION_SECRET=$(quote "$PUBLIC_SESSION_SECRET")"
   echo "DOMAIN_HOST=$(quote "$DOMAIN_HOST")"
+  echo "ADMIN_EMAIL=$(quote "$ADMIN_EMAIL")"
+  echo "ADMIN_PASSWORD=$(quote "$ADMIN_PASSWORD")"
   echo "ENABLE_OAUTH=$(quote "$ENABLE_OAUTH")"
   if [[ "$ENABLE_OAUTH" == "true" ]]; then
     echo "GOOGLE_CLIENT_ID=$(quote "$GOOGLE_CLIENT_ID")"

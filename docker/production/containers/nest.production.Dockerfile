@@ -1,7 +1,7 @@
 # ----------------------------
 # Stage 1: Builder
 # ----------------------------
-FROM node:22.14.0-alpine AS builder
+FROM node:22-alpine AS builder
 
 # Install required build tools
 RUN apk add --no-cache bash openssl libressl curl
@@ -41,7 +41,7 @@ RUN \
 # ----------------------------
 # Stage 2: Runtime
 # ----------------------------
-FROM node:22.14.0-alpine AS runner
+FROM node:22-alpine AS runner
 
 # Install runtime tools
 RUN apk add --no-cache bash curl libressl

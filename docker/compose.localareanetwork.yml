@@ -1,3 +1,4 @@
+
 services:
   nginx:
     build:
@@ -14,12 +15,12 @@ services:
       - avahi-logs:/avahi
     env_file:
       - .env
-    networks:
-      - full-stack-network
     entrypoint: /etc/nginx/entrypoint.sh
     depends_on:
       - avahi
       - homepage-app
+    networks:
+      - full-stack-network
 
   avahi:
     image: flungo/avahi
@@ -31,15 +32,12 @@ services:
     volumes:
       - avahi-logs:/avahi
       - ./avahi-config:/etc/avahi
-    hostname: ${AVAHI_HOSTNAME}
+    hostname: '${AVAHI_HOSTNAME}'
     command: >
       sh -c "
         apk add --no-cache gettext &&
-        echo '🧹 Clearing previous Avahi logs...' &&
         rm -rf /avahi/* &&
-        echo '📄 Resetting Avahi config...' &&
         envsubst < /etc/avahi/avahi-daemon.conf.template > /etc/avahi/avahi-daemon.conf &&
-        echo '🚀 Starting avahi-daemon and writing logs to /avahi/avahi.log...' &&
         /usr/sbin/avahi-daemon > /avahi/avahi.log 2>&1 &&
         tail -f /dev/null"
 
@@ -50,11 +48,13 @@ services:
     env_file:
       - .env
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: '${POSTGRES_USER}'
+      POSTGRES_PASSWORD: '${POSTGRES_PASSWORD}'
+      POSTGRES_DB: '${POSTGRES_DB}'
     volumes:
       - localareanetwork-production-postgres:/var/lib/postgresql/data
+    ports:
+      - '5435:5432'
     networks:
       - full-stack-network
     healthcheck:
@@ -77,52 +77,38 @@ services:
       - postgres
     environment:
       ADMINER_DEFAULT_SERVER: 'postgres'
-      ADMINER_DEFAULT_DB: ${POSTGRES_DB}
-      ADMINER_DEFAULT_USER: ${POSTGRES_USER}
-      ADMINER_DEFAULT_PASSWORD: ${POSTGRES_PASSWORD}
+      ADMINER_DEFAULT_DB: '${POSTGRES_DB}'
+      ADMINER_DEFAULT_USER: '${POSTGRES_USER}'
+      ADMINER_DEFAULT_PASSWORD: '${POSTGRES_PASSWORD}'
 
   nestjs:
+    container_name: nestjs
     build:
       context: ..
-      dockerfile: ./docker/nest.Dockerfile
-    container_name: nestjs
-    restart: always
+      dockerfile: docker/nest.Dockerfile
     env_file:
-      - .env
-      - ../apps/backend/.env
-      - ../apps/backend/.env.localareanetwork
-    networks:
-      - full-stack-network
+      - ../${BACKEND_ENV_FILE:-apps/backend/.env.localareanetwork}
     depends_on:
       postgres:
         condition: service_healthy
-      hostname-printer:
-        condition: service_completed_successfully
-    volumes:
-      - avahi-logs:/avahi
-    entrypoint: /usr/local/bin/wait-and-start-nest.sh
-
-  homepage-app:
-    build:
-      context: ..
-      dockerfile: ./docker/homepage-app.Dockerfile
-    container_name: homepage-app
-    restart: always
-    ports:
-      - '3001:3000'
-    env_file:
-      - .env
-      - ../apps/frontend/homepage-app/.env
     networks:
       - full-stack-network
-    depends_on:
-      hostname-printer:
-        condition: service_completed_successfully
-      nestjs:
-        condition: service_started
     volumes:
       - avahi-logs:/avahi
-    entrypoint: /usr/local/bin/wait-and-build-frontend.sh
+
+  homepage-app:
+    container_name: homepage-app
+    build:
+      context: ..
+      dockerfile: docker/homepage-app.Dockerfile
+    env_file:
+      - ../${FRONTEND_ENV_FILE:-apps/frontend/homepage-app/.env.localareanetwork}
+    depends_on:
+      - nestjs
+    networks:
+      - full-stack-network
+    volumes:
+      - avahi-logs:/avahi
 
   hostname-printer:
     image: ubuntu:22.04

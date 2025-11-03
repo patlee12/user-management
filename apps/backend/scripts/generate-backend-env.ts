@@ -12,19 +12,23 @@ if (!fs.existsSync(dockerEnvPath)) {
 const dockerEnv = dotenv.parse(fs.readFileSync(dockerEnvPath));
 
 // Extract needed vars
-const {
+let {
   POSTGRES_USER,
   POSTGRES_PASSWORD,
   POSTGRES_DB,
   ADMIN_EMAIL,
   ADMIN_PASSWORD,
+  DATABASE_URL,
+  NODE_ENV,
 } = dockerEnv;
 
 if (!POSTGRES_USER || !POSTGRES_PASSWORD || !POSTGRES_DB) {
   throw new Error('❌ Missing required Postgres vars in docker/.env');
 }
-
-const DATABASE_URL = `postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:5432/${POSTGRES_DB}`;
+if (NODE_ENV !== 'production') {
+  DATABASE_URL = `postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:5435/${POSTGRES_DB}`;
+}
+// const DATABASE_URL =
 
 // Target vars to update
 const injectedVars: Record<string, string> = {

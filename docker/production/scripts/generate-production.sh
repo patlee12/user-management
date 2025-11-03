@@ -3,7 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
-COMPOSE_FILE="$ROOT_DIR/docker/production/docker-compose-production.yml"
+COMPOSE_FILE="$ROOT_DIR/docker/production/compose.production.yml"
 ENV_FILE="$ROOT_DIR/docker/production/.env.production"
 ENV_LOG_LOADER="$SCRIPT_DIR/load-env-from-log.sh"
 

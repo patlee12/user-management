@@ -51,6 +51,7 @@ yarn.lock
 *.vbs
 *env-logs
 *.env.production
+*.env.localareanetwork
 *certs
 *.csr
 csr.conf

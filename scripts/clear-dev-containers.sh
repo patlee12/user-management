@@ -4,7 +4,11 @@ set -euo pipefail
 echo ""
 echo "🧹 Stopping and removing dev containers..."
 
-DEV_COMPOSE_FILE="./docker/docker-compose-development.yml"
+DEV_COMPOSE_FILE="./docker/compose.development.yml"
+
+# Set default env file paths for docker-compose
+export BACKEND_ENV_FILE="${BACKEND_ENV_FILE:-apps/backend/.env}"
+export FRONTEND_ENV_FILE="${FRONTEND_ENV_FILE:-apps/frontend/homepage-app/.env}"
 
 # Step 1: Standard compose down
 if [ -f "$DEV_COMPOSE_FILE" ]; then

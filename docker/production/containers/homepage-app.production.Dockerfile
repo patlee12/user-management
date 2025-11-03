@@ -1,7 +1,7 @@
 # ----------------------------
 # Stage 1: Builder (install deps, build shared/types, build Next)
 # ----------------------------
-FROM node:22.14.0-alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
@@ -31,7 +31,7 @@ RUN yarn build
 # ----------------------------
 # Stage 2: Runner - Production Runtime
 # ----------------------------
-FROM node:22.14.0-alpine AS runner
+FROM node:22-alpine AS runner
 
 WORKDIR /app
 

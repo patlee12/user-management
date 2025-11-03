@@ -1,7 +1,25 @@
 #!/usr/bin/env bash
 set -e
 
-# --- Detect if inside VM ---
+# ────────────────────────────────────────────────────────────────
+# Path Variables
+# ────────────────────────────────────────────────────────────────
+ROOT_DIR="$(pwd)"
+DEV_SCRIPT="$ROOT_DIR/scripts/run-dev.sh"
+PROD_SCRIPT="$ROOT_DIR/docker/production/scripts/run-production-build.sh"
+SETUP_SCRIPT="$ROOT_DIR/setup.sh"
+VIRTUAL_BRIDGE_SCRIPT="$ROOT_DIR/scripts/internal/create-virtual-bridge.sh"
+RUN_IN_VM_SCRIPT="$ROOT_DIR/scripts/internal/run-in-vm.sh"
+
+ENV_DOCKER="$ROOT_DIR/docker/.env"
+ENV_BACKEND="$ROOT_DIR/apps/backend/.env.localareanetwork"
+ENV_FRONTEND="$ROOT_DIR/apps/frontend/homepage-app/.env.localareanetwork"
+
+LAN_COMPOSE_FILE="$ROOT_DIR/docker/compose.localareanetwork.yml"
+
+# ────────────────────────────────────────────────────────────────
+# VM Detection
+# ────────────────────────────────────────────────────────────────
 IS_VM=false
 if [ -f /etc/multipass-info ]; then
   IS_VM=true
@@ -11,7 +29,9 @@ elif hostname | grep -q avahi-vm; then
   IS_VM=true
 fi
 
-# --- Prompt for build type ---
+# ────────────────────────────────────────────────────────────────
+# Prompt for Build Type
+# ────────────────────────────────────────────────────────────────
 echo ""
 echo "🔧 Please choose the build type:"
 PS3="Select an option (1/2/3): "
@@ -25,8 +45,8 @@ select BUILD_TYPE in "${options[@]}"; do
   case "$BUILD_TYPE" in
     "Dev (dev mode)")
       echo ""
-      echo "🚀 Running development build using ./scripts/run-dev.sh ..."
-      ./scripts/run-dev.sh
+      echo "🚀 Running development build using $DEV_SCRIPT ..."
+      $DEV_SCRIPT
       exit 0
       ;;
     "Production Local Area Network (.local) deployment")
@@ -34,8 +54,8 @@ select BUILD_TYPE in "${options[@]}"; do
       ;;
     "Production Build (With Domain and Subdomains)")
       echo ""
-      echo "🚀 Running full production build using ./docker/production/scripts/run-production-build.sh ..."
-      ./docker/production/scripts/run-production-build.sh
+      echo "🚀 Running full production build using $PROD_SCRIPT ..."
+      $PROD_SCRIPT
       exit 0
       ;;
     "Exit")
@@ -48,21 +68,25 @@ select BUILD_TYPE in "${options[@]}"; do
   esac
 done
 
-# --- Shared Setup (for LAN Production only) ---
+# ────────────────────────────────────────────────────────────────
+# Shared Setup (for LAN Production only)
+# ────────────────────────────────────────────────────────────────
 if [[ "$1" != "--vm-mode" ]]; then
   echo ""
   echo "🔧 Preparing your local environment..."
 
-  if [ ! -x "./setup.sh" ]; then
+  if [ ! -x "$SETUP_SCRIPT" ]; then
     echo "🔐 Fixing permission for setup.sh"
-    chmod +x ./setup.sh 2>/dev/null || sudo chmod +x ./setup.sh
+    chmod +x "$SETUP_SCRIPT" 2>/dev/null || sudo chmod +x "$SETUP_SCRIPT"
   fi
 
   echo "🔧 Running setup tasks..."
-  ./setup.sh
+  $SETUP_SCRIPT
 fi
 
-# --- VM Mode ---
+# ────────────────────────────────────────────────────────────────
+# VM Mode
+# ────────────────────────────────────────────────────────────────
 if [[ "$1" == "--vm-mode" || "$IS_VM" == "true" ]]; then
   echo ""
   echo "🚀 Running production Docker stack inside VM (local area network)..."
@@ -70,19 +94,25 @@ if [[ "$1" == "--vm-mode" || "$IS_VM" == "true" ]]; then
   export NODE_ENV=production
   export VM_MODE=true
 
-  echo "📦 Sourcing .env and .env.localareanetwork..."
+  echo "📦 Sourcing .env files..."
   set -a
-  [ -f ./docker/.env ] && source ./docker/.env
-  [ -f ./apps/backend/.env.localareanetwork ] && source ./apps/backend/.env.localareanetwork
-  [ -f ./apps/frontend/homepage-app/.env.localareanetwork ] && source ./apps/frontend/homepage-app/.env.localareanetwork
+  [ -f "$ENV_DOCKER" ] && source "$ENV_DOCKER"
+  [ -f "$ENV_BACKEND" ] && source "$ENV_BACKEND"
+  [ -f "$ENV_FRONTEND" ] && source "$ENV_FRONTEND"
   set +a
 
+  # Set env file paths for docker-compose
+  export BACKEND_ENV_FILE="apps/backend/.env.localareanetwork"
+  export FRONTEND_ENV_FILE="apps/frontend/homepage-app/.env.localareanetwork"
+
   echo "🚀 Starting Docker Compose for VM/production..."
-  docker compose -f docker/docker-compose-local-area-network.yml up --build
+  docker compose -f "$LAN_COMPOSE_FILE" up --build
   exit 0
 fi
 
-# --- Local Production Mode (non-VM) ---
+# ────────────────────────────────────────────────────────────────
+# Local Production Mode (non-VM)
+# ────────────────────────────────────────────────────────────────
 OS_NAME=$(uname -s)
 IS_UBUNTU=false
 if [ "$OS_NAME" == "Linux" ]; then
@@ -93,20 +123,24 @@ if [ "$OS_NAME" == "Linux" ]; then
 fi
 
 if [ "$IS_UBUNTU" == "true" ]; then
-  echo "📦 Sourcing .env and .env.localareanetwork..."
+  echo "📦 Sourcing .env files..."
   set -a
-  [ -f ./docker/.env ] && source ./docker/.env
-  [ -f ./apps/backend/.env.localareanetwork ] && source ./apps/backend/.env.localareanetwork
-  [ -f ./apps/frontend/homepage-app/.env.localareanetwork ] && source ./apps/frontend/homepage-app/.env.localareanetwork
+  [ -f "$ENV_DOCKER" ] && source "$ENV_DOCKER"
+  [ -f "$ENV_BACKEND" ] && source "$ENV_BACKEND"
+  [ -f "$ENV_FRONTEND" ] && source "$ENV_FRONTEND"
   set +a
 
+  # Set env file paths for docker-compose
+  export BACKEND_ENV_FILE="apps/backend/.env.localareanetwork"
+  export FRONTEND_ENV_FILE="apps/frontend/homepage-app/.env.localareanetwork"
+
   echo "🚀 Running on Ubuntu. Proceeding with local production build..."
-  docker compose -f docker/docker-compose-local-area-network.yml build --no-cache
-  docker compose -f docker/docker-compose-local-area-network.yml up
+  docker compose -f "$LAN_COMPOSE_FILE" build --no-cache
+  docker compose -f "$LAN_COMPOSE_FILE" up
 else
   echo "🧠 Detected non-Ubuntu system ($OS_NAME). Running production build inside VM..."
   if [ "$IS_VM" != "true" ]; then
-    ./scripts/internal/create-virtual-bridge.sh
+    $VIRTUAL_BRIDGE_SCRIPT
   fi
-  ./scripts/internal/run-in-vm.sh
+  $RUN_IN_VM_SCRIPT
 fi
